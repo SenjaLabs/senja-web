@@ -66,6 +66,20 @@
     /* Special Gradients */
     --gradient-warm: linear-gradient(135deg, #ffd89b 0%, #ff8a80 50%, #c2185b 100%);
     --gradient-twilight-soft: linear-gradient(135deg, #fed7aa 0%, #fbcfe8 100%);
+    --gradient-peach-coral-purple: linear-gradient(180deg, #FFD4A3 0%, #FF8A65 50%, #8E24AA 100%);
+    --gradient-peach-coral-purple-diagonal: linear-gradient(135deg, #FFD4A3 0%, #FF8A65 50%, #8E24AA 100%);
+
+    /* Senja Platform Colors */
+    --senja-cream: #FFF3E0;
+    --senja-cream-light: #FFE0B2;
+    --senja-orange: #FF7043;
+    --senja-brown: #5D4037;
+    --senja-brown-dark: #4E342E;
+    --senja-background: #FAFAFA;
+
+    /* Senja Gradients */
+    --gradient-senja-cream: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    --gradient-senja-warm: linear-gradient(135deg, #FFF3E0 0%, #FFCC80 50%, #FF7043 100%);
 
     /* Border Gradients */
     --border-gradient-sunset: linear-gradient(135deg, #ff6b6b, #ee5a94, #a855f7);
@@ -125,9 +139,37 @@
     66% { transform: translate(-20px, 20px) scale(0.9); }
     100% { transform: translate(0px, 0px) scale(1); }
   }
+
+  @keyframes cute-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+
+  @keyframes sunset-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(238, 90, 148, 0.5); }
+  }
+
+  @keyframes warm-shadow {
+    0%, 100% { box-shadow: 0 10px 25px rgba(255, 138, 101, 0.2); }
+    50% { box-shadow: 0 15px 35px rgba(255, 212, 163, 0.3); }
+  }
   
   .animate-blob {
     animation: blob 7s infinite;
+  }
+
+  .cute-bounce {
+    animation: cute-bounce 2s infinite;
+  }
+
+  .sunset-glow {
+    animation: sunset-glow 3s ease-in-out infinite;
+  }
+
+  .warm-shadow {
+    animation: warm-shadow 4s ease-in-out infinite;
   }
   
   .animation-delay-2000 {
@@ -156,8 +198,32 @@
   /* Special Gradient Utilities */
   .bg-gradient-warm { background: var(--gradient-warm); }
   .bg-gradient-twilight-soft { background: var(--gradient-twilight-soft); }
-  .bg-main { background: var(--gradient-warm); }
-  .bg-root { background: var(--gradient-warm); }
+  .bg-gradient-peach-coral-purple { background: var(--gradient-peach-coral-purple); }
+  .bg-gradient-peach-coral-purple-diagonal { background: var(--gradient-peach-coral-purple-diagonal); }
+  .bg-gradient-senja-cream { background: var(--gradient-senja-cream); }
+  .bg-gradient-senja-warm { background: var(--gradient-senja-warm); }
+  .bg-main { background: var(--gradient-peach-coral-purple); }
+  .bg-root { background: var(--gradient-peach-coral-purple); }
+
+  /* Senja Color Utilities */
+  .bg-senja-cream { background-color: var(--senja-cream); }
+  .bg-senja-cream-light { background-color: var(--senja-cream-light); }
+  .bg-senja-orange { background-color: var(--senja-orange); }
+  .bg-senja-brown { background-color: var(--senja-brown); }
+  .bg-senja-brown-dark { background-color: var(--senja-brown-dark); }
+  .bg-senja-background { background-color: var(--senja-background); }
+
+  .text-senja-cream { color: var(--senja-cream); }
+  .text-senja-cream-light { color: var(--senja-cream-light); }
+  .text-senja-orange { color: var(--senja-orange); }
+  .text-senja-brown { color: var(--senja-brown); }
+  .text-senja-brown-dark { color: var(--senja-brown-dark); }
+
+  .border-senja-cream { border-color: var(--senja-cream); }
+  .border-senja-cream-light { border-color: var(--senja-cream-light); }
+  .border-senja-orange { border-color: var(--senja-orange); }
+  .border-senja-brown { border-color: var(--senja-brown); }
+  .border-senja-brown-dark { border-color: var(--senja-brown-dark); }
 
   /* Sunset Color Utilities */
   .bg-sunset-orange { background-color: var(--sunset-orange); }
