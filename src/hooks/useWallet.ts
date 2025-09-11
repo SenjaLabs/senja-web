@@ -210,6 +210,7 @@ export const useWallet = (): WalletState & WalletActions => {
     }
   }, [sdk, state.account]);
 
+
   const switchNetwork = useCallback(async (chainId: number) => {
     if (!sdk) {
       setState(prev => ({ ...prev, error: 'SDK not initialized' }));

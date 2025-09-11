@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SplashScreen from "./SplashScreen";
 import { splashUtils } from "@/utils/splash";
+import { ChainProvider } from "@/lib/chain";
 
 interface AppWrapperProps {
   children: React.ReactNode;
@@ -41,5 +42,9 @@ export default function AppWrapper({ children }: AppWrapperProps) {
   }
 
   // Show main app content
-  return <>{children}</>;
+  return (
+    <ChainProvider>
+      {children}
+    </ChainProvider>
+  );
 }

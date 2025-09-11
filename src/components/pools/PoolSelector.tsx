@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import Image from 'next/image';
-import { tokens } from '@/lib/addresses/tokenAddress';
-import { Token } from '@/types';
+import React, { useState, memo } from "react";
+import { ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { tokens } from "@/lib/addresses/tokenAddress";
+import { Token } from "@/types";
+import { useCurrentChainId } from "@/lib/chain";
 
 interface PoolToken {
   symbol: string;
@@ -29,50 +30,54 @@ interface PoolSelectorProps {
 }
 
 // Helper function to convert Token to PoolToken
-const tokenToPoolToken = (token: Token, chainId: number = 8453): PoolToken => ({
+const tokenToPoolToken = (token: Token, chainId: number): PoolToken => ({
   symbol: token.symbol,
   name: token.name,
   logo: token.logo,
-  address: token.addresses[chainId]
+  address: token.addresses[chainId],
 });
 
 // Get tokens from the address library
 const [weth, wbtc, usdc, usdt, kaia] = tokens;
 
-const DEFAULT_POOLS: Pool[] = [
+// Create default pools with dynamic chain ID
+const createDefaultPools = (chainId: number): Pool[] => [
   {
-    id: '1',
-    loanToken: tokenToPoolToken(usdc),
-    collateralToken: tokenToPoolToken(weth),
-    ltv: '80.00%',
-    liquidity: '48,810',
-    apy: '8.5%'
+    id: "1",
+    loanToken: tokenToPoolToken(usdc, chainId),
+    collateralToken: tokenToPoolToken(weth, chainId),
+    ltv: "80.00%",
+    liquidity: "48,810",
+    apy: "8.5%",
   },
   {
-    id: '2',
-    loanToken: tokenToPoolToken(usdt),
-    collateralToken: tokenToPoolToken(wbtc),
-    ltv: '75.00%',
-    liquidity: '32,150',
-    apy: '7.2%'
+    id: "2",
+    loanToken: tokenToPoolToken(usdt, chainId),
+    collateralToken: tokenToPoolToken(wbtc, chainId),
+    ltv: "75.00%",
+    liquidity: "32,150",
+    apy: "7.2%",
   },
   {
-    id: '3',
-    loanToken: tokenToPoolToken(kaia),
-    collateralToken: tokenToPoolToken(usdc),
-    ltv: '65.00%',
-    liquidity: '15,890',
-    apy: '12.3%'
-  }
+    id: "3",
+    loanToken: tokenToPoolToken(kaia, chainId),
+    collateralToken: tokenToPoolToken(usdc, chainId),
+    ltv: "65.00%",
+    liquidity: "15,890",
+    apy: "12.3%",
+  },
 ];
 
-export function PoolSelector({ 
-  pools = DEFAULT_POOLS, 
+export const PoolSelector = memo(function PoolSelector({
+  pools,
   onPoolSelect,
-  selectedPool 
+  selectedPool,
 }: PoolSelectorProps) {
+  const currentChainId = useCurrentChainId();
+  const defaultPools = createDefaultPools(currentChainId);
+  const poolsToUse = pools || defaultPools;
   const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState<Pool>(selectedPool || pools[0]);
+  const [selected, setSelected] = useState<Pool>(selectedPool || poolsToUse[0]);
 
   const handleSelect = (pool: Pool) => {
     setSelected(pool);
@@ -100,11 +105,15 @@ export function PoolSelector({
                 className="rounded-full w-5 h-5 md:w-6 md:h-6"
               />
             </div>
-            <span className="text-senja-brown font-medium text-sm md:text-base truncate">{selected.loanToken.symbol}</span>
+            <span className="text-senja-brown font-medium text-sm md:text-base truncate">
+              {selected.loanToken.symbol}
+            </span>
           </div>
 
           {/* Arrow */}
-          <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">→</div>
+          <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">
+            →
+          </div>
 
           {/* To Token */}
           <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
@@ -117,22 +126,24 @@ export function PoolSelector({
                 className="rounded-full w-5 h-5 md:w-6 md:h-6"
               />
             </div>
-            <span className="text-senja-brown font-medium text-sm md:text-base truncate">{selected.collateralToken.symbol}</span>
+            <span className="text-senja-brown font-medium text-sm md:text-base truncate">
+              {selected.collateralToken.symbol}
+            </span>
           </div>
         </div>
 
         {/* Dropdown Icon */}
-        <ChevronDown 
+        <ChevronDown
           className={`w-4 h-4 md:w-5 md:h-5 text-senja-brown/60 transition-transform duration-200 flex-shrink-0 ml-4 ${
-            isOpen ? 'rotate-180' : ''
-          }`} 
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-xl border border-senja-cream-light/70 shadow-xl z-50 overflow-hidden">
-          {pools.map((pool) => (
+          {poolsToUse.map((pool) => (
             <button
               key={pool.id}
               onClick={() => handleSelect(pool)}
@@ -152,11 +163,15 @@ export function PoolSelector({
                         className="rounded-full w-4 h-4 md:w-5 md:h-5"
                       />
                     </div>
-                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">{pool.loanToken.symbol}</span>
+                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">
+                      {pool.loanToken.symbol}
+                    </span>
                   </div>
 
                   {/* Arrow */}
-                  <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">→</div>
+                  <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">
+                    →
+                  </div>
 
                   {/* To Token */}
                   <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
@@ -169,13 +184,17 @@ export function PoolSelector({
                         className="rounded-full w-4 h-4 md:w-5 md:h-5"
                       />
                     </div>
-                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">{pool.collateralToken.symbol}</span>
+                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">
+                      {pool.collateralToken.symbol}
+                    </span>
                   </div>
                 </div>
 
                 {/* Pool Stats */}
                 <div className="text-right flex-shrink-0 ml-3">
-                  <div className="text-senja-orange text-sm md:text-base font-medium">{pool.apy}</div>
+                  <div className="text-senja-orange text-sm md:text-base font-medium">
+                    {pool.apy}
+                  </div>
                   <div className="text-senja-brown/60 text-xs">APY</div>
                 </div>
               </div>
@@ -186,11 +205,8 @@ export function PoolSelector({
 
       {/* Overlay to close dropdown */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}
     </div>
   );
-}
+});

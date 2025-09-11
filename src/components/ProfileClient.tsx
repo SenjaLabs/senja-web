@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import SwitchWalletButton from "./button/SwitchWalletButton";
 
-const ProfileClient = () => {
+const ProfileClient = memo(function ProfileClient() {
   const {
     isConnected,
     account,
@@ -213,6 +213,6 @@ const ProfileClient = () => {
       </div>
     </div>
   );
-};
+});
 
 export default ProfileClient;

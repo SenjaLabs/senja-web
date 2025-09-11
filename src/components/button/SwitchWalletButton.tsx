@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { ChevronDownIcon, CheckIcon, X } from "lucide-react";
 import Image from "next/image";
+import { useCurrentChain, useAllChains, useChainActions } from "@/lib/chain";
 import { chains } from "@/lib/addresses/chainAddress";
 
 interface SwitchChainButtonProps {
@@ -25,18 +26,21 @@ export default function SwitchChainButton({
   const [isOpen, setIsOpen] = useState(false);
   const { chainId } = useAccount();
   const { switchChain, isPending } = useSwitchChain();
+  
+  // Use dynamic chain system
+  const currentChain = useCurrentChain();
+  const allChains = useAllChains();
+  const { setChain } = useChainActions();
 
   const supportedChains = [base, kaia, optimism];
-  const currentChain = chainId
-    ? supportedChains.find((chain) => chain.id === chainId)
-    : null;
 
   const handleSwitchChain = async (targetChainId: number) => {
     try {
       await switchChain({ chainId: targetChainId as any });
+      setChain(targetChainId); // Update our chain context
       setIsOpen(false);
     } catch (error) {
-      console.error("Failed to switch chain:", error);
+      // Silent error handling for production
     }
   };
 
@@ -100,7 +104,7 @@ export default function SwitchChainButton({
 
           <div className="pb-4 sm:pb-6">
             <div className="space-y-2 sm:space-y-3">
-              {supportedChains.map((chain) => (
+              {allChains.map((chain) => (
                 <button
                   key={chain.id}
                   onClick={() => handleSwitchChain(chain.id)}
@@ -120,10 +124,7 @@ export default function SwitchChainButton({
                       <Image
                         width={40}
                         height={40}
-                        src={
-                          chains.find((c) => c.id === chain.id)?.logo ||
-                          ""
-                        }
+                        src={chain.logo}
                         alt={chain.name}
                         className="w-8 h-8 sm:w-10 sm:h-10 rounded-full ring-2 ring-white shadow-md"
                         onError={(e) => {

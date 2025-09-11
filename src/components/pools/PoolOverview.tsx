@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -8,6 +8,7 @@ import { PoolCard } from './PoolCard';
 import { PoolSelector } from './PoolSelector';
 import { tokens } from '@/lib/addresses/tokenAddress';
 import { Token } from '@/types';
+import { useCurrentChainId } from '@/lib/chain';
 
 interface PoolToken {
   symbol: string;
@@ -33,7 +34,7 @@ interface PoolOverviewProps {
 }
 
 // Helper function to convert Token to PoolToken
-const tokenToPoolToken = (token: Token, chainId: number = 8453): PoolToken => ({
+const tokenToPoolToken = (token: Token, chainId: number): PoolToken => ({
   symbol: token.symbol,
   name: token.name,
   logo: token.logo,
@@ -43,47 +44,51 @@ const tokenToPoolToken = (token: Token, chainId: number = 8453): PoolToken => ({
 // Get tokens from the address library
 const [weth, wbtc, usdc, usdt, kaia] = tokens;
 
-const DEFAULT_POOLS: Pool[] = [
+// Create default pools with dynamic chain ID
+const createDefaultPools = (chainId: number): Pool[] => [
   {
     id: '1',
-    loanToken: tokenToPoolToken(usdc),
-    collateralToken: tokenToPoolToken(weth),
+    loanToken: tokenToPoolToken(usdc, chainId),
+    collateralToken: tokenToPoolToken(weth, chainId),
     ltv: '80.00%',
     liquidity: '48,810',
     apy: '12.5%'
   },
   {
     id: '2',
-    loanToken: tokenToPoolToken(usdt),
-    collateralToken: tokenToPoolToken(wbtc),
+    loanToken: tokenToPoolToken(usdt, chainId),
+    collateralToken: tokenToPoolToken(wbtc, chainId),
     ltv: '75.00%',
     liquidity: '32,450',
     apy: '15.2%'
   },
   {
     id: '3',
-    loanToken: tokenToPoolToken(usdc),
-    collateralToken: tokenToPoolToken(kaia),
+    loanToken: tokenToPoolToken(usdc, chainId),
+    collateralToken: tokenToPoolToken(kaia, chainId),
     ltv: '70.00%',
     liquidity: '18,920',
     apy: '18.7%'
   },
   {
     id: '4',
-    loanToken: tokenToPoolToken(usdt),
-    collateralToken: tokenToPoolToken(weth),
+    loanToken: tokenToPoolToken(usdt, chainId),
+    collateralToken: tokenToPoolToken(weth, chainId),
     ltv: '65.00%',
     liquidity: '25,380',
     apy: '14.3%'
   }
 ];
 
-export function PoolOverview({ 
-  pools = DEFAULT_POOLS, 
+export const PoolOverview = memo(function PoolOverview({ 
+  pools, 
   onCreatePool, 
   onPoolClick,
   onPoolSelect
 }: PoolOverviewProps) {
+  const currentChainId = useCurrentChainId();
+  const defaultPools = createDefaultPools(currentChainId);
+  const poolsToUse = pools || defaultPools;
   return (
     <div className="w-full space-y-6">
       {/* Header */}
@@ -92,7 +97,7 @@ export function PoolOverview({
           <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div className="flex justify-center md:justify-start">
               <PoolSelector 
-                pools={pools}
+                pools={poolsToUse}
                 onPoolSelect={onPoolSelect}
               />
             </div>
@@ -121,7 +126,7 @@ export function PoolOverview({
 
       {/* Pool Cards */}
       <div className="space-y-3">
-        {pools.map((pool) => (
+        {poolsToUse.map((pool) => (
           <PoolCard
             key={pool.id}
             loanToken={pool.loanToken}
@@ -135,7 +140,7 @@ export function PoolOverview({
       </div>
 
       {/* Empty State */}
-      {pools.length === 0 && (
+      {poolsToUse.length === 0 && (
         <Card className="bg-white/60 backdrop-blur-sm border border-senja-cream-light/50 shadow-sm">
           <CardContent className="p-12 text-center">
             <div className="text-senja-brown/60">
@@ -156,4 +161,4 @@ export function PoolOverview({
       )}
     </div>
   );
-}
+})

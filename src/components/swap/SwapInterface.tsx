@@ -1,80 +1,99 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ArrowUpDown, Settings, Info, ChevronDown } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { TokenSelector } from './TokenSelector';
-
-interface Token {
-  symbol: string;
-  name: string;
-  logo: string;
-  balance?: string;
-}
+import React, { useState, useCallback, memo } from "react";
+import { ArrowUpDown, Info, ChevronDown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { TokenSelector } from "../select/token";
+import { PoolSelector } from "../select/pools";
+import { Token } from "@/types";
+import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
 interface SwapInterfaceProps {
   onSwap: (fromToken: Token, toToken: Token, amount: string) => void;
 }
 
-export function SwapInterface({ onSwap }: SwapInterfaceProps) {
+export const SwapInterface = memo(function SwapInterface({
+  onSwap,
+}: SwapInterfaceProps) {
   const [fromToken, setFromToken] = useState<Token | undefined>();
   const [toToken, setToToken] = useState<Token | undefined>();
-  const [fromAmount, setFromAmount] = useState('');
-  const [toAmount, setToAmount] = useState('');
+  const [fromAmount, setFromAmount] = useState("");
+  const [toAmount, setToAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPriceDetails, setShowPriceDetails] = useState(false);
   const [showWarningDetails, setShowWarningDetails] = useState(false);
-  const [slippageTolerance, setSlippageTolerance] = useState(0.5);
-  const [transactionDeadline, setTransactionDeadline] = useState(20);
+  const [selectedPool, setSelectedPool] =
+    useState<LendingPoolWithTokens | null>(null);
 
   const exchangeRate = 1850.42; // Mock exchange rate
-  const priceImpact = 0.12; // Mock price impact
-  const minReceived = toAmount ? (parseFloat(toAmount) * 0.995).toFixed(6) : '0';
+  const minReceived = toAmount
+    ? (parseFloat(toAmount) * 0.995).toFixed(6)
+    : "0";
 
-  const handleSwapTokens = () => {
+  const handleSwapTokens = useCallback(() => {
     const tempToken = fromToken;
     const tempAmount = fromAmount;
-    
+
     setFromToken(toToken);
     setToToken(tempToken);
     setFromAmount(toAmount);
     setToAmount(tempAmount);
-  };
+  }, [fromToken, toToken, fromAmount, toAmount]);
 
-  const handleFromAmountChange = (value: string) => {
-    setFromAmount(value);
-    if (value && fromToken && toToken) {
-      // Mock conversion calculation
-      const converted = parseFloat(value) * exchangeRate;
-      setToAmount(converted.toFixed(6));
-    } else {
-      setToAmount('');
+  const handleFromAmountChange = useCallback(
+    (value: string) => {
+      setFromAmount(value);
+      if (value && fromToken && toToken) {
+        const converted = parseFloat(value) * exchangeRate;
+        setToAmount(converted.toFixed(6));
+      } else {
+        setToAmount("");
+      }
+    },
+    [fromToken, toToken, exchangeRate]
+  );
+
+  const handlePoolSelect = useCallback((pool: LendingPoolWithTokens) => {
+    setSelectedPool(pool);
+
+    // Auto-set tokens based on selected pool
+    if (pool.borrowTokenInfo && pool.collateralTokenInfo) {
+      setFromToken(pool.collateralTokenInfo);
+      setToToken(pool.borrowTokenInfo);
     }
-  };
+  }, []);
 
-  const handleSwap = async () => {
+  const handleSwap = useCallback(async () => {
     if (!fromToken || !toToken || !fromAmount) return;
-    
+
     setIsLoading(true);
     try {
       await onSwap(fromToken, toToken, fromAmount);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fromToken, toToken, fromAmount, onSwap]);
 
-  const canSwap = fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0;
+  const toggleWarningDetails = useCallback(() => {
+    setShowWarningDetails((prev) => !prev);
+  }, []);
+
+  const canSwap =
+    fromToken && toToken && fromAmount && parseFloat(fromAmount) > 0;
   const needsWalletConnection = false; // This would come from wallet context
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-lg mx-auto">
       <Card className="bg-white/80 backdrop-blur-sm border border-sunset-orange shadow-xl">
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Swap</h2>
+            <PoolSelector
+              selectedPool={selectedPool}
+              onPoolSelect={handlePoolSelect}
+            />
           </div>
 
           {/* From Token Section */}
@@ -82,13 +101,11 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Sell</span>
-                {fromToken?.balance && (
-                  <span className="text-sm text-gray-500">
-                    Balance: {fromToken.balance} {fromToken.symbol}
-                  </span>
-                )}
+                <span className="text-sm text-gray-500">
+                  {fromToken ? `${fromToken.symbol} Token` : "Select token"}
+                </span>
               </div>
-              
+
               <div className="relative bg-sunset-pink-light rounded-xl p-4 border border-sunset-orange">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 mr-4">
@@ -133,13 +150,11 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Buy</span>
-                {toToken?.balance && (
-                  <span className="text-sm text-gray-500">
-                    Balance: {toToken.balance} {toToken.symbol}
-                  </span>
-                )}
+                <span className="text-sm text-gray-500">
+                  {toToken ? `${toToken.symbol} Token` : "Select token"}
+                </span>
               </div>
-              
+
               <div className="relative bg-sunset-pink-light rounded-xl p-4 border border-sunset-orange">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 mr-4">
@@ -176,11 +191,17 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
                 Connect wallet
               </Button>
             ) : !fromToken || !toToken ? (
-              <Button disabled className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200">
+              <Button
+                disabled
+                className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
+              >
                 Select tokens
               </Button>
             ) : !fromAmount || parseFloat(fromAmount) <= 0 ? (
-              <Button disabled className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200">
+              <Button
+                disabled
+                className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
+              >
                 Enter amount
               </Button>
             ) : (
@@ -189,7 +210,9 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
                 disabled={!canSwap || isLoading}
                 className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
               >
-                {isLoading ? 'Swapping...' : `Swap ${fromToken.symbol} for ${toToken.symbol}`}
+                {isLoading
+                  ? "Swapping..."
+                  : `Swap ${fromToken.symbol} for ${toToken.symbol}`}
               </Button>
             )}
           </div>
@@ -198,18 +221,18 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
           {fromToken && toToken && fromAmount && (
             <div className="mt-4 bg-orange-50 rounded-lg border border-orange-200">
               <button
-                onClick={() => setShowWarningDetails(!showWarningDetails)}
+                onClick={toggleWarningDetails}
                 className="w-full p-3 flex items-center text-orange-700 text-sm hover:bg-orange-100/50 transition-colors rounded-lg"
               >
                 <Info className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span>This trade cannot be completed right now</span>
-                <ChevronDown 
+                <ChevronDown
                   className={`h-4 w-4 ml-auto text-orange-700 transition-transform ${
-                    showWarningDetails ? 'rotate-180' : ''
-                  }`} 
+                    showWarningDetails ? "rotate-180" : ""
+                  }`}
                 />
               </button>
-              
+
               {/* Expanded Trading Details */}
               {showWarningDetails && (
                 <div className="px-3 pb-3 border-t border-yellow-200/50">
@@ -221,7 +244,7 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
                       </div>
                       <span className="text-gray-900 font-medium">$11.02</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center text-gray-600">
                         <span>Network cost</span>
@@ -234,15 +257,17 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
                         <span className="font-medium">N/A</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center text-gray-600">
                         <span>Order routing</span>
                         <Info className="h-3 w-3 ml-1 text-gray-500" />
                       </div>
-                      <span className="text-gray-900 font-medium">Uniswap API</span>
+                      <span className="text-gray-900 font-medium">
+                        Uniswap API
+                      </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center text-gray-600">
                         <span>Price impact</span>
@@ -250,7 +275,7 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
                       </div>
                       <span className="text-green-600 font-medium">-0.31%</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center text-gray-600">
                         <span>Max slippage</span>
@@ -266,10 +291,8 @@ export function SwapInterface({ onSwap }: SwapInterfaceProps) {
               )}
             </div>
           )}
-
         </CardContent>
       </Card>
-
     </div>
   );
-}
+});
