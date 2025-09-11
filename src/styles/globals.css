@@ -1,0 +1,209 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
+
+    /* Sunset/Twilight Gradient Color System */
+    --sunset-orange: #ff6b6b;
+    --sunset-pink: #ee5a94;
+    --sunset-purple: #a855f7;
+    --sunset-violet: #8b5cf6;
+    --sunset-red: #dc2626;
+    --sunset-orange-light: #fed7d1;
+    --sunset-pink-light: #fce7f3;
+    --sunset-purple-light: #f3e8ff;
+    --sunset-violet-light: #e5e7eb;
+
+    /* Base Gradient Definitions */
+    --gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #ee5a94 50%, #a855f7 100%);
+    --gradient-twilight: linear-gradient(135deg, #ee5a94 0%, #a855f7 50%, #8b5cf6 100%);
+    --gradient-orange-pink: linear-gradient(135deg, #ff6b6b 0%, #ee5a94 100%);
+    --gradient-orange-red: linear-gradient(135deg, #ff6b6b 0%, #dc2626 100%);
+    --gradient-pink-purple: linear-gradient(135deg, #ee5a94 0%, #a855f7 100%);
+    --gradient-purple-violet: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+    --gradient-red-orange: linear-gradient(135deg, #dc2626 0%, #ff6b6b 100%);
+
+    /* Soft Gradient Backgrounds */
+    --gradient-orange-pink-soft: linear-gradient(135deg, #fed7d1 0%, #fce7f3 100%);
+    --gradient-orange-red-soft: linear-gradient(135deg, #fed7d1 0%, #fecaca 100%);
+    --gradient-pink-purple-soft: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+    --gradient-purple-violet-soft: linear-gradient(135deg, #f3e8ff 0%, #e5e7eb 100%);
+
+    /* Special Gradients */
+    --gradient-warm: linear-gradient(135deg, #ffd89b 0%, #ff8a80 50%, #c2185b 100%);
+    --gradient-twilight-soft: linear-gradient(135deg, #fed7aa 0%, #fbcfe8 100%);
+
+    /* Border Gradients */
+    --border-gradient-sunset: linear-gradient(135deg, #ff6b6b, #ee5a94, #a855f7);
+    --border-gradient-twilight: linear-gradient(135deg, #ee5a94, #a855f7, #8b5cf6);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 94.1%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 10.6% 64.9%;
+  }
+
+  * {
+    border-color: var(--border);
+    outline-color: rgba(var(--ring), 0.5);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  
+  .animate-blob {
+    animation: blob 7s infinite;
+  }
+  
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  /* Base Gradient Utilities */
+  .bg-gradient-sunset { background: var(--gradient-sunset); }
+  .bg-gradient-twilight { background: var(--gradient-twilight); }
+  .bg-gradient-orange-pink { background: var(--gradient-orange-pink); }
+  .bg-gradient-orange-red { background: var(--gradient-orange-red); }
+  .bg-gradient-pink-purple { background: var(--gradient-pink-purple); }
+  .bg-gradient-purple-violet { background: var(--gradient-purple-violet); }
+  .bg-gradient-red-orange { background: var(--gradient-red-orange); }
+
+  /* Soft Gradient Utilities */
+  .bg-gradient-orange-pink-soft { background: var(--gradient-orange-pink-soft); }
+  .bg-gradient-orange-red-soft { background: var(--gradient-orange-red-soft); }
+  .bg-gradient-pink-purple-soft { background: var(--gradient-pink-purple-soft); }
+  .bg-gradient-purple-violet-soft { background: var(--gradient-purple-violet-soft); }
+
+  /* Special Gradient Utilities */
+  .bg-gradient-warm { background: var(--gradient-warm); }
+  .bg-gradient-twilight-soft { background: var(--gradient-twilight-soft); }
+  .bg-main { background: var(--gradient-warm); }
+  .bg-root { background: var(--gradient-warm); }
+
+  /* Sunset Color Utilities */
+  .bg-sunset-orange { background-color: var(--sunset-orange); }
+  .bg-sunset-pink { background-color: var(--sunset-pink); }
+  .bg-sunset-purple { background-color: var(--sunset-purple); }
+  .bg-sunset-violet { background-color: var(--sunset-violet); }
+  .bg-sunset-red { background-color: var(--sunset-red); }
+  .bg-sunset-orange-light { background-color: var(--sunset-orange-light); }
+  .bg-sunset-pink-light { background-color: var(--sunset-pink-light); }
+  .bg-sunset-purple-light { background-color: var(--sunset-purple-light); }
+  .bg-sunset-violet-light { background-color: var(--sunset-violet-light); }
+
+  /* Text Color Utilities */
+  .text-gradient-sunset {
+    background: var(--gradient-sunset);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .text-gradient-twilight {
+    background: var(--gradient-twilight);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .text-sunset-orange { color: var(--sunset-orange); }
+  .text-sunset-pink { color: var(--sunset-pink); }
+  .text-sunset-purple { color: var(--sunset-purple); }
+  .text-sunset-violet { color: var(--sunset-violet); }
+  .text-sunset-red { color: var(--sunset-red); }
+
+  /* Border Color Utilities - Now handled by Tailwind config */
+  .border-sunset-orange { border-color: var(--sunset-orange); }
+  .border-sunset-pink { border-color: var(--sunset-pink); }
+  .border-sunset-purple { border-color: var(--sunset-purple); }
+  .border-sunset-violet { border-color: var(--sunset-violet); }
+  .border-sunset-red { border-color: var(--sunset-red); }
+
+  /* Border Gradient Utilities */
+  .border-gradient-sunset { border-image: var(--border-gradient-sunset) 1; }
+  .border-gradient-twilight { border-image: var(--border-gradient-twilight) 1; }
+
+  /* Hover Utilities */
+  .hover\:bg-gradient-sunset:hover { background: var(--gradient-sunset); }
+  .hover\:bg-gradient-twilight:hover { background: var(--gradient-twilight); }
+  .hover\:border-gradient-sunset:hover { border-image: var(--border-gradient-sunset) 1; }
+  .hover\:border-gradient-twilight:hover { border-image: var(--border-gradient-twilight) 1; }
+
+}

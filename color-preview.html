@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            /* Sunset/Twilight Gradient Color System */
+            --sunset-orange: #ff6b6b;
+            --sunset-pink: #ee5a94;
+            --sunset-purple: #a855f7;
+            --sunset-violet: #8b5cf6;
+            --sunset-red: #dc2626;
+            --sunset-orange-light: #fed7d1;
+            --sunset-pink-light: #fce7f3;
+            --sunset-purple-light: #f3e8ff;
+            --sunset-violet-light: #e5e7eb;
+
+            /* Base Gradient Definitions */
+            --gradient-sunset: linear-gradient(135deg, #ff6b6b 0%, #ee5a94 50%, #a855f7 100%);
+            --gradient-twilight: linear-gradient(135deg, #ee5a94 0%, #a855f7 50%, #8b5cf6 100%);
+            --gradient-orange-pink: linear-gradient(135deg, #ff6b6b 0%, #ee5a94 100%);
+            --gradient-orange-red: linear-gradient(135deg, #ff6b6b 0%, #dc2626 100%);
+            --gradient-pink-purple: linear-gradient(135deg, #ee5a94 0%, #a855f7 100%);
+            --gradient-purple-violet: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+            --gradient-red-orange: linear-gradient(135deg, #dc2626 0%, #ff6b6b 100%);
+
+            /* Soft Gradient Backgrounds */
+            --gradient-orange-pink-soft: linear-gradient(135deg, #fed7d1 0%, #fce7f3 100%);
+            --gradient-orange-red-soft: linear-gradient(135deg, #fed7d1 0%, #fecaca 100%);
+            --gradient-pink-purple-soft: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 100%);
+            --gradient-purple-violet-soft: linear-gradient(135deg, #f3e8ff 0%, #e5e7eb 100%);
+
+            /* Special Gradients */
+            --gradient-warm: linear-gradient(135deg, #ffd89b 0%, #ff8a80 50%, #c2185b 100%);
+            --gradient-twilight-soft: linear-gradient(135deg, #fed7aa 0%, #fbcfe8 100%);
+        }
+
+        .bg-gradient-sunset { background: var(--gradient-sunset); }
+        .bg-gradient-twilight { background: var(--gradient-twilight); }
+        .bg-gradient-orange-pink { background: var(--gradient-orange-pink); }
+        .bg-gradient-orange-red { background: var(--gradient-orange-red); }
+        .bg-gradient-pink-purple { background: var(--gradient-pink-purple); }
+        .bg-gradient-purple-violet { background: var(--gradient-purple-violet); }
+        .bg-gradient-red-orange { background: var(--gradient-red-orange); }
+        .bg-gradient-orange-pink-soft { background: var(--gradient-orange-pink-soft); }
+        .bg-gradient-orange-red-soft { background: var(--gradient-orange-red-soft); }
+        .bg-gradient-pink-purple-soft { background: var(--gradient-pink-purple-soft); }
+        .bg-gradient-purple-violet-soft { background: var(--gradient-purple-violet-soft); }
+        .bg-gradient-warm { background: var(--gradient-warm); }
+        .bg-gradient-twilight-soft { background: var(--gradient-twilight-soft); }
+
+        .text-gradient-sunset {
+            background: var(--gradient-sunset);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-twilight {
+            background: var(--gradient-twilight);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .color-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .copy-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .color-card:hover .copy-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gradient-sunset mb-4">🎨 Color Palette Preview</h1>
+            <p class="text-gray-600 text-lg">Interactive preview of your Sunset/Twilight color system</p>
+        </div>
+
+        <!-- Base Colors Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Base Colors</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Sunset Orange -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4" style="background-color: #ff6b6b;"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Sunset Orange</h3>
+                    <p class="text-sm text-gray-600 mb-3">#ff6b6b</p>
+                    <button class="copy-btn bg-orange-100 text-orange-600 px-3 py-1 rounded text-sm hover:bg-orange-200" onclick="copyToClipboard('#ff6b6b')">Copy</button>
+                </div>
+
+                <!-- Sunset Pink -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4" style="background-color: #ee5a94;"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Sunset Pink</h3>
+                    <p class="text-sm text-gray-600 mb-3">#ee5a94</p>
+                    <button class="copy-btn bg-pink-100 text-pink-600 px-3 py-1 rounded text-sm hover:bg-pink-200" onclick="copyToClipboard('#ee5a94')">Copy</button>
+                </div>
+
+                <!-- Sunset Purple -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4" style="background-color: #a855f7;"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Sunset Purple</h3>
+                    <p class="text-sm text-gray-600 mb-3">#a855f7</p>
+                    <button class="copy-btn bg-purple-100 text-purple-600 px-3 py-1 rounded text-sm hover:bg-purple-200" onclick="copyToClipboard('#a855f7')">Copy</button>
+                </div>
+
+                <!-- Sunset Violet -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4" style="background-color: #8b5cf6;"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Sunset Violet</h3>
+                    <p class="text-sm text-gray-600 mb-3">#8b5cf6</p>
+                    <button class="copy-btn bg-violet-100 text-violet-600 px-3 py-1 rounded text-sm hover:bg-violet-200" onclick="copyToClipboard('#8b5cf6')">Copy</button>
+                </div>
+
+                <!-- Sunset Red -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4" style="background-color: #dc2626;"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Sunset Red</h3>
+                    <p class="text-sm text-gray-600 mb-3">#dc2626</p>
+                    <button class="copy-btn bg-red-100 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-200" onclick="copyToClipboard('#dc2626')">Copy</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Primary Gradients Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Primary Gradients</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Gradient Sunset -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-sunset"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Sunset</h3>
+                    <p class="text-sm text-gray-600 mb-3">Orange → Pink → Purple</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-sunset')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Twilight -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-twilight"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Twilight</h3>
+                    <p class="text-sm text-gray-600 mb-3">Pink → Purple → Violet</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-twilight')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Orange Pink -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-orange-pink"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Orange Pink</h3>
+                    <p class="text-sm text-gray-600 mb-3">Orange → Pink</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-orange-pink')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Orange Red -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-orange-red"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Orange Red</h3>
+                    <p class="text-sm text-gray-600 mb-3">Orange → Red</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-orange-red')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Pink Purple -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-pink-purple"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Pink Purple</h3>
+                    <p class="text-sm text-gray-600 mb-3">Pink → Purple</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-pink-purple')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Purple Violet -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-purple-violet"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Purple Violet</h3>
+                    <p class="text-sm text-gray-600 mb-3">Purple → Violet</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-purple-violet')">Copy Class</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Soft Gradients Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Soft Gradients (Backgrounds)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Gradient Orange Pink Soft -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-orange-pink-soft"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Orange Pink Soft</h3>
+                    <p class="text-sm text-gray-600 mb-3">Light background</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-orange-pink-soft')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Orange Red Soft -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-orange-red-soft"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Orange Red Soft</h3>
+                    <p class="text-sm text-gray-600 mb-3">Error backgrounds</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-orange-red-soft')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Pink Purple Soft -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-pink-purple-soft"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Pink Purple Soft</h3>
+                    <p class="text-sm text-gray-600 mb-3">Premium backgrounds</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-pink-purple-soft')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Purple Violet Soft -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-purple-violet-soft"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Purple Violet Soft</h3>
+                    <p class="text-sm text-gray-600 mb-3">Neutral backgrounds</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-purple-violet-soft')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Warm -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-warm"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Gradient Warm</h3>
+                    <p class="text-sm text-gray-600 mb-3">Main background</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-warm')">Copy Class</button>
+                </div>
+
+                <!-- Gradient Twilight Soft -->
+                <div class="color-card bg-white rounded-xl p-6 shadow-lg">
+                    <div class="w-full h-24 rounded-lg mb-4 bg-gradient-twilight-soft"></div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Twilight Soft</h3>
+                    <p class="text-sm text-gray-600 mb-3">Gentle backgrounds</p>
+                    <button class="copy-btn bg-gray-100 text-gray-600 px-3 py-1 rounded text-sm hover:bg-gray-200" onclick="copyToClipboard('bg-gradient-twilight-soft')">Copy Class</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage Examples Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Usage Examples</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Button Examples -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="font-semibold text-gray-800 mb-4">Button Examples</h3>
+                    <div class="space-y-3">
+                        <button class="w-full py-3 px-6 rounded-lg text-white font-medium bg-gradient-sunset hover:opacity-90 transition-opacity">Primary Button</button>
+                        <button class="w-full py-3 px-6 rounded-lg text-white font-medium bg-gradient-twilight hover:opacity-90 transition-opacity">Secondary Button</button>
+                        <button class="w-full py-3 px-6 rounded-lg text-white font-medium bg-gradient-orange-pink hover:opacity-90 transition-opacity">Accent Button</button>
+                        <button class="w-full py-3 px-6 rounded-lg text-white font-medium bg-gradient-orange-red hover:opacity-90 transition-opacity">Error Button</button>
+                    </div>
+                </div>
+
+                <!-- Text Examples -->
+                <div class="bg-white rounded-xl p-6 shadow-lg">
+                    <h3 class="font-semibold text-gray-800 mb-4">Text Examples</h3>
+                    <div class="space-y-3">
+                        <h4 class="text-2xl font-bold text-gradient-sunset">Gradient Sunset Text</h4>
+                        <h4 class="text-2xl font-bold text-gradient-twilight">Gradient Twilight Text</h4>
+                        <p class="text-lg" style="color: #ff6b6b;">Sunset Orange Text</p>
+                        <p class="text-lg" style="color: #ee5a94;">Sunset Pink Text</p>
+                        <p class="text-lg" style="color: #a855f7;">Sunset Purple Text</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Color Shades Section -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Color Shades (50-900)</h2>
+            <div class="space-y-8">
+                <!-- Sunset Orange Shades -->
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-4">Sunset Orange Shades</h3>
+                    <div class="grid grid-cols-5 md:grid-cols-10 gap-2">
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fff5f5;"></div>
+                            <p class="text-xs mt-1">50</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fed7d1;"></div>
+                            <p class="text-xs mt-1">100</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #feb2a8;"></div>
+                            <p class="text-xs mt-1">200</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fd8d7f;"></div>
+                            <p class="text-xs mt-1">300</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fc6856;"></div>
+                            <p class="text-xs mt-1">400</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #ff6b6b;"></div>
+                            <p class="text-xs mt-1">500</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #e55a5a;"></div>
+                            <p class="text-xs mt-1">600</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #cc4949;"></div>
+                            <p class="text-xs mt-1">700</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #b23838;"></div>
+                            <p class="text-xs mt-1">800</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #992727;"></div>
+                            <p class="text-xs mt-1">900</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sunset Pink Shades -->
+                <div>
+                    <h3 class="font-semibold text-gray-800 mb-4">Sunset Pink Shades</h3>
+                    <div class="grid grid-cols-5 md:grid-cols-10 gap-2">
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fdf2f8;"></div>
+                            <p class="text-xs mt-1">50</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #fce7f3;"></div>
+                            <p class="text-xs mt-1">100</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #f9d1e7;"></div>
+                            <p class="text-xs mt-1">200</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #f6bbdb;"></div>
+                            <p class="text-xs mt-1">300</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #f3a5cf;"></div>
+                            <p class="text-xs mt-1">400</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #ee5a94;"></div>
+                            <p class="text-xs mt-1">500</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #d65185;"></div>
+                            <p class="text-xs mt-1">600</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #be4876;"></div>
+                            <p class="text-xs mt-1">700</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #a63f67;"></div>
+                            <p class="text-xs mt-1">800</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-full h-16 rounded" style="background-color: #8e3658;"></div>
+                            <p class="text-xs mt-1">900</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show feedback
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('bg-green-100', 'text-green-600');
+                button.classList.remove('bg-gray-100', 'text-gray-600');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-100', 'text-green-600');
+                    button.classList.add('bg-gray-100', 'text-gray-600');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
