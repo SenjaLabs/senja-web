@@ -81,49 +81,49 @@ export function PoolSelector({
   };
 
   return (
-    <div className="relative z-10">
+    <div className="relative z-10 w-full md:w-auto">
       {/* Dropdown Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full min-w-[280px] px-4 py-3 bg-gray-700/90 rounded-xl border border-gray-600/50 hover:border-gray-500/70 transition-all duration-200 backdrop-blur-sm"
+        className="flex items-center justify-center w-full md:min-w-[320px] lg:min-w-[380px] xl:min-w-[480px] px-3 md:px-4 py-2.5 md:py-3 bg-senja-cream/90 rounded-xl border border-senja-cream-light/70 hover:border-senja-orange/50 hover:bg-senja-cream transition-all duration-200 backdrop-blur-sm shadow-sm"
       >
         {/* Selected Pool Display */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 md:space-x-3 min-w-0">
           {/* From Token */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-500/20 flex items-center justify-center">
+          <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden bg-senja-orange/20 flex items-center justify-center flex-shrink-0">
               <Image
                 src={selected.loanToken.logo}
                 alt={selected.loanToken.symbol}
-                width={24}
-                height={24}
-                className="rounded-full"
+                width={20}
+                height={20}
+                className="rounded-full w-5 h-5 md:w-6 md:h-6"
               />
             </div>
-            <span className="text-white font-medium text-sm">{selected.loanToken.symbol}</span>
+            <span className="text-senja-brown font-medium text-sm md:text-base truncate">{selected.loanToken.symbol}</span>
           </div>
 
           {/* Arrow */}
-          <div className="text-gray-400">→</div>
+          <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">→</div>
 
           {/* To Token */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-500/20 flex items-center justify-center">
+          <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden bg-senja-brown/20 flex items-center justify-center flex-shrink-0">
               <Image
                 src={selected.collateralToken.logo}
                 alt={selected.collateralToken.symbol}
-                width={24}
-                height={24}
-                className="rounded-full"
+                width={20}
+                height={20}
+                className="rounded-full w-5 h-5 md:w-6 md:h-6"
               />
             </div>
-            <span className="text-white font-medium text-sm">{selected.collateralToken.symbol}</span>
+            <span className="text-senja-brown font-medium text-sm md:text-base truncate">{selected.collateralToken.symbol}</span>
           </div>
         </div>
 
         {/* Dropdown Icon */}
         <ChevronDown 
-          className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+          className={`w-4 h-4 md:w-5 md:h-5 text-senja-brown/60 transition-transform duration-200 flex-shrink-0 ml-4 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -131,52 +131,52 @@ export function PoolSelector({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-gray-700/95 backdrop-blur-md rounded-xl border border-gray-600/50 shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-xl border border-senja-cream-light/70 shadow-xl z-50 overflow-hidden">
           {pools.map((pool) => (
             <button
               key={pool.id}
               onClick={() => handleSelect(pool)}
-              className="w-full px-4 py-3 hover:bg-gray-600/50 transition-colors duration-150 border-b border-gray-600/30 last:border-b-0"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 hover:bg-senja-cream/50 transition-colors duration-150 border-b border-senja-cream-light/30 last:border-b-0"
             >
               <div className="flex items-center justify-between">
                 {/* Pool Info */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
                   {/* From Token */}
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-full overflow-hidden bg-blue-500/20 flex items-center justify-center">
+                  <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-senja-orange/20 flex items-center justify-center flex-shrink-0">
                       <Image
                         src={pool.loanToken.logo}
                         alt={pool.loanToken.symbol}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
+                        width={18}
+                        height={18}
+                        className="rounded-full w-4 h-4 md:w-5 md:h-5"
                       />
                     </div>
-                    <span className="text-white font-medium text-sm">{pool.loanToken.symbol}</span>
+                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">{pool.loanToken.symbol}</span>
                   </div>
 
                   {/* Arrow */}
-                  <div className="text-gray-400 text-sm">→</div>
+                  <div className="text-senja-brown/60 text-sm md:text-base flex-shrink-0">→</div>
 
                   {/* To Token */}
-                  <div className="flex items-center space-x-2">
-                    <div className="w-7 h-7 rounded-full overflow-hidden bg-gray-500/20 flex items-center justify-center">
+                  <div className="flex items-center space-x-1.5 md:space-x-2 min-w-0">
+                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden bg-senja-brown/20 flex items-center justify-center flex-shrink-0">
                       <Image
                         src={pool.collateralToken.logo}
                         alt={pool.collateralToken.symbol}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
+                        width={18}
+                        height={18}
+                        className="rounded-full w-4 h-4 md:w-5 md:h-5"
                       />
                     </div>
-                    <span className="text-white font-medium text-sm">{pool.collateralToken.symbol}</span>
+                    <span className="text-senja-brown font-medium text-sm md:text-base truncate">{pool.collateralToken.symbol}</span>
                   </div>
                 </div>
 
                 {/* Pool Stats */}
-                <div className="text-right">
-                  <div className="text-green-400 text-sm font-medium">{pool.apy}</div>
-                  <div className="text-gray-400 text-xs">APY</div>
+                <div className="text-right flex-shrink-0 ml-3">
+                  <div className="text-senja-orange text-sm md:text-base font-medium">{pool.apy}</div>
+                  <div className="text-senja-brown/60 text-xs">APY</div>
                 </div>
               </div>
             </button>

@@ -20,7 +20,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40">
+    <div className="min-h-screen max-w-7xl mx-auto pb-20 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40">
       {/* Background decorations */}
       <div className="absolute top-10 right-10 w-16 h-16 bg-gradient-to-br from-senja-cream-light/30 to-senja-orange/10 rounded-full opacity-40 animate-pulse"></div>
       <div

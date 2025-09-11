@@ -89,11 +89,13 @@ export function PoolOverview({
       {/* Header */}
       <Card className="bg-gradient-to-r from-senja-cream/80 to-senja-cream-light/60 backdrop-blur-sm border border-senja-cream-light/70 shadow-lg">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <PoolSelector 
-              pools={pools}
-              onPoolSelect={onPoolSelect}
-            />
+          <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div className="flex justify-center md:justify-start">
+              <PoolSelector 
+                pools={pools}
+                onPoolSelect={onPoolSelect}
+              />
+            </div>
             <Button 
               onClick={onCreatePool}
               className="bg-senja-orange hover:bg-senja-orange/90 text-white shadow-lg"
