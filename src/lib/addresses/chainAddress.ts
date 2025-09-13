@@ -2,14 +2,14 @@ import { Chain } from "@/types";
 
 export const chains: Chain[] = [
   {
-    id: 8453,
-    name: "Base",
+    id: 84532,
+    name: "Base Sepolia",
     logo: "/chain/base.png",
     contracts: {
-      lendingPool: "0x4F4E980f0C0094935c62Fc30B29d4F55DBEb824e",
-      factory: "0x67165C24A886AAAf1bFA81934e44a2063c6B608C",
-      position: "0x1fEAD2bdAaEbb03C2739949EA3B2145f064378F0",
-      blockExplorer: "https://basescan.org",
+      lendingPool: "0x76091aC74058d69e32CdbCc487bF0bCA09cb59D7",
+      factory: "0x31c3850D2cBDC5B084D632d1c61d54161790bFF8",
+      position: "0x7C1A494ED22eAFC04e314c79Fc81AD11386f63a1",
+      blockExplorer: "https://sepolia.basescan.org",
     },
   },
 

@@ -14,7 +14,7 @@ import {
   RefreshCw,
   Clock,
 } from "lucide-react";
-import SwitchWalletButton from "./button/SwitchWalletButton";
+import SwitchWalletButton from "./button/switch-wallet-button";
 
 const ProfileClient = memo(function ProfileClient() {
   const {

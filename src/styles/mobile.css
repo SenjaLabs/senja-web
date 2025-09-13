@@ -1,0 +1,219 @@
+/**
+ * Mobile-specific styles and optimizations
+ */
+
+/* Mobile touch targets - ensure minimum 44px touch targets */
+@media (max-width: 768px) {
+  /* Button touch targets */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Input field optimizations */
+  .mobile-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px 16px;
+  }
+
+  /* Card hover effects - disable on mobile */
+  .mobile-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mobile-card:active {
+    transform: scale(0.98);
+  }
+
+  /* Prevent text selection on interactive elements */
+  .mobile-no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Smooth scrolling */
+  .mobile-smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Safe area handling for notched devices */
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile-specific spacing */
+  .mobile-spacing {
+    padding: 12px;
+  }
+
+  .mobile-spacing-sm {
+    padding: 8px;
+  }
+
+  .mobile-spacing-lg {
+    padding: 16px;
+  }
+
+  /* Mobile typography */
+  .mobile-text-sm {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mobile-text-base {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .mobile-text-lg {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  /* Mobile grid layouts */
+  .mobile-grid-1 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mobile-grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Mobile flex layouts */
+  .mobile-flex-col {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mobile-flex-row {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  /* Mobile shadows - reduced for better performance */
+  .mobile-shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+
+  .mobile-shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Mobile border radius */
+  .mobile-rounded {
+    border-radius: 8px;
+  }
+
+  .mobile-rounded-lg {
+    border-radius: 12px;
+  }
+
+  /* Mobile animations - reduced for better performance */
+  .mobile-animate {
+    transition: all 0.2s ease;
+  }
+
+  /* Mobile focus states */
+  .mobile-focus:focus {
+    outline: 2px solid #f97316;
+    outline-offset: 2px;
+  }
+
+  /* Mobile table optimizations */
+  .mobile-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-table thead {
+    display: none;
+  }
+
+  .mobile-table tbody {
+    display: block;
+  }
+
+  .mobile-table tr {
+    display: block;
+    margin-bottom: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    background: white;
+  }
+
+  .mobile-table td {
+    display: block;
+    text-align: left !important;
+    border: none;
+    padding: 4px 0;
+  }
+
+  .mobile-table td:before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #6b7280;
+    display: inline-block;
+    width: 100px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .tablet-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .tablet-spacing {
+    padding: 20px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .mobile-dark {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+
+  .mobile-dark-card {
+    background-color: #374151;
+    border-color: #4b5563;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-animate {
+    transition: none;
+  }
+
+  .mobile-card {
+    transition: none;
+  }
+}

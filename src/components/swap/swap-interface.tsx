@@ -2,18 +2,29 @@
 
 import React, { useState, useCallback, memo } from "react";
 import { ArrowUpDown, Info, ChevronDown } from "lucide-react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TokenSelector } from "../select/token";
-import { PoolSelector } from "../select/pools";
+import { PoolSearchDialog } from "../search";
 import { Token } from "@/types";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
+/**
+ * Props for the SwapInterface component
+ */
 interface SwapInterfaceProps {
+  /** Callback function when swap is executed */
   onSwap: (fromToken: Token, toToken: Token, amount: string) => void;
 }
 
+/**
+ * SwapInterface component for token swapping functionality
+ * 
+ * @param props - Component props
+ * @returns JSX element
+ */
 export const SwapInterface = memo(function SwapInterface({
   onSwap,
 }: SwapInterfaceProps) {
@@ -90,7 +101,7 @@ export const SwapInterface = memo(function SwapInterface({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Swap</h2>
-            <PoolSelector
+            <PoolSearchDialog
               selectedPool={selectedPool}
               onPoolSelect={handlePoolSelect}
             />

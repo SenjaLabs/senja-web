@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import SplashScreen from "./SplashScreen";
+import SplashScreen from "./splash-screen";
 import { splashUtils } from "@/utils/splash";
 import { ChainProvider } from "@/lib/chain";
 

@@ -1,4 +1,4 @@
-import { Home, ArrowLeftRight, History, User } from "lucide-react"
+import { Home, ArrowLeftRight, History, User, Bell } from "lucide-react"
 
 export const navigationItems = [
   { name: "Home", href: "/", icon: Home },

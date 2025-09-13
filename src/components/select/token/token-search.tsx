@@ -22,10 +22,21 @@ export const TokenSearch = memo(function TokenSearch({
   const [searchQuery, setSearchQuery] = useState("");
 
   const availableTokens = tokens.filter(
-    (token) =>
-      (!otherToken || token.symbol !== otherToken.symbol) &&
-      (token.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        token.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    (token) => {
+      // Filter out the other token if it exists
+      if (otherToken && token.symbol === otherToken.symbol) {
+        return false;
+      }
+      
+      // Apply search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        return token.symbol.toLowerCase().includes(query) ||
+               token.name.toLowerCase().includes(query);
+      }
+      
+      return true;
+    }
   );
 
   const handleTokenSelect = useCallback((token: Token) => {
@@ -90,11 +101,10 @@ export const TokenSearch = memo(function TokenSearch({
           <div className="flex flex-wrap gap-2">
             {popularTokens.map((symbol) => {
               const token = tokens.find((t) => t.symbol === symbol);
-              if (
-                !token ||
-                (otherToken && token.symbol === otherToken.symbol)
-              )
+              // Filter out the other token if it exists
+              if (!token || (otherToken && token.symbol === otherToken.symbol)) {
                 return null;
+              }
 
               return (
                 <button

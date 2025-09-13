@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo } from "react";
-import { TokenSearch } from "./TokenSearch";
+import { TokenSearch } from "./token-search";
 import { Token } from "@/types";
 
 interface TokenSearchOnlyProps {

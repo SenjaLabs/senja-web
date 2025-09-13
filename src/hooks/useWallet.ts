@@ -117,7 +117,7 @@ export const useWallet = (): WalletState & WalletActions => {
             }));
           }
         } catch (error) {
-          console.log('No existing wallet connection found');
+          // No existing wallet connection found
         }
       };
 

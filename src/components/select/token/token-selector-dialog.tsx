@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { TokenSearch } from "./TokenSearch";
+import { TokenSearch } from "./token-search";
 import { Token } from "@/types";
 
 interface TokenSelectorDialogProps {

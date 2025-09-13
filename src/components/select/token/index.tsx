@@ -4,7 +4,7 @@ import React, { useState, memo } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Token } from "@/types";
-import { TokenSelectorDialog } from "./TokenSelectorDialog";
+import { TokenSelectorDialog } from "./token-selector-dialog";
 import Image from "next/image";
 
 interface TokenSelectorProps {
@@ -84,6 +84,6 @@ export const TokenSelector = memo(function TokenSelector({
 });
 
 // Export all token selector components
-export { TokenSearch } from "./TokenSearch";
-export { TokenSelectorDialog } from "./TokenSelectorDialog";
-export { TokenSearchOnly } from "./TokenSearchOnly";
+export { TokenSearch } from "./token-search";
+export { TokenSelectorDialog } from "./token-selector-dialog";
+export { TokenSearchOnly } from "./token-search-only";

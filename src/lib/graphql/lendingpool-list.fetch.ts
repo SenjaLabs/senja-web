@@ -17,7 +17,7 @@ export type LendingPoolWithTokens = LendingPoolCreated & {
 };
 
 // Helper function to find token by address
-function findTokenByAddress(address: string, chainId: number = 8453): Token | null {
+function findTokenByAddress(address: string, chainId: number = 84532): Token | null {
   const normalizedAddress = address.toLowerCase();
   
   return tokens.find(token => {
@@ -27,7 +27,7 @@ function findTokenByAddress(address: string, chainId: number = 8453): Token | nu
 }
 
 // Function to pair lending pools with token metadata
-export function pairLendingPoolsWithTokens(pools: LendingPoolCreated[], chainId: number = 8453): LendingPoolWithTokens[] {
+export function pairLendingPoolsWithTokens(pools: LendingPoolCreated[], chainId: number = 84532): LendingPoolWithTokens[] {
   return pools.map(pool => ({
     ...pool,
     borrowTokenInfo: findTokenByAddress(pool.borrowToken, chainId),

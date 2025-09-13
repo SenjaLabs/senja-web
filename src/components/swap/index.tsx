@@ -1,8 +1,7 @@
 "use client";
 
 import { useLiff } from "@/app/LiffProvider";
-import { SwapInterface } from "@/components/swap/SwapInterface";
-import { Loader2 } from "lucide-react";
+import { SwapInterface } from "@/components/swap/swap-interface";
 import { memo, useCallback } from "react";
 import { Token } from "@/types";
 
@@ -20,11 +19,11 @@ export default memo(function SwapPage() {
           `Swap ${amount} ${fromToken.symbol} for ${toToken.symbol}?`
         );
         if (result) {
-          alert("Swap initiated successfully!");
           // In a real implementation, you would call your swap API here
+          // TODO: Implement proper success notification
         }
       } catch (error) {
-        alert("Swap failed. Please try again.");
+        // TODO: Implement proper error notification
       }
     }
   }, [liff]);

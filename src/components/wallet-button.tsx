@@ -4,7 +4,7 @@ import { useWagmiWallet } from "@/hooks/useWagmiWallet";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import SwitchChainButton from "./button/SwitchWalletButton";
+import SwitchChainButton from "./button/switch-wallet-button";
 
 interface WalletButtonProps {
   variant?: "default" | "compact" | "minimal";

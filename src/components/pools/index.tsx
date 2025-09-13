@@ -1,3 +1,2 @@
-export { PoolCard } from './PoolCard';
-export { PoolOverview } from './PoolOverview';
-export { PoolSelector } from './PoolSelector';
+export { PoolCard } from './pool-card';
+export { PoolSelector } from './pool-selector';

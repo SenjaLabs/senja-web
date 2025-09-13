@@ -4,7 +4,7 @@ import "@/styles/globals.css";
 import "@/utils/global-polyfills";
 import LiffProvider from "./LiffProvider";
 import { BottomNavigation } from "@/components/navbar";
-import AppWrapper from "@/components/AppWrapper";
+import AppWrapper from "@/components/app-wrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
