@@ -1,6 +1,12 @@
 import { Chain } from "@/types";
 import { chains } from "@/lib/addresses/chainAddress";
 
+// Type declaration for localStorage
+declare const localStorage: {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+};
+
 /**
  * Get chain by ID
  */

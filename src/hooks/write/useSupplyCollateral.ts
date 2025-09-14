@@ -6,14 +6,16 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { lendingPoolAbi } from "@/lib/abis/lendingPoolAbi";
-import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { useApprove } from "./useApprove";
 import { useCurrentChainId } from "@/lib/chain";
 
 export type HexAddress = `0x${string}`;
 
-export const useSupplyCollateral = (chainId: number, onSuccess: () => void) => {
+export const useSupplyCollateral = (
+  chainId: number,
+  _onSuccess: () => void
+) => {
   const { address } = useAccount();
   const currentChainId = useCurrentChainId();
   const [txHash, setTxHash] = useState<HexAddress | undefined>();
@@ -47,7 +49,7 @@ export const useSupplyCollateral = (chainId: number, onSuccess: () => void) => {
     isConfirming: isApproveConfirming,
     isSuccess: isApproveSuccess,
     isError: isApproveError,
-  } = useApprove(currentChainId, (txHash) => {
+  } = useApprove(currentChainId, (_txHash) => {
     setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
@@ -139,28 +141,22 @@ export const useSupplyCollateral = (chainId: number, onSuccess: () => void) => {
       return;
     }
 
-    try {
-      setIsSupplying(true);
-      setTxHash(undefined);
+    setIsSupplying(true);
+    setTxHash(undefined);
 
-      // Convert amount to BigInt with proper decimal conversion
-      const amountBigInt = BigInt(
-        Math.floor(parseFloat(amount) * Math.pow(10, decimals))
-      );
+    // Convert amount to BigInt with proper decimal conversion
+    const amountBigInt = BigInt(
+      Math.floor(parseFloat(amount) * Math.pow(10, decimals))
+    );
 
-      const tx = await writeContractAsync({
-        address: lendingPoolAddress,
-        abi: lendingPoolAbi,
-        functionName: "supplyCollateral",
-        args: [amountBigInt],
-      });
+    const tx = await writeContractAsync({
+      address: lendingPoolAddress,
+      abi: lendingPoolAbi,
+      functionName: "supplyCollateral",
+      args: [amountBigInt],
+    });
 
-      setTxHash(tx as HexAddress);
-    } catch (err) {
-      setErrorMessage("Supply failed. Please check your wallet and try again.");
-      setShowFailedAlert(true);
-      setIsSupplying(false);
-    }
+    setTxHash(tx as HexAddress);
   };
 
   const handleCloseSuccessAlert = () => {

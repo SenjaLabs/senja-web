@@ -39,7 +39,7 @@ export const useWagmiWallet = () => {
         throw new Error(`Chain with ID ${targetChainId} is not supported`);
       }
 
-      await switchChain({ chainId: targetChainId as any });
+      await switchChain({ chainId: targetChainId });
     } catch (error) {
       console.error('Failed to switch network:', error);
       throw error;

@@ -1,15 +1,33 @@
 // Crypto polyfills for browser environment
 import { Buffer } from 'buffer';
 
+// Type definitions for global extensions
+declare global {
+  interface Window {
+    Buffer?: typeof Buffer;
+    global?: Window;
+    process?: {
+      env: Record<string, string | undefined>;
+      nextTick: (fn: () => void) => void;
+      version: string;
+      versions: Record<string, string>;
+    };
+    randomBytes?: (n: number) => Uint8Array;
+    nacl?: {
+      setPRNG: (fn: (x: Uint8Array, n: number) => void) => void;
+    };
+  }
+}
+
 // Make Buffer available globally
 if (typeof window !== 'undefined') {
-  (window as any).Buffer = Buffer;
-  (window as any).global = window;
+  window.Buffer = Buffer;
+  window.global = window;
 }
 
 // Polyfill for crypto.getRandomValues if not available
 if (typeof window !== 'undefined' && window.crypto && !window.crypto.getRandomValues) {
-  window.crypto.getRandomValues = (array: any) => {
+  window.crypto.getRandomValues = (array: Uint8Array) => {
     for (let i = 0; i < array.length; i++) {
       array[i] = Math.floor(Math.random() * 256);
     }
@@ -18,10 +36,10 @@ if (typeof window !== 'undefined' && window.crypto && !window.crypto.getRandomVa
 }
 
 // Ensure process is available
-if (typeof window !== 'undefined' && !(window as any).process) {
-  (window as any).process = {
+if (typeof window !== 'undefined' && !window.process) {
+  window.process = {
     env: {},
-    nextTick: (fn: Function) => setTimeout(fn, 0),
+    nextTick: (fn: () => void) => setTimeout(fn, 0),
     version: '',
     versions: {},
   };
@@ -32,7 +50,7 @@ if (typeof window !== 'undefined') {
   // Set up global random number generator for tweetnacl
   const setupRandomBytes = () => {
     // Create a global randomBytes function that tweetnacl can use
-    (window as any).randomBytes = (n: number) => {
+    window.randomBytes = (n: number) => {
       const bytes = new Uint8Array(n);
       if (window.crypto && window.crypto.getRandomValues) {
         window.crypto.getRandomValues(bytes);
@@ -53,8 +71,8 @@ if (typeof window !== 'undefined') {
   const initTweetNacl = () => {
     try {
       // Check if tweetnacl is already loaded
-      if ((window as any).nacl) {
-        const nacl = (window as any).nacl;
+      if (window.nacl) {
+        const nacl = window.nacl;
         nacl.setPRNG((x: Uint8Array, n: number) => {
           if (window.crypto && window.crypto.getRandomValues) {
             window.crypto.getRandomValues(x.subarray(0, n));

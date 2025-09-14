@@ -28,8 +28,13 @@ const PoolRow = React.memo(({ pool, onPoolClick }: { pool: LendingPoolWithTokens
   }, [pool.ltv]);
 
   const formattedLiquidity = useMemo(() => {
-    if (totalSupplyAssetsLoading || !totalSupplyAssets || !pool.borrowTokenInfo) {
+    if (totalSupplyAssetsLoading || !pool.borrowTokenInfo) {
       return 'Loading...';
+    }
+    
+    // If totalSupplyAssets is undefined, show 0
+    if (totalSupplyAssets === undefined) {
+      return `0.00 ${pool.borrowTokenInfo.symbol}`;
     }
     
     const liquidity = formatUnits(totalSupplyAssets, pool.borrowTokenInfo.decimals);

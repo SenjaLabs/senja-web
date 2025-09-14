@@ -19,7 +19,7 @@ export const chains: Chain[] = [
     logo: "/chain/kaia-logo.svg",
     contracts: {
       lendingPool: "",
-      factory: "",
+      factory: "0xa971CD2714fbCc9A942b09BC391a724Df9338206",
       position: "",
       blockExplorer: "https://kaiascan.io/",
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo, useCallback } from "react";
+import React, { useState, memo, useCallback, FormEvent, ChangeEvent } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { SuccessAlert } from "@/components/alert";
 import { useCurrentChainId } from "@/lib/chain";
 import { Token, BaseComponentProps } from "@/types";
 import { dialogStyles, buttonStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
-import { PLACEHOLDERS, BUTTON_TEXTS, LOADING_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES, DEFAULT_CHAIN_ID, VALIDATION } from "@/lib/constants";
+import { PLACEHOLDERS, BUTTON_TEXTS, LOADING_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES, VALIDATION } from "@/lib/constants";
 
 /**
  * Props for the CreatePoolDialog component
@@ -74,7 +74,9 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
     txHash, 
     showSuccessAlert, 
     successTxHash, 
-    handleCloseSuccessAlert 
+    handleCloseSuccessAlert,
+    isUserRejection,
+    resetUserRejection
   } = useCreatePool(() => {
     onSuccess?.();
     onClose();
@@ -84,23 +86,28 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
   /**
    * Handle form submission
    */
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Form submitted", { isValid, collateralToken, borrowToken, ltv });
 
     if (!isValid) {
+      console.log("Form is not valid, preventing submission");
       return;
     }
 
-    const currentChainId = DEFAULT_CHAIN_ID;
     const collateralAddress = collateralToken!.addresses[currentChainId];
     const borrowAddress = borrowToken!.addresses[currentChainId];
 
     if (!collateralAddress || !borrowAddress) {
+      console.log("Missing token addresses", { collateralAddress, borrowAddress, currentChainId });
       return;
     }
 
+    console.log("Creating pool with:", { collateralAddress, borrowAddress, ltv });
     await handleCreate(collateralAddress, borrowAddress, ltv);
-  }, [collateralToken, borrowToken, ltv, handleCreate, isValid]);
+  }, [collateralToken, borrowToken, ltv, handleCreate, isValid, currentChainId]);
 
   /**
    * Handle dialog close
@@ -109,13 +116,15 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
     if (!isCreating && !isConfirming) {
       onClose();
       resetForm();
+      resetUserRejection(); // Reset user rejection state when closing dialog
     }
-  }, [isCreating, isConfirming, onClose, resetForm]);
+  }, [isCreating, isConfirming, onClose, resetForm, resetUserRejection]);
 
   /**
    * Handle LTV input change
    */
-  const handleLtvChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  // eslint-disable-next-line no-undef
+  const handleLtvChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setLtv(e.target.value);
   }, []);
 
@@ -134,6 +143,7 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
                 </DialogTitle>
               </div>
               <Button
+                type="button"
                 onClick={handleClose}
                 disabled={isCreating || isConfirming}
                 className="p-2 hover:bg-orange-200 rounded-full transition-colors"
@@ -144,7 +154,7 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
           </DialogHeader>
 
         <div className="px-6 py-6">
-          <form onSubmit={handleSubmit} className={spacing.form}>
+          <form onSubmit={handleSubmit} className={spacing.form} noValidate>
             <div className="flex justify-between  mx-auto">
               <div className="space-y-3 flex w-[45%] flex-col text-left">
                 <label className={textStyles.label}>
@@ -188,12 +198,18 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
                   max={VALIDATION.LTV_MAX.toString()}
                   step="0.1"
                   className={inputStyles.default}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }
+                  }}
                 />
               </div>
             </div>
 
             {/* Transaction Status */}
-            {(isCreating || isConfirming || isSuccess || isError) && (
+            {(isCreating || isConfirming || isSuccess || isError || isUserRejection) && (
               <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
                 <div className="space-y-3">
                   {isCreating && (
@@ -236,6 +252,17 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
                     </div>
                   )}
 
+                  {isUserRejection && (
+                    <div className="flex items-center gap-3 text-gray-600">
+                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                       <span className="text-sm font-semibold">
+                         Transaction cancelled
+                       </span>
+                    </div>
+                  )}
+
                   {txHash && (
                     <div className="text-xs text-gray-500 break-all bg-white p-2 rounded border">
                       <span className="font-medium">Transaction Hash:</span>
@@ -252,6 +279,12 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
               type="submit"
               disabled={!isValid || isCreating || isConfirming}
               className={`w-full h-14 text-lg font-bold ${buttonStyles.primary} disabled:opacity-50 disabled:cursor-not-allowed rounded-xl`}
+              onClick={() => {
+                // Reset user rejection state when user tries to submit again
+                if (isUserRejection) {
+                  resetUserRejection();
+                }
+              }}
             >
               {isCreating
                 ? LOADING_MESSAGES.CREATING_POOL

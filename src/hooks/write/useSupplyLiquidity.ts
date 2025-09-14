@@ -38,7 +38,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     isConfirming: isApproveConfirming,
     isSuccess: isApproveSuccess,
     isError: isApproveError,
-  } = useApprove(currentChainId, (txHash) => {
+  } = useApprove(currentChainId, (_txHash) => {
     setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
@@ -51,9 +51,9 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       setSuccessTxHash(txHash);
       setTxHash(undefined);
       setShowSuccessAlert(true);
-      // Don't call onSuccess() automatically - let user close dialog manually
+      onSuccess();
     }
-  }, [isSuccess, txHash]);
+  }, [isSuccess, txHash, onSuccess]);
 
   // Handle transaction confirmation error
   useEffect(() => {
@@ -134,7 +134,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       });
 
       setTxHash(tx as HexAddress);
-    } catch (err) {
+    } catch {
       setErrorMessage("Supply failed. Please check your wallet and try again.");
       setShowFailedAlert(true);
       setIsSupplying(false);

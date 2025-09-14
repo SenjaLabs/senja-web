@@ -1,7 +1,6 @@
 "use client";
 
 import { useSwitchChain, useAccount } from "wagmi";
-import { base, kaia, optimism } from "viem/chains";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
@@ -32,14 +31,12 @@ export default function SwitchChainButton({
   const allChains = useAllChains();
   const { setChain } = useChainActions();
 
-  const supportedChains = [base, kaia, optimism];
-
   const handleSwitchChain = async (targetChainId: number) => {
     try {
-      await switchChain({ chainId: targetChainId as any });
+      await switchChain({ chainId: targetChainId as number });
       setChain(targetChainId); // Update our chain context
       setIsOpen(false);
-    } catch (error) {
+    } catch  {
       // Silent error handling for production
     }
   };

@@ -45,12 +45,13 @@ export const MobilePoolCard = memo(function MobilePoolCard({
   }, [pool.ltv]);
 
   const formattedLiquidity = useMemo(() => {
-    if (
-      totalSupplyAssetsLoading ||
-      !totalSupplyAssets ||
-      !pool.borrowTokenInfo
-    ) {
+    if (totalSupplyAssetsLoading || !pool.borrowTokenInfo) {
       return "Loading...";
+    }
+
+    // If totalSupplyAssets is undefined, show 0
+    if (totalSupplyAssets === undefined) {
+      return "0.00";
     }
 
     const liquidity = formatUnits(

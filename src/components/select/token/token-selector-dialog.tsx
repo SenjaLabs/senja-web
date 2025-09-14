@@ -40,6 +40,7 @@ export const TokenSelectorDialog = memo(function TokenSelectorDialog({
         <DialogHeader className="p-6 pb-4 relative">
           <DialogTitle className="text-center">{title}</DialogTitle>
           <Button
+            type="button"
             onClick={onClose}
             className="absolute top-6 right-6 p-2 hover:bg-orange-100 rounded-full transition-colors duration-200"
             aria-label="Close dialog"

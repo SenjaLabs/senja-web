@@ -51,12 +51,14 @@ export async function fetchLendingPools(): Promise<LendingPoolCreated[]> {
     }
 
     // Filter out invalid pools
-    return pools.filter(pool => 
+    const validPools = pools.filter(pool => 
       pool.lendingPool && 
       pool.borrowToken && 
       pool.collateralToken
     );
-  } catch (error) {
+    
+    return validPools;
+  } catch {
     return [];
   }
 }

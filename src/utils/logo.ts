@@ -13,8 +13,8 @@ export const logoUtils = {
     if (typeof window === "undefined") return false;
     
     try {
-      return sessionStorage.getItem(LOGO_CACHE_KEY) === "true";
-    } catch (error) {
+      return window.sessionStorage.getItem(LOGO_CACHE_KEY) === "true";
+    } catch {
       console.warn("sessionStorage not available for logo cache");
       return false;
     }
@@ -27,8 +27,8 @@ export const logoUtils = {
     if (typeof window === "undefined") return;
     
     try {
-      sessionStorage.setItem(LOGO_CACHE_KEY, "true");
-    } catch (error) {
+      window.sessionStorage.setItem(LOGO_CACHE_KEY, "true");
+    } catch {
       console.warn("Could not cache logo state");
     }
   },
@@ -74,8 +74,8 @@ export const logoUtils = {
     if (typeof window === "undefined") return;
     
     try {
-      sessionStorage.removeItem(LOGO_CACHE_KEY);
-    } catch (error) {
+      window.sessionStorage.removeItem(LOGO_CACHE_KEY);
+    } catch {
       console.warn("Could not clear logo cache");
     }
   }

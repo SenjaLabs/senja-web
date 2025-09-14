@@ -48,7 +48,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
   /**
    * Handle action selection
    */
-  const handleActionSelect = useCallback((action: string) => {
+  const handleActionSelect = useCallback((_action: string) => {
     // Keep the pool actions dialog open and let it handle the action
     // The dialog will show the appropriate form based on the selected action
   }, []);
@@ -68,9 +68,11 @@ export const PoolsOverview = memo(function PoolsOverview() {
         const validPools = poolsWithTokens.filter(
           (pool) => pool.borrowTokenInfo && pool.collateralTokenInfo
         );
+        
         setPools(validPools);
-      } catch (err) {
+      } catch {
         setError("Failed to load pools data");
+        setPools([]); // Ensure pools is set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -116,6 +118,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
       try {
         setLoading(true);
         setError(null);
+        
         const rawPools = await fetchLendingPools();
         const poolsWithTokens = pairLendingPoolsWithTokens(
           rawPools,
@@ -126,8 +129,9 @@ export const PoolsOverview = memo(function PoolsOverview() {
           (pool) => pool.borrowTokenInfo && pool.collateralTokenInfo
         );
         setPools(validPools);
-      } catch (err) {
-        setError("Failed to load pools data");
+      } catch {
+        setError("Failed to reload pools data");
+        setPools([]); // Ensure pools is set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -143,6 +147,9 @@ export const PoolsOverview = memo(function PoolsOverview() {
         <Card className="p-6">
           <div className="text-center text-red-600">
             <p>{error}</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Please check your internet connection and try again.
+            </p>
           </div>
         </Card>
       </div>
@@ -169,7 +176,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
                 <div className="w-8 h-8 bg-gray-300 rounded"></div>
               </div>
               <div className="text-lg font-medium mb-2">No pools found</div>
-              <div className="text-sm">No pools match "{searchQuery}"</div>
+              <div className="text-sm">No pools match &quot;{searchQuery}&quot;</div>
               <div className="mt-4">
                 <Button onClick={handleClearSearch} variant="outline" size="sm">
                   Clear search

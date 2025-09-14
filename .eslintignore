@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.config.js
+*.config.ts
+public/
+pnpm-lock.yaml
+next-env.d.ts
+

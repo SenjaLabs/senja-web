@@ -4,18 +4,15 @@ import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { factoryAbi } from "@/lib/abis/factoryAbi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { useCurrentChainId } from "@/lib/chain/use-chain";
-import { SuccessAlert } from "@/components/alert";
 
 export type HexAddress = `0x${string}`;
 
 export const useCreatePool = (onSuccess?: () => void) => {
-  const [collateralToken, setCollateralToken] = useState<string>("");
-  const [borrowToken, setBorrowToken] = useState<string>("");
-  const [ltv, setLtv] = useState("");
   const [txHash, setTxHash] = useState<HexAddress | undefined>();
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [successTxHash, setSuccessTxHash] = useState<string>("");
+  const [isUserRejection, setIsUserRejection] = useState(false);
   const currentChainId = useCurrentChainId();
 
   const {
@@ -55,7 +52,19 @@ export const useCreatePool = (onSuccess?: () => void) => {
   useEffect(() => {
     if (writeError) {
       setIsCreating(false);
-      // Silent error handling - no console logs
+      // Check if it's a user rejection error
+      const errorMessage = writeError.message || writeError.toString();
+      if (errorMessage.includes("User denied") || 
+          errorMessage.includes("User rejected") || 
+          errorMessage.includes("User denied request signature") ||
+          errorMessage.includes("cancelled") ||
+          errorMessage.includes("rejected")) {
+        // Silent handling for user rejection - no console error
+        setIsUserRejection(true);
+      } else {
+        // Log other errors
+        setIsUserRejection(false);
+      }
     }
   }, [writeError]);
 
@@ -89,9 +98,21 @@ export const useCreatePool = (onSuccess?: () => void) => {
       });
 
       setTxHash(tx as HexAddress);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsCreating(false);
-      // Silent error handling - no console logs
+      // Check if it's a user rejection error
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes("User denied") || 
+          errorMessage.includes("User rejected") || 
+          errorMessage.includes("User denied request signature") ||
+          errorMessage.includes("cancelled") ||
+          errorMessage.includes("rejected")) {
+        // Silent handling for user rejection - no console error
+        setIsUserRejection(true);
+      } else {
+        // Log other errors
+        setIsUserRejection(false);
+      }
     }
   };
 
@@ -101,20 +122,23 @@ export const useCreatePool = (onSuccess?: () => void) => {
     setTxHash(undefined);
   };
 
+  const resetUserRejection = () => {
+    setIsUserRejection(false);
+  };
+
   return {
-    setCollateralToken,
-    setBorrowToken,
-    setLtv,
     handleCreate,
     isCreating: isCreating || isWritePending,
     isConfirming,
     isSuccess,
-    isError,
+    isError: isError && !isUserRejection, // Only show error if it's not a user rejection
     txHash,
     writeError,
     confirmError,
     showSuccessAlert,
     successTxHash,
     handleCloseSuccessAlert,
+    isUserRejection,
+    resetUserRejection,
   };
 };

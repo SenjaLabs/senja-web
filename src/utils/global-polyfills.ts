@@ -1,15 +1,45 @@
 // Global polyfills that work with both webpack and Turbopack
 // This file should be imported as early as possible
 
+// Type definitions for global extensions
+declare global {
+  interface Window {
+    crypto: {
+      getRandomValues?: (array: Uint8Array) => Uint8Array;
+    };
+    Buffer?: typeof Buffer;
+    global?: Window;
+    process?: {
+      env: Record<string, string | undefined>;
+      nextTick: (fn: () => void) => void;
+      version: string;
+      versions: Record<string, string>;
+    };
+    randombytes?: (n: number) => Uint8Array;
+    randomBytes?: (n: number) => Uint8Array;
+    nacl?: {
+      setPRNG: (fn: (x: Uint8Array, n: number) => void) => void;
+    };
+  }
+  
+  interface GlobalThis {
+    randombytes?: (n: number) => Uint8Array;
+    randomBytes?: (n: number) => Uint8Array;
+    nacl?: {
+      setPRNG: (fn: (x: Uint8Array, n: number) => void) => void;
+    };
+  }
+}
+
 // Set up global variables
 if (typeof window !== 'undefined') {
   // Make sure we have crypto.getRandomValues
   if (!window.crypto) {
-    (window as any).crypto = {};
+    (window as { crypto: { getRandomValues?: (array: Uint8Array) => Uint8Array } }).crypto = {};
   }
   
   if (!window.crypto.getRandomValues) {
-    window.crypto.getRandomValues = (array: any) => {
+    window.crypto.getRandomValues = (array: Uint8Array) => {
       for (let i = 0; i < array.length; i++) {
         array[i] = Math.floor(Math.random() * 256);
       }
@@ -18,21 +48,25 @@ if (typeof window !== 'undefined') {
   }
 
   // Set up Buffer polyfill
-  if (!(window as any).Buffer) {
+  if (!window.Buffer) {
     try {
-      const { Buffer } = require('buffer');
-      (window as any).Buffer = Buffer;
-      (window as any).global = window;
+      // Use dynamic import instead of require
+      import('buffer').then(({ Buffer }) => {
+        window.Buffer = Buffer;
+        window.global = window;
+      }).catch((e) => {
+        console.warn('Could not load Buffer polyfill:', e);
+      });
     } catch (e) {
       console.warn('Could not load Buffer polyfill:', e);
     }
   }
 
   // Set up process polyfill
-  if (!(window as any).process) {
-    (window as any).process = {
+  if (!window.process) {
+    (window as { process: { env: Record<string, string | undefined>; nextTick: (fn: () => void) => void; version: string; versions: Record<string, string> } }).process = {
       env: {},
-      nextTick: (fn: Function) => setTimeout(fn, 0),
+      nextTick: (fn: () => void) => setTimeout(fn, 0),
       version: '',
       versions: {},
     };
@@ -52,18 +86,18 @@ if (typeof window !== 'undefined') {
   };
 
   // Override the global randombytes function that tweetnacl uses
-  (window as any).randombytes = createRandomBytes;
-  (window as any).randomBytes = createRandomBytes;
+  window.randombytes = createRandomBytes;
+  window.randomBytes = createRandomBytes;
   
   // Also set up in global scope
-  (global as any).randombytes = createRandomBytes;
-  (global as any).randomBytes = createRandomBytes;
+  (globalThis as unknown as { randombytes: (n: number) => Uint8Array }).randombytes = createRandomBytes;
+  (globalThis as unknown as { randomBytes: (n: number) => Uint8Array }).randomBytes = createRandomBytes;
 
   // Patch tweetnacl if it's already loaded
   const patchTweetNacl = () => {
     try {
       // Try to get tweetnacl from various possible locations
-      const nacl = (window as any).nacl || (global as any).nacl;
+      const nacl = window.nacl || (globalThis as { nacl?: { setPRNG: (fn: (x: Uint8Array, n: number) => void) => void } }).nacl;
       if (nacl && nacl.setPRNG) {
         nacl.setPRNG((x: Uint8Array, n: number) => {
           const randomBytes = createRandomBytes(n);
@@ -73,13 +107,13 @@ if (typeof window !== 'undefined') {
       }
       
       // Also patch the global randombytes function that tweetnacl might use
-      if (typeof (global as any).randombytes === 'function') {
-        (global as any).randombytes = createRandomBytes;
+      if (typeof (globalThis as unknown as { randombytes?: (n: number) => Uint8Array }).randombytes === 'function') {
+        (globalThis as unknown as { randombytes: (n: number) => Uint8Array }).randombytes = createRandomBytes;
       }
       
       // Patch any existing randombytes function
-      if (typeof (window as any).randombytes === 'function') {
-        (window as any).randombytes = createRandomBytes;
+      if (typeof window.randombytes === 'function') {
+        window.randombytes = createRandomBytes;
       }
     } catch (error) {
       console.warn('Failed to patch tweetnacl:', error);

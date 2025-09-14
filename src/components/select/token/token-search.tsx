@@ -83,6 +83,7 @@ export const TokenSearch = memo(function TokenSearch({
           />
           {searchQuery && (
             <button
+              type="button"
               onClick={handleClearSearch}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-sunset-orange transition-colors duration-200 z-20"
             >
@@ -107,11 +108,12 @@ export const TokenSearch = memo(function TokenSearch({
               }
 
               return (
-                <button
-                  key={symbol}
-                  onClick={() => handleTokenSelect(token)}
-                  className="h-8 px-3 bg-sunset-purple-light hover:bg-sunset-pink-light border border-sunset-purple/20 hover:border-sunset-pink/30 hover:shadow-md hover:shadow-sunset-pink/20 hover:scale-105 transition-all duration-300 group rounded-lg"
-                >
+              <button
+                type="button"
+                key={symbol}
+                onClick={() => handleTokenSelect(token)}
+                className="h-8 px-3 bg-sunset-purple-light hover:bg-sunset-pink-light border border-sunset-purple/20 hover:border-sunset-pink/30 hover:shadow-md hover:shadow-sunset-pink/20 hover:scale-105 transition-all duration-300 group rounded-lg"
+              >
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 rounded-full overflow-hidden">
                       <Image
@@ -156,6 +158,7 @@ export const TokenSearch = memo(function TokenSearch({
           ) : (
             availableTokens.map((token) => (
               <button
+                type="button"
                 key={token.symbol}
                 onClick={() => handleTokenSelect(token)}
                 className="w-full flex items-center justify-between px-4 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:shadow-md hover:shadow-orange-200/20 hover:scale-[1.02] rounded-lg transition-all duration-300 group border border-transparent hover:border-orange-200/50"

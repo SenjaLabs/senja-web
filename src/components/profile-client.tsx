@@ -36,8 +36,8 @@ const ProfileClient = memo(function ProfileClient() {
       setLoadingBalance(true);
       const walletBalance = await getBalance();
       setBalance((parseInt(walletBalance) / 1e18).toFixed(4));
-    } catch (error) {
-      console.error("Failed to get balance:", error);
+    } catch  {
+      // Silent error handling for production
     } finally {
       setLoadingBalance(false);
     }
@@ -49,6 +49,7 @@ const ProfileClient = memo(function ProfileClient() {
   );
 
   const copyToClipboard = useCallback((text: string) => {
+    // eslint-disable-next-line no-undef
     navigator.clipboard.writeText(text);
   }, []);
 

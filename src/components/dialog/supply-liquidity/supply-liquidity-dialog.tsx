@@ -59,25 +59,21 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
     isSuccess,
     isError,
     txHash,
-    writeError,
-    confirmError,
     showSuccessAlert,
     showFailedAlert,
     errorMessage,
     successTxHash,
     handleCloseSuccessAlert,
     handleCloseFailedAlert,
-    needsApproval,
     isApproved,
     isApproving,
     isApproveConfirming,
     isApproveSuccess,
-    isApproveError,
-  } = useSupplyLiquidity(currentChainId, 18, () => {
+  } = useSupplyLiquidity(currentChainId, () => {
     onSuccess?.();
     onClose();
     resetForm();
-  });
+  }); 
 
   /**
    * Reset form to initial state
@@ -100,9 +96,10 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
     await handleApproveToken(
       pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`, 
       pool.lendingPool as `0x${string}`, 
-      amount
+      amount,
+      pool.borrowTokenInfo?.decimals || 18
     );
-  }, [amount, isValid, pool, handleApproveToken]);
+  }, [amount, isValid, pool, handleApproveToken, currentChainId]);
 
   /**
    * Handle supply liquidity
@@ -112,7 +109,7 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
       return;
     }
 
-    await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount);
+    await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, pool.borrowTokenInfo?.decimals || 18);
   }, [amount, isValid, pool, handleSupplyLiquidity]);
 
   /**
@@ -128,6 +125,7 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
   /**
    * Handle amount input change
    */
+  // eslint-disable-next-line no-undef
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
   }, []);

@@ -17,12 +17,12 @@ export const splashUtils = {
     if (typeof window === "undefined") return false;
     
     try {
-      const hasVisited = sessionStorage.getItem(SPLASH_STORAGE_KEY);
-      const splashVersion = sessionStorage.getItem(SPLASH_VERSION_KEY);
+      const hasVisited = window.sessionStorage.getItem(SPLASH_STORAGE_KEY);
+      const splashVersion = window.sessionStorage.getItem(SPLASH_VERSION_KEY);
       
       // Show splash if never visited in this session or splash version changed
       return !hasVisited || splashVersion !== CURRENT_SPLASH_VERSION;
-    } catch (error) {
+    } catch {
       console.warn("sessionStorage not available, showing splash screen");
       return true;
     }
@@ -35,9 +35,9 @@ export const splashUtils = {
     if (typeof window === "undefined") return;
     
     try {
-      sessionStorage.setItem(SPLASH_STORAGE_KEY, "true");
-      sessionStorage.setItem(SPLASH_VERSION_KEY, CURRENT_SPLASH_VERSION);
-    } catch (error) {
+      window.sessionStorage.setItem(SPLASH_STORAGE_KEY, "true");
+      window.sessionStorage.setItem(SPLASH_VERSION_KEY, CURRENT_SPLASH_VERSION);
+    } catch {
       console.warn("Could not save splash screen state to sessionStorage");
     }
   },
@@ -49,9 +49,9 @@ export const splashUtils = {
     if (typeof window === "undefined") return;
     
     try {
-      sessionStorage.removeItem(SPLASH_STORAGE_KEY);
-      sessionStorage.removeItem(SPLASH_VERSION_KEY);
-    } catch (error) {
+      window.sessionStorage.removeItem(SPLASH_STORAGE_KEY);
+      window.sessionStorage.removeItem(SPLASH_VERSION_KEY);
+    } catch {
       console.warn("Could not reset splash screen state");
     }
   },
@@ -63,8 +63,8 @@ export const splashUtils = {
     if (typeof window === "undefined") return;
     
     try {
-      sessionStorage.removeItem(SPLASH_STORAGE_KEY);
-    } catch (error) {
+      window.sessionStorage.removeItem(SPLASH_STORAGE_KEY);
+    } catch {
       console.warn("Could not force splash screen");
     }
   }

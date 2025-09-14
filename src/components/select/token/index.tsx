@@ -26,6 +26,12 @@ export const TokenSelector = memo(function TokenSelector({
     onTokenSelect(token);
   };
 
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsOpen(true);
+  };
+
   const handleClose = () => {
     setIsOpen(false);
   };
@@ -33,8 +39,9 @@ export const TokenSelector = memo(function TokenSelector({
   return (
     <>
       <Button
+        type="button"
         variant="outline"
-        onClick={() => setIsOpen(true)}
+        onClick={handleButtonClick}
         className={`h-12 px-4 font-medium rounded-xl transition-all duration-300 border-orange-200 hover:border-orange-300 bg-white/80 hover:bg-white/90 hover:shadow-md ${
           !selectedToken ? "text-gray-700" : "text-gray-900"
         }`}
@@ -51,6 +58,7 @@ export const TokenSelector = memo(function TokenSelector({
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                   const fallback = e.currentTarget
+                    // eslint-disable-next-line no-undef
                     .nextElementSibling as HTMLElement;
                   if (fallback) {
                     fallback.classList.remove("hidden");
