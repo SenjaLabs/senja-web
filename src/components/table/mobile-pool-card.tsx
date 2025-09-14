@@ -74,7 +74,7 @@ export const MobilePoolCard = memo(function MobilePoolCard({
 
   return (
     <Card
-      className={`overflow-hidden border-0 shadow-md bg-white mobile-animate mobile-card mobile-no-select ${
+      className={`overflow-hidden border-0 bg-white mobile-animate mobile-card mobile-no-select ${
         clickable ? "hover:shadow-lg hover:scale-[1.02] cursor-pointer" : ""
       }`}
       onClick={handleClick}
