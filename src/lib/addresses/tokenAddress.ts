@@ -16,7 +16,7 @@ export const tokens: Token[] = [
     logo: "/token/kaia-logo.svg",
     decimals: 18,
     addresses: {
-      8217: "0x19Aac5f612f524B754CA7e7c41cbFa2E981A4432",
+      8217: "0x684a2aAF3d98bC8eD2c07988E8da9023026aD511",
     },
   },
   {
@@ -48,7 +48,7 @@ export const tokens: Token[] = [
     decimals: 6,
     addresses: {
       84532: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
-      8217: "0x6Ab9c1AAf4f8172138086AA72be2AB8aA6579dbd",
+      8217: "0xCEb5c8903060197e46Ab5ea5087b9F99CBc8da49",
       10: "0x6Ab9c1AAf4f8172138086AA72be2AB8aA6579dbd",
     },
   },
@@ -65,4 +65,4 @@ export const tokens: Token[] = [
   },
 ];
 
-export const helperAddress = "0x1e68394DBd41F77Adf0644CE47b25D1023D664B1";
+export const helperAddress = "0x3De8C22F6b84C575429c1B9cbf5bdDd49cf129fC";

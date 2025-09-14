@@ -55,8 +55,6 @@ export const BorrowDialog = memo(function BorrowDialog({
   const [maxBorrowAmount] = useState(1000); // Mock data
   const [isLoadingMaxUserBorrow] = useState(false);
   const [totalSupplyAssetsLoading] = useState(false);
-  const [totalSupplyAssetsError] = useState(false);
-  const [isLoadingGasMaster] = useState(false);
   const [gasMaster] = useState("0.001");
 
   /**
@@ -115,6 +113,7 @@ export const BorrowDialog = memo(function BorrowDialog({
   /**
    * Handle amount input change
    */
+  // eslint-disable-next-line no-undef
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
   }, []);

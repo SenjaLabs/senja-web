@@ -64,6 +64,14 @@ export const useApprove = (chainId: number, onSuccess?: (txHash?: HexAddress) =>
       // Convert amount to BigInt with proper decimal conversion
       const amountBigInt = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)));
 
+      console.log("Approve attempt:", {
+        tokenAddress,
+        spenderAddress,
+        amount,
+        amountBigInt: amountBigInt.toString(),
+        decimals
+      });
+
       const tx = await writeContractAsync({
         address: tokenAddress,
         abi: mockErc20Abi,
@@ -72,7 +80,8 @@ export const useApprove = (chainId: number, onSuccess?: (txHash?: HexAddress) =>
       });
 
       setTxHash(tx as HexAddress);
-    } catch (err) {
+    } catch (error) {
+      console.error("Approve error:", error);
       setIsApproving(false);
     }
   };

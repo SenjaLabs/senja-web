@@ -116,7 +116,7 @@ export const useWallet = (): WalletState & WalletActions => {
               currentChainId: parseInt(chainId, 16),
             }));
           }
-        } catch (error) {
+        } catch  {
           // No existing wallet connection found
         }
       };

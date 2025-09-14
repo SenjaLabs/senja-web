@@ -52,6 +52,7 @@ export const PoolSearchControls = memo(function PoolSearchControls({
    * Handle search input changes
    */
   const handleSearchChange = useCallback(
+    // eslint-disable-next-line no-undef
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onSearchChange(e.target.value);
     },

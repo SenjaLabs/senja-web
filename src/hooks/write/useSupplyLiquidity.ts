@@ -21,6 +21,9 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isSupplySuccess, setIsSupplySuccess] = useState(false);
+  const [showApproveSuccessAlert, setShowApproveSuccessAlert] = useState(false);
+  const [approveTxHash, setApproveTxHash] = useState<HexAddress | undefined>();
+  const [showApproveSuccess, setShowApproveSuccess] = useState(false);
 
   const { writeContractAsync, isPending: isWritePending, error: writeError } = useWriteContract();
 
@@ -36,12 +39,14 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     handleApprove,
     isApproving: isApprovePending,
     isConfirming: isApproveConfirming,
-    isSuccess: isApproveSuccess,
     isError: isApproveError,
-  } = useApprove(currentChainId, (_txHash) => {
+  } = useApprove(currentChainId, (txHash) => {
     setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
+    setApproveTxHash(txHash);
+    setShowApproveSuccessAlert(true);
+    setShowApproveSuccess(true);
   });
 
   useEffect(() => {
@@ -126,16 +131,40 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       // Convert amount to BigInt with proper decimal conversion
       const amountBigInt = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)));
 
+      console.log("Supply attempt:", {
+        lendingPoolAddress,
+        amount,
+        amountBigInt: amountBigInt.toString(),
+        decimals,
+        isApproved,
+        address
+      });
+
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
         abi: lendingPoolAbi,
         functionName: "supplyLiquidity",
-        args: [amountBigInt],
+        args: [address, amountBigInt],
       });
 
       setTxHash(tx as HexAddress);
-    } catch {
-      setErrorMessage("Supply failed. Please check your wallet and try again.");
+    } catch (error) {
+      console.error("Supply error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
+      // Provide more specific error messages
+      if (errorMessage.includes("insufficient")) {
+        setErrorMessage("Insufficient balance. Please check your token balance.");
+      } else if (errorMessage.includes("allowance")) {
+        setErrorMessage("Insufficient allowance. Please approve more tokens.");
+      } else if (errorMessage.includes("user rejected")) {
+        setErrorMessage("Transaction rejected by user.");
+      } else if (errorMessage.includes("network")) {
+        setErrorMessage("Network error. Please check your connection.");
+      } else {
+        setErrorMessage(`Supply failed: ${errorMessage}`);
+      }
+      
       setShowFailedAlert(true);
       setIsSupplying(false);
     }
@@ -144,6 +173,15 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   const handleCloseSuccessAlert = () => {
     setShowSuccessAlert(false);
     setSuccessTxHash(undefined);
+  };
+
+  const handleCloseApproveSuccessAlert = () => {
+    setShowApproveSuccessAlert(false);
+    setApproveTxHash(undefined);
+  };
+
+  const handleCloseApproveSuccess = () => {
+    setShowApproveSuccess(false);
   };
 
   const handleCloseFailedAlert = () => {
@@ -156,6 +194,9 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplySuccess(false);
+    setShowApproveSuccessAlert(false);
+    setApproveTxHash(undefined);
+    setShowApproveSuccess(false);
   };
 
   const resetAfterSuccess = () => {
@@ -180,7 +221,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     isConfirming,
     isSuccess: isSupplySuccess,
     isError,
-    txHash: txHash || successTxHash,
+    txHash: successTxHash, // Only return supply tx hash, not approve tx hash
     writeError,
     confirmError,
     // Alert states
@@ -190,13 +231,18 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     successTxHash,
     handleCloseSuccessAlert,
     handleCloseFailedAlert,
+    // Approval alert states
+    showApproveSuccessAlert,
+    approveTxHash,
+    handleCloseApproveSuccessAlert,
     // Approval states
     needsApproval,
     isApproved,
     isApproving: isApproving || isApprovePending,
     isApproveConfirming,
-    isApproveSuccess,
+    isApproveSuccess: showApproveSuccess,
     isApproveError,
+    handleCloseApproveSuccess,
     resetApproveStates,
     resetAfterSuccess,
     resetSuccessStates,

@@ -125,6 +125,7 @@ export const TokenSearch = memo(function TokenSearch({
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                           const fallback = e.currentTarget
+                            // eslint-disable-next-line no-undef
                             .nextElementSibling as HTMLElement;
                           if (fallback) {
                             fallback.classList.remove("hidden");
@@ -174,6 +175,7 @@ export const TokenSearch = memo(function TokenSearch({
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         const fallback = e.currentTarget
+                          // eslint-disable-next-line no-undef
                           .nextElementSibling as HTMLElement;
                         if (fallback) {
                           fallback.classList.remove("hidden");

@@ -1,7 +1,6 @@
 "use client";
 
 import { useWagmiWallet } from "@/hooks/useWagmiWallet";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SwitchChainButton from "./button/switch-wallet-button";
@@ -22,10 +21,8 @@ export const WalletButton = ({
     account,
     isLoading,
     error,
-    currentChainId,
     connect,
     disconnect,
-    getBalance,
     balance,
     isLoadingBalance,
   } = useWagmiWallet();
@@ -46,7 +43,9 @@ export const WalletButton = ({
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    if (typeof window !== 'undefined' && window.navigator?.clipboard) {
+      window.navigator.clipboard.writeText(text);
+    }
   };
 
   if (isLoading) {
@@ -59,11 +58,7 @@ export const WalletButton = ({
   }
 
   if (error) {
-    // Check if it's a setup error that needs the setup guide
-    const errorMessage = String(error || '');
-    const isSetupError = errorMessage.includes("Channel ID") ||
-      errorMessage.includes("NEXT_PUBLIC_CLIENT_ID") ||
-      errorMessage.includes("Environment variables not configured");
+
 
     // For other variants or non-setup errors, show compact error
     return (

@@ -18,6 +18,11 @@ export type LendingPoolWithTokens = LendingPoolCreated & {
 
 // Helper function to find token by address
 function findTokenByAddress(address: string, chainId: number = 84532): Token | null {
+  // Ensure address is a string before calling toLowerCase
+  if (!address || typeof address !== 'string') {
+    return null;
+  }
+  
   const normalizedAddress = address.toLowerCase();
   
   return tokens.find(token => {

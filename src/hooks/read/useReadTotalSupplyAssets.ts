@@ -1,38 +1,55 @@
-import { lendingPoolAbi } from "@/lib/abis/lendingPoolAbi";
+import { helperAbi } from "@/lib/abis/helperAbi";
 import { useReadContract } from "wagmi";
-import { useCurrentChainId, useCurrentChain } from "@/lib/chain";
-import { formatUnits } from "viem";
+import { useCurrentChain } from "@/lib/chain";
 import { useState, useEffect } from "react";
+import { formatUnits } from "viem";
+import { tokens, helperAddress } from "@/lib/addresses/tokenAddress";
 
 export type HexAddress = `0x${string}`;
 
-export const useReadTotalSupplyAssets = (lendingPoolAddress?: HexAddress, decimals: number = 18) => {
-  const currentChainId = useCurrentChainId();
+// Helper function to find token by address and get decimals
+function getTokenDecimals(tokenAddress: HexAddress | undefined, chainId: number): number {
+  // Ensure tokenAddress is a string and has the correct format
+  if (!tokenAddress || typeof tokenAddress !== 'string') {
+    return 18; // Default to 18 if invalid address
+  }
+  
+  const normalizedAddress = tokenAddress.toLowerCase();
+  
+  const token = tokens.find(token => {
+    const tokenAddr = token.addresses[chainId]?.toLowerCase();
+    return tokenAddr === normalizedAddress;
+  });
+  
+  return token?.decimals || 18; // Default to 18 if not found
+}
+
+export const useReadTotalSupplyAssets = (lendingPoolAddress?: HexAddress, tokenAddress?: HexAddress) => {
   const currentChain = useCurrentChain();
   const [timeoutReached, setTimeoutReached] = useState(false);
   
-  // Use provided address or fallback to chain's lending pool address
-  const contractAddress = lendingPoolAddress || currentChain.contracts.lendingPool as HexAddress;
-  
-  // Check if we have a valid contract address
-  const hasValidAddress = contractAddress && 
-    contractAddress !== "0x0000000000000000000000000000000000000000" &&
-    contractAddress.length > 2;
-  
-  
+  // Get dynamic decimals from token address
+  const decimals = getTokenDecimals(tokenAddress, currentChain.id);
+
+  // Use helper contract address for the contract call
+  const contractAddress = helperAddress as HexAddress;
+
+  // Check if we have a valid lending pool address
+  const hasValidAddress =
+    lendingPoolAddress &&
+    lendingPoolAddress !== "0x0000000000000000000000000000000000000000" &&
+    lendingPoolAddress.length > 2;
+
   const {
     data: totalSupplyAssets,
     isLoading: totalSupplyAssetsLoading,
     error: totalSupplyAssetsError,
     refetch: refetchTotalSupplyAssets,
   } = useReadContract({
-    address: hasValidAddress ? contractAddress : undefined,
-    abi: lendingPoolAbi,
-    functionName: "totalSupplyAssets",
-    chainId: currentChainId,
-    query: {
-      enabled: hasValidAddress, // Only run query if we have a valid address
-    }
+    address: contractAddress,
+    abi: helperAbi,
+    functionName: "getTotalLiquidity",
+    args: hasValidAddress ? [lendingPoolAddress as HexAddress] : undefined,
   });
 
   // Timeout mechanism - stop loading after 3 seconds
@@ -58,22 +75,35 @@ export const useReadTotalSupplyAssets = (lendingPoolAddress?: HexAddress, decima
     }
   }, [totalSupplyAssets]);
 
-
-
-
   // Parse total supply assets with dynamic decimals
-  const totalSupplyAssetsParsed = totalSupplyAssets 
-    ? Number(formatUnits(totalSupplyAssets, decimals))
-    : 0;
+  const parseTotalSupplyAssets = (rawData: unknown) => {
+    if (!rawData || rawData === undefined) return BigInt(0);
+    return rawData as bigint;
+  };
+
+  const formatTotalSupplyAssets = (rawData: bigint) => {
+    try {
+      return formatUnits(rawData, decimals);
+    } catch (error) {
+      console.error("Error formatting total supply assets:", error);
+      return "0";
+    }
+  };
 
   // Determine final values based on timeout and loading state
-  const finalLoading = hasValidAddress && totalSupplyAssetsLoading && !timeoutReached;
-  const finalData = timeoutReached ? BigInt(0) : (hasValidAddress ? totalSupplyAssets : BigInt(0));
-  const finalParsed = timeoutReached ? 0 : (hasValidAddress ? totalSupplyAssetsParsed : 0);
+  const finalLoading =
+    hasValidAddress && totalSupplyAssetsLoading && !timeoutReached;
+  const finalData = timeoutReached
+    ? BigInt(0)
+    : hasValidAddress
+    ? parseTotalSupplyAssets(totalSupplyAssets)
+    : BigInt(0);
+
+  const formattedData = formatTotalSupplyAssets(finalData);
 
   return {
     totalSupplyAssets: finalData,
-    totalSupplyAssetsParsed: finalParsed,
+    totalSupplyAssetsFormatted: formattedData,
     totalSupplyAssetsLoading: finalLoading,
     totalSupplyAssetsError: hasValidAddress ? totalSupplyAssetsError : null,
     refetchTotalSupplyAssets,
