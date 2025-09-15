@@ -1,5 +1,5 @@
 import { graphClient } from "./client";
-import { queryLendingPool } from "./lendingpool-list.query";
+import { queryLendingPool } from "./lendingpool-data.query";
 import { tokens } from "../addresses/tokenAddress";
 import { Token } from "@/types";
 

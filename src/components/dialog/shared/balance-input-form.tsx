@@ -22,6 +22,8 @@ interface BalanceInputFormProps {
   disabled?: boolean;
   /** Custom className */
   className?: string;
+  /** Custom label for the amount input */
+  customLabel?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ export const BalanceInputForm = memo(function BalanceInputForm({
   tokenType,
   disabled = false,
   className = "",
+  customLabel,
 }: BalanceInputFormProps) {
   const currentChainId = useCurrentChainId();
 
@@ -80,7 +83,7 @@ export const BalanceInputForm = memo(function BalanceInputForm({
       <div className="flex items-center justify-between">
         <label className={`${textStyles.label} flex items-center gap-2`}>
           <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-          Amount to Supply
+          {customLabel || "Amount to Supply"}
         </label>
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>Balance:</span>

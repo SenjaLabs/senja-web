@@ -48,10 +48,12 @@ export const PoolsOverview = memo(function PoolsOverview() {
   /**
    * Handle action selection
    */
-  const handleActionSelect = useCallback((_action: string) => {
-    // Keep the pool actions dialog open and let it handle the action
-    // The dialog will show the appropriate form based on the selected action
+  const handleActionSelect = useCallback((action: string) => {
+    console.log("Action selected:", action);
+    // For actions that need separate dialogs, handle them here
+    // For now, all actions are handled within PoolActionsDialog
   }, []);
+
 
   // Fetch pools data
   useEffect(() => {
@@ -222,6 +224,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
         pool={selectedPool}
         onActionSelect={handleActionSelect}
       />
+
 
     </div>
   );

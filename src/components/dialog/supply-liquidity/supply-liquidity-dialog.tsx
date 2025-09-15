@@ -136,6 +136,10 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
     isApproveConfirming,
     isApproveSuccess,
     handleCloseApproveSuccess,
+    // Approval alert states
+    showApproveSuccessAlert,
+    approveTxHash,
+    handleCloseApproveSuccessAlert,
   } = useSupplyLiquidity(currentChainId, () => {
     onSuccess?.();
     // Don't auto close - let user close manually
@@ -143,19 +147,30 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
   });
 
   /**
-   * Handle action selection
-   */
-  const handleActionSelect = useCallback((action: DialogActionType) => {
-    setSelectedAction(action);
-    setAmount(""); // Reset amount when switching actions
-  }, []);
-
-  /**
    * Reset form to initial state
    */
   const resetForm = useCallback(() => {
     setAmount("");
-  }, [setAmount]);
+    // Reset success alerts if they're showing
+    if (showSuccessAlert) {
+      handleCloseSuccessAlert();
+    }
+    if (showApproveSuccessAlert) {
+      handleCloseApproveSuccessAlert();
+    }
+    // Reset failed alerts if they're showing
+    if (showFailedAlert) {
+      handleCloseFailedAlert();
+    }
+  }, [setAmount, showSuccessAlert, handleCloseSuccessAlert, showApproveSuccessAlert, handleCloseApproveSuccessAlert, showFailedAlert, handleCloseFailedAlert]);
+
+  /**
+   * Handle action selection
+   */
+  const handleActionSelect = useCallback((action: DialogActionType) => {
+    setSelectedAction(action);
+    resetForm(); // Reset all form states when switching actions
+  }, [resetForm]);
 
   // Form validation
   const isValid = amount && parseFloat(amount) > 0;
@@ -451,6 +466,17 @@ export const SupplyLiquidityDialog = memo(function SupplyLiquidityDialog({
         description="Liquidity supplied successfully!"
         buttonText="Close"
         txHash={successTxHash}
+        chainId={currentChainId}
+      />
+
+      {/* Approval Success Alert */}
+      <SuccessAlert
+        isOpen={showApproveSuccessAlert}
+        onClose={handleCloseApproveSuccessAlert}
+        title="Approval Success"
+        description="Token approved successfully! You can now supply liquidity."
+        buttonText="Continue"
+        txHash={approveTxHash}
         chainId={currentChainId}
       />
 

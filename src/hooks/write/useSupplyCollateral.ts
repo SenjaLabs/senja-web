@@ -28,6 +28,9 @@ export const useSupplyCollateral = (
   const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isSupplySuccess, setIsSupplySuccess] = useState(false);
+  const [showApproveSuccessAlert, setShowApproveSuccessAlert] = useState(false);
+  const [approveTxHash, setApproveTxHash] = useState<HexAddress | undefined>();
+  const [showApproveSuccess, setShowApproveSuccess] = useState(false);
 
   const {
     writeContractAsync,
@@ -49,10 +52,13 @@ export const useSupplyCollateral = (
     isConfirming: isApproveConfirming,
     isSuccess: isApproveSuccess,
     isError: isApproveError,
-  } = useApprove(currentChainId, (_txHash) => {
+  } = useApprove(currentChainId, (txHash) => {
     setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
+    setApproveTxHash(txHash);
+    setShowApproveSuccessAlert(true);
+    setShowApproveSuccess(true);
   });
 
   useEffect(() => {
@@ -153,7 +159,7 @@ export const useSupplyCollateral = (
       address: lendingPoolAddress,
       abi: lendingPoolAbi,
       functionName: "supplyCollateral",
-      args: [amountBigInt],
+      args: [amountBigInt, address],
     });
 
     setTxHash(tx as HexAddress);
@@ -169,11 +175,23 @@ export const useSupplyCollateral = (
     setErrorMessage("");
   };
 
+  const handleCloseApproveSuccessAlert = () => {
+    setShowApproveSuccessAlert(false);
+    setApproveTxHash(undefined);
+  };
+
+  const handleCloseApproveSuccess = () => {
+    setShowApproveSuccess(false);
+  };
+
   const resetApproveStates = () => {
     setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplySuccess(false);
+    setShowApproveSuccessAlert(false);
+    setApproveTxHash(undefined);
+    setShowApproveSuccess(false);
   };
 
   const resetAfterSuccess = () => {
@@ -212,10 +230,15 @@ export const useSupplyCollateral = (
     isApproved,
     isApproving: isApproving || isApprovePending,
     isApproveConfirming,
-    isApproveSuccess,
+    isApproveSuccess: showApproveSuccess,
     isApproveError,
     resetApproveStates,
     resetAfterSuccess,
     resetSuccessStates,
+    // Approval alert states
+    showApproveSuccessAlert,
+    approveTxHash,
+    handleCloseApproveSuccessAlert,
+    handleCloseApproveSuccess,
   };
 };

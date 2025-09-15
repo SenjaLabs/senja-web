@@ -18,7 +18,7 @@ interface PoolsTableOnlyProps {
 const PoolRow = React.memo(({ pool, onPoolClick }: { pool: LendingPoolWithTokens; onPoolClick?: (pool: LendingPoolWithTokens) => void }) => {
   const { totalSupplyAssets, totalSupplyAssetsLoading } = useReadTotalSupplyAssets(
     pool.lendingPool,
-    pool.borrowTokenInfo?.decimals || 18
+    pool.borrowToken
   );
 
   const formattedLTV = useMemo(() => {

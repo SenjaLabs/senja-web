@@ -4,6 +4,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { formatUnits } from "viem/utils";
 import { useState, useEffect } from "react";
 import { erc20Abi } from "viem";
+import { getDisplayDecimals } from "@/utils/format";
 
 export type HexAddress = `0x${string}`;
 
@@ -25,7 +26,8 @@ export const useUserWalletBalance = (tokenAddress: HexAddress, decimals: number)
   useEffect(() => {
     if (data) {
       const rawBalance = parseFloat(formatUnits(data as bigint, decimals));
-      const formattedBalance = rawBalance.toFixed(decimals === 6 ? 2 : 2);
+      const displayDecimals = getDisplayDecimals(decimals);
+      const formattedBalance = rawBalance.toFixed(displayDecimals);
       setBalance(formattedBalance);
       setBalanceParsed(rawBalance);
     }

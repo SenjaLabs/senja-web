@@ -14,7 +14,7 @@ import {
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 // import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
 // import { useCurrentChainId } from "@/lib/chain/use-chain";
-import { dialogStyles, buttonStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
+import { dialogStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
 import { PLACEHOLDERS, BUTTON_TEXTS, LOADING_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 
 /**
@@ -109,6 +109,7 @@ export const WithdrawCollateralDialog = memo(function WithdrawCollateralDialog({
   /**
    * Handle amount input change
    */
+  // eslint-disable-next-line no-undef
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
   }, []);
