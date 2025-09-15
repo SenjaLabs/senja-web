@@ -3,7 +3,7 @@
  */
 
 const LOGO_CACHE_KEY = "senja-logo-cached";
-const LOGO_URL = "/beary/beary.png";
+const LOGO_URL = "/senja-logo.png";
 
 export const logoUtils = {
   /**

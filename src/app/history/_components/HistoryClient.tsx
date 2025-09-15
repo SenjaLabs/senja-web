@@ -37,7 +37,7 @@ const HistoryClient = memo(function HistoryClient() {
   const hasPrev = page > 0;
 
   return (
-    <div className="min-h-screen pt-8 relative z-10 px-4 pb-24 sm:px-6 lg:px-8 lg:pb-28 xl:pb-32">
+    <div className="min-h-screen mx-auto pt-8 xl:pt-32 relative z-10 px-4 pb-18 sm:px-6 lg:px-8 lg:pb-28 xl:pb-32">
       <div className="max-w-6xl mx-auto">
         <TransactionFilter
           selectedType={selectedType}

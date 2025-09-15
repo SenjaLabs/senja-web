@@ -1,11 +1,11 @@
 "use client";
 import { useState, useCallback, memo } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useWallet } from "@/hooks/useWallet";
 import {
-  User,
   Lock,
   CreditCard,
   Copy,
@@ -54,12 +54,19 @@ const ProfileClient = memo(function ProfileClient() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen mt-8 xl:mt-16">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         {/* Header Section */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-sunset rounded-full mb-3 sm:mb-4 shadow-lg">
-            <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+          <div className="inline-flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
+            <Image
+              src="/beary/beary.png"
+              alt="Profile Picture"
+              width={128}
+              height={128}
+              className="object-cover rounded-full w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 "
+              priority
+            />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Profile</h1>
           <p className="text-sm sm:text-base text-gray-600 px-4">

@@ -106,11 +106,11 @@ export default function SplashScreen({
         <div
           className={`transform transition-all duration-1000 ease-out ${
             logoAnimated && logoLoaded
-              ? "animate-bounce scale-100"
+              ? "scale-100"
               : "scale-75 opacity-0"
           }`}
         >
-          <div className="bg-white/25 backdrop-blur-sm rounded-3xl p-6 md:p-8 lg:p-10 shadow-2xl border border-white/40">
+          <div className="bg-[#ffffff46] rounded-full shadow-2xl flex items-center justify-center">
             {logoLoaded ? (
               <Image
                 src={logoUtils.getLogoUrl()}

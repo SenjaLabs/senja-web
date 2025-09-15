@@ -161,7 +161,7 @@ export function TransactionTable({ transactions, loading = false, chainId = 8217
             : transaction.amount.toString();
 
           return (
-            <div key={transaction.id} className="p-4 border-b border-gray-200/50 last:border-b-0">
+            <div key={transaction.id} className="p-4 border-b border-gray-100/50 last:border-b-0">
               <div className="flex justify-between items-start mb-2">
                 <TransactionTypeBadge type={transaction.type} />
                 <a
