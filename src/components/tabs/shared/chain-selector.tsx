@@ -26,9 +26,7 @@ export const ChainSelector = ({
   return (
     <div className="flex gap-4">
       <div className="flex flex-col w-1/2">
-        <label className="text-sm font-medium text-amber-800 mb-2">
-          Chain From 
-        </label>
+        <label className="text-sm font-medium text-amber-800 mb-2">From</label>
         <Select value={chainFrom} onValueChange={() => {}} disabled>
           <SelectTrigger className="bg-orange-50 border-2 border-orange-300 cursor-not-allowed rounded-lg shadow-md h-12 w-full">
             <SelectValue />
@@ -50,12 +48,11 @@ export const ChainSelector = ({
             ))}
           </SelectContent>
         </Select>
-        <p className="text-xs text-amber-600 mt-1">Kaia (Locked)</p>
       </div>
 
       <div className="flex flex-col w-1/2">
         <label className="block text-sm font-medium text-amber-800 mb-2">
-          Chain To
+          To
         </label>
         <Select
           value={chainTo}

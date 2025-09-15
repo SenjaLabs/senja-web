@@ -353,10 +353,6 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-amber-600 mb-1">APY:</p>
-                  <p className="font-semibold text-amber-800">{apyLoading ? "Loading..." : supplyAPY}%</p>
-                </div>
-                <div>
                   <p className="text-sm text-amber-600 mb-1">LTV:</p>
                   <p className="font-semibold text-amber-800">{((Number(pool.ltv) / 1e16)).toFixed(1)}%</p>
                 </div>

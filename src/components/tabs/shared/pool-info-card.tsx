@@ -10,15 +10,19 @@ interface PoolInfoCardProps {
     symbol: string;
     logo: string;
   };
-  apy: string;
+  apy?: string;
   ltv: string;
+  apyLabel?: string;
+  showApy?: boolean;
 }
 
 export const PoolInfoCard = ({ 
   collateralToken, 
   borrowToken, 
   apy, 
-  ltv 
+  ltv,
+  apyLabel = "APY",
+  showApy = true
 }: PoolInfoCardProps) => {
   return (
     <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
@@ -49,10 +53,12 @@ export const PoolInfoCard = ({
             <p className="font-semibold text-amber-800">{borrowToken.symbol}</p>
           </div>
         </div>
-        <div>
-          <p className="text-sm text-amber-600 mb-1">APY:</p>
-          <p className="font-semibold text-amber-800">{apy}%</p>
-        </div>
+        {showApy && (
+          <div>
+            <p className="text-sm text-amber-600 mb-1">{apyLabel}:</p>
+            <p className="font-semibold text-amber-800">{apy}%</p>
+          </div>
+        )}
         <div>
           <p className="text-sm text-amber-600 mb-1">LTV:</p>
           <p className="font-semibold text-amber-800">{ltv}%</p>

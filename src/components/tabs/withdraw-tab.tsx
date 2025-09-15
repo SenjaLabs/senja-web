@@ -14,24 +14,10 @@ import { useCurrentChainId } from "@/lib/chain/use-chain";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
+import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
 interface WithdrawTabProps {
-  pool?: {
-    lendingPool: string;
-    collateralTokenInfo: {
-      symbol: string;
-      logo: string;
-      addresses: Record<string, string>;
-      decimals: number;
-    };
-    borrowTokenInfo: {
-      symbol: string;
-      logo: string;
-      addresses: Record<string, string>;
-      decimals: number;
-    };
-    ltv: string;
-  };
+  pool?: LendingPoolWithTokens;
 }
 
 const WithdrawTab = ({ pool }: WithdrawTabProps) => {
@@ -175,11 +161,13 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
     handleWithdrawCollateral,
   ]);
 
-  if (!pool) {
+  if (!pool || !pool.collateralTokenInfo || !pool.borrowTokenInfo) {
     return (
       <div className="space-y-6">
         <Card className="p-8 text-center">
-          <p className="text-amber-600">No pool selected</p>
+          <p className="text-amber-600">
+            No pool selected or invalid pool data
+          </p>
         </Card>
       </div>
     );
@@ -219,6 +207,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
           }}
           apy={apyLoading ? "Loading..." : supplyAPY}
           ltv={(Number(pool.ltv) / 1e16).toFixed(1)}
+          showApy={withdrawType === "liquidity"}
         />
 
         <TabsContent value="liquidity" className="mt-4">

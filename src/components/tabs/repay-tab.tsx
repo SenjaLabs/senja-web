@@ -7,25 +7,11 @@ import { Input } from "@/components/ui/input";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useReadUserBorrowShares } from "@/hooks/read/useReadUserBorrowShares";
 import { useRefetch } from "@/hooks/useRefetch";
+import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import Image from "next/image";
 
 interface RepayTabProps {
-  pool?: {
-    lendingPool: string;
-    collateralTokenInfo: {
-      symbol: string;
-      logo: string;
-      addresses: Record<string, string>;
-      decimals: number;
-    };
-    borrowTokenInfo: {
-      symbol: string;
-      logo: string;
-      addresses: Record<string, string>;
-      decimals: number;
-    };
-    ltv: string;
-  };
+  pool?: LendingPoolWithTokens;
 }
 
 const RepayTab = ({ pool }: RepayTabProps) => {
@@ -170,7 +156,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
                   <span className="text-red-500 text-xs">Error</span>
                 ) : (
                   `${userBorrowSharesFormatted || "0.00"} ${
-                    pool.borrowTokenInfo.symbol
+                    pool.borrowTokenInfo?.symbol || "Token"
                   }`
                 )}
               </span>
@@ -208,7 +194,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
                     : "Max"}
                 </button>
                 <span className="text-sm font-medium text-amber-800">
-                  {pool.borrowTokenInfo.symbol}
+                  {pool.borrowTokenInfo?.symbol || "Token"}
                 </span>
               </div>
             </div>
@@ -221,7 +207,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
         className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!amount || parseFloat(amount) <= 0 || borrowSharesParsed <= 0}
       >
-        Repay {pool.borrowTokenInfo.symbol}
+        Repay {pool.borrowTokenInfo?.symbol || "Token"}
       </Button>
     </div>
   );

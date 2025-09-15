@@ -386,7 +386,7 @@ export const lendingPoolAbi = [
         internalType: "uint256",
       },
       {
-        name: "shares",
+      name: "shares",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
