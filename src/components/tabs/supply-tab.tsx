@@ -283,39 +283,41 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
             </Card>
 
             {/* Amount Input Section */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <label className="text-sm font-medium text-amber-800">
-                    Amount to Supply
-                  </label>
+            <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <label className="text-sm font-medium text-amber-800">
+                      Amount to Supply
+                    </label>
+                  </div>
+                  <span className="text-sm text-amber-600">
+                    Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.borrowTokenInfo?.symbol}
+                  </span>
                 </div>
-                <span className="text-sm text-amber-600">
-                  Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.borrowTokenInfo?.symbol}
-                </span>
-              </div>
-              
-              <div className="relative">
-                <Input
-                  type="number"
-                  placeholder="Enter amount to supply"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                    <button
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                      onClick={handleSetMax}
-                      disabled={userWalletBalanceParsed <= 0}
-                    >
-                      Max
-                    </button>
-                    <span className="text-sm font-medium text-amber-800">{pool.borrowTokenInfo?.symbol}</span>
+                
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Enter amount to supply"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                      <button
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                        onClick={handleSetMax}
+                        disabled={userWalletBalanceParsed <= 0}
+                      >
+                        Max
+                      </button>
+                      <span className="text-sm font-medium text-amber-800">{pool.borrowTokenInfo?.symbol}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </TabsContent>
 
@@ -362,39 +364,41 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
             </Card>
 
             {/* Amount Input Section */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <label className="text-sm font-medium text-amber-800">
-                    Amount to Supply
-                  </label>
+            <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <label className="text-sm font-medium text-amber-800">
+                      Amount to Supply
+                    </label>
+                  </div>
+                  <span className="text-sm text-amber-600">
+                    Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.collateralTokenInfo?.symbol}
+                  </span>
                 </div>
-                <span className="text-sm text-amber-600">
-                  Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.collateralTokenInfo?.symbol}
-                </span>
-              </div>
-              
-              <div className="relative">
-                <Input
-                  type="number"
-                  placeholder="Enter amount to supply"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                />
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                    <button
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                      onClick={handleSetMax}
-                      disabled={userWalletBalanceParsed <= 0}
-                    >
-                      Max
-                    </button>
-                    <span className="text-sm font-medium text-amber-800">{pool.collateralTokenInfo?.symbol}</span>
+                
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Enter amount to supply"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                      <button
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                        onClick={handleSetMax}
+                        disabled={userWalletBalanceParsed <= 0}
+                      >
+                        Max
+                      </button>
+                      <span className="text-sm font-medium text-amber-800">{pool.collateralTokenInfo?.symbol}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

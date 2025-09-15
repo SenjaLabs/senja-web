@@ -15,6 +15,7 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
   const [successTxHash, setSuccessTxHash] = useState<HexAddress | undefined>();
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+  const [error, setError] = useState<string>("");
 
   const { writeContractAsync, isPending: isWritePending, error: writeError } = useWriteContract();
 
@@ -47,10 +48,11 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
       
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
+        setError("");
         setIsWithdrawing(false);
         setTxHash(undefined);
       } else {
-        // For other errors, you might want to show an error message
+        setError(`Withdraw failed: ${writeError.message || "Please check your wallet and try again."}`);
         setIsWithdrawing(false);
         setTxHash(undefined);
       }
@@ -60,10 +62,11 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
+      setError(`Withdraw failed to confirm: ${confirmError.message || "Please try again."}`);
       setIsWithdrawing(false);
       setTxHash(undefined);
     }
-  }, [isError, confirmError, txHash]);
+  }, [isError, confirmError]);
 
   const handleCloseSuccessAlert = () => {
     setShowSuccessAlert(false);
@@ -72,35 +75,69 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
 
   const handleWithdrawCollateral = async (lendingPoolAddress: HexAddress, amountParam?: string) => {
     if (!address) {
+      setError("Please connect your wallet first");
       return;
     }
 
     const chain = chains.find((c: Chain) => c.id === chainId);
     if (!chain) {
+      setError(`Unsupported chain: ${chainId}. Available chains: ${chains.map(c => c.id).join(', ')}`);
       return;
     }
 
     const amountToUse = amountParam || amount;
     if (!amountToUse || parseFloat(amountToUse) <= 0) {
+      setError("Please enter a valid amount");
       return;
     }
 
     try {
       setIsWithdrawing(true);
       setTxHash(undefined);
+      setError("");
 
       // Convert amount to BigInt with proper decimal conversion
       const parsedAmount = parseFloat(amountToUse);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        throw new Error("Invalid amount");
+      }
+      
       const decimalMultiplier = Math.pow(10, decimals);
       const amountBigInt = BigInt(Math.floor(parsedAmount * decimalMultiplier));
+      
+      if (amountBigInt <= BigInt(0)) {
+        throw new Error("Amount too small");
+      }
+
+      console.log("Attempting withdraw collateral transaction with:", {
+        address: lendingPoolAddress,
+        amount: amountBigInt.toString(),
+        chainId,
+        userAddress: address,
+        decimalMultiplier,
+        parsedAmount,
+        abiFunction: "withdrawCollateral"
+      });
+
+      // Validate contract address
+      if (!lendingPoolAddress || lendingPoolAddress === "0x0000000000000000000000000000000000000000") {
+        throw new Error("Invalid contract address");
+      }
 
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
         abi: lendingPoolAbi,
         functionName: "withdrawCollateral",
         args: [amountBigInt],
+        chainId: chainId,
       });
 
+      console.log("Transaction successful:", {
+        hash: tx,
+        contractAddress: lendingPoolAddress,
+        functionName: "withdrawCollateral",
+        amount: amountBigInt.toString()
+      });
       setTxHash(tx as HexAddress);
     } catch (error) {
       console.error("Transaction failed:", error);
@@ -115,10 +152,11 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
       
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
+        setError("");
         setIsWithdrawing(false);
         setTxHash(undefined);
       } else {
-        // For other errors, you might want to show an error message
+        setError(`Withdraw failed: ${errorMessage}`);
         setIsWithdrawing(false);
         setTxHash(undefined);
       }
@@ -126,15 +164,18 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
   };
 
   return {
+    amount,
     setAmount,
     handleWithdrawCollateral,
     isWithdrawing: isWithdrawing || isWritePending,
     isConfirming,
     isSuccess,
     isError,
-    txHash: txHash || successTxHash,
+    txHash: successTxHash,
     writeError,
     confirmError,
+    error,
+    clearError: () => setError(""),
     showSuccessAlert,
     successTxHash,
     handleCloseSuccessAlert,

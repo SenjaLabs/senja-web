@@ -65,4 +65,4 @@ export const tokens: Token[] = [
   },
 ];
 
-export const helperAddress = "0x3De8C22F6b84C575429c1B9cbf5bdDd49cf129fC";
+export const helperAddress = "0x03e7669B2e85CB7C61Af39307D79390B79c3aB7B";

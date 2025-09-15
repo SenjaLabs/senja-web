@@ -252,6 +252,25 @@ export const helperAbi = [
   },
   {
     type: "function",
+    name: "getRouter",
+    inputs: [
+      {
+        name: "_lendingPool",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getSupplyAPY",
     inputs: [
       {

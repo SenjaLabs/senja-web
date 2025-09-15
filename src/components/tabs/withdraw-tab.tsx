@@ -8,7 +8,8 @@ import { PoolInfoCard } from "./shared/pool-info-card";
 import { AmountInput } from "./shared/amount-input";
 import { useRefetch } from "@/hooks/useRefetch";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
-import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
+import { useReadUserSupply } from "@/hooks/read/useReadUserSupply";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
 import { useCurrentChainId } from "@/lib/chain/use-chain";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
@@ -89,27 +90,41 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
     }
   );
 
-  // Get user balance for liquidity token (borrow token)
+  // Get user supply shares for liquidity withdrawal
   const {
-    userWalletBalanceFormatted: liquidityBalanceFormatted,
-    userWalletBalanceParsed: liquidityBalanceParsed,
-    walletBalanceLoading: liquidityBalanceLoading,
-    refetchWalletBalance: refetchLiquidityBalance,
-  } = useUserWalletBalance(
-    pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`,
+    userSupplySharesFormatted: liquidityBalanceFormatted,
+    userSupplyShares: userSupplySharesRaw,
+    userSupplySharesLoading: liquidityBalanceLoading,
+    userSupplySharesError: liquidityBalanceError,
+    refetchUserSupplyShares: refetchLiquidityBalance,
+  } = useReadUserSupply(
+    (pool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
     pool?.borrowTokenInfo?.decimals || 18
   );
 
-  // Get user balance for collateral token
+  // Get user collateral balance for collateral withdrawal
   const {
-    userWalletBalanceFormatted: collateralBalanceFormatted,
-    userWalletBalanceParsed: collateralBalanceParsed,
-    walletBalanceLoading: collateralBalanceLoading,
-    refetchWalletBalance: refetchCollateralBalance,
-  } = useUserWalletBalance(
-    pool?.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`,
+    userCollateralFormatted: collateralBalanceFormatted,
+    userCollateral: userCollateralRaw,
+    userCollateralLoading: collateralBalanceLoading,
+    userCollateralError: collateralBalanceError,
+    refetchUserCollateral: refetchCollateralBalance,
+  } = useReadUserCollateral(
+    (pool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
     pool?.collateralTokenInfo?.decimals || 18
   );
+
+  // Parse the raw values for max button functionality
+  const liquidityBalanceParsed = userSupplySharesRaw
+    ? Number(userSupplySharesRaw) /
+      Math.pow(10, pool?.borrowTokenInfo?.decimals || 6)
+    : 0;
+  const collateralBalanceParsed = userCollateralRaw
+    ? Number(userCollateralRaw) /
+      Math.pow(10, pool?.collateralTokenInfo?.decimals || 18)
+    : 0;
 
   // Add refetch functions
   useEffect(() => {
@@ -191,7 +206,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
             Withdraw Collateral
           </TabsTrigger>
         </TabsList>
-        
+
         {/* Pool Information Card */}
         <PoolInfoCard
           collateralToken={{
@@ -209,6 +224,24 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
         <TabsContent value="liquidity" className="mt-4">
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
             <div className="space-y-4">
+              {/* User Position Info */}
+              <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">Your Liquidity:</span>
+                  <span className="text-md font-bold text-orange-700">
+                    {liquidityBalanceLoading ? (
+                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : liquidityBalanceError ? (
+                      <span className="text-red-500 text-xs">Error</span>
+                    ) : (
+                      `${liquidityBalanceFormatted || "0.00"} ${
+                        pool.borrowTokenInfo.symbol
+                      }`
+                    )}
+                  </span>
+                </div>
+              </div>
+
               <AmountInput
                 label="Amount to Withdraw"
                 placeholder="Enter amount to withdraw"
@@ -216,11 +249,6 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                 onChange={setAmount}
                 onMaxClick={handleSetMaxLiquidity}
                 tokenSymbol={pool.borrowTokenInfo.symbol}
-                balance={`Available: ${
-                  liquidityBalanceLoading
-                    ? "Loading..."
-                    : liquidityBalanceFormatted || "0.00"
-                }`}
                 maxDisabled={liquidityBalanceParsed <= 0}
               />
             </div>
@@ -230,6 +258,26 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
         <TabsContent value="collateral" className="mt-4">
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
             <div className="space-y-4">
+              {/* User Position Info */}
+              <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-700">
+                    Collateral Balance:
+                  </span>
+                  <span className="font-bold text-md text-orange-700">
+                    {collateralBalanceLoading ? (
+                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : collateralBalanceError ? (
+                      <span className="text-red-500 text-xs">Error</span>
+                    ) : (
+                      `${collateralBalanceFormatted || "0.00"} ${
+                        pool.collateralTokenInfo.symbol
+                      }`
+                    )}
+                  </span>
+                </div>
+              </div>
+
               <AmountInput
                 label="Amount to Withdraw"
                 placeholder="Enter amount to withdraw"
@@ -237,11 +285,6 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                 onChange={setAmount}
                 onMaxClick={handleSetMaxCollateral}
                 tokenSymbol={pool.collateralTokenInfo.symbol}
-                balance={`Available: ${
-                  collateralBalanceLoading
-                    ? "Loading..."
-                    : collateralBalanceFormatted || "0.00"
-                }`}
                 maxDisabled={collateralBalanceParsed <= 0}
               />
             </div>

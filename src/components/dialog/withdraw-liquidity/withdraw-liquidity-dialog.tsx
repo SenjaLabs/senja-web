@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
+import { useReadUserSupply } from "@/hooks/read/useReadUserSupply";
 import { useCurrentChainId } from "@/lib/chain";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
 import { dialogStyles, buttonStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
@@ -81,6 +82,16 @@ export const WithdrawLiquidityDialog = memo(function WithdrawLiquidityDialog({
   
   // Get decimals from token info (use borrow token decimals as primary, fallback to collateral token, then 18)
   const decimals = pool?.borrowTokenInfo?.decimals || pool?.collateralTokenInfo?.decimals || 18;
+  
+  // Get user supply shares for display
+  const {
+    userSupplySharesFormatted,
+    userSupplySharesLoading,
+    userSupplySharesError,
+  } = useReadUserSupply(
+    pool?.lendingPool as `0x${string}` || "0x0000000000000000000000000000000000000000",
+    decimals
+  );
   
   const {
     shares,
@@ -251,6 +262,23 @@ export const WithdrawLiquidityDialog = memo(function WithdrawLiquidityDialog({
                   <div className="font-mono text-xs break-all">{pool.lendingPool}</div>
                 </div>
               </div>
+              {/* User Balance Display */}
+              {selectedAction === "withdraw-liquidity" && (
+                <div className="mt-4 pt-4 border-t border-red-200">
+                  <div className="flex justify-between items-center">
+                    <div className="text-gray-500 text-sm">Your Supply Shares:</div>
+                    <div className="font-semibold text-red-700">
+                      {userSupplySharesLoading ? (
+                        <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                      ) : userSupplySharesError ? (
+                        <span className="text-red-500 text-xs">Error loading</span>
+                      ) : (
+                        `${userSupplySharesFormatted} Shares`
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </Card>
 
             {/* Amount Input */}

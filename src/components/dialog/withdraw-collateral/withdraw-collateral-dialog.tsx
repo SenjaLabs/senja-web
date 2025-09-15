@@ -12,8 +12,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
-// import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
-// import { useCurrentChainId } from "@/lib/chain/use-chain";
+import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useCurrentChainId } from "@/lib/chain";
 import { dialogStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
 import { PLACEHOLDERS, BUTTON_TEXTS, LOADING_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES } from "@/lib/constants";
 
@@ -46,24 +47,48 @@ export const WithdrawCollateralDialog = memo(function WithdrawCollateralDialog({
   onSuccess,
   className,
 }: WithdrawCollateralDialogProps) {
-  const [amount, setAmount] = useState("");
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isError, setIsError] = useState(false);
-  const [txHash, setTxHash] = useState<string>("");
+  const chainId = useCurrentChainId();
+  
+  // Get decimals from collateral token info
+  const decimals = pool?.collateralTokenInfo?.decimals || 18;
+  
+  // Get user collateral balance for display
+  const {
+    userCollateralFormatted,
+    userCollateralLoading,
+    userCollateralError,
+  } = useReadUserCollateral(
+    pool?.lendingPool as `0x${string}` || "0x0000000000000000000000000000000000000000",
+    decimals
+  );
+  
+  const {
+    amount,
+    setAmount,
+    handleWithdrawCollateral,
+    isWithdrawing,
+    isConfirming,
+    isSuccess,
+    isError,
+    txHash,
+    error,
+    clearError,
+    showSuccessAlert,
+    successTxHash,
+    handleCloseSuccessAlert,
+  } = useWithdrawCollateral(chainId, decimals, onSuccess || (() => {}));
 
   /**
    * Reset form to initial state
    */
   const resetForm = useCallback(() => {
     setAmount("");
-    setIsWithdrawing(false);
-    setIsConfirming(false);
-    setIsSuccess(false);
-    setIsError(false);
-    setTxHash("");
-  }, []);
+    clearError();
+    // Reset success alert if it's showing
+    if (showSuccessAlert) {
+      handleCloseSuccessAlert();
+    }
+  }, [setAmount, clearError, showSuccessAlert, handleCloseSuccessAlert]);
 
   // Form validation
   const isValid = amount && parseFloat(amount) > 0;
@@ -78,41 +103,29 @@ export const WithdrawCollateralDialog = memo(function WithdrawCollateralDialog({
       return;
     }
 
-    // Simulate transaction process
-    setIsWithdrawing(true);
-    setTxHash("0x1234567890abcdef1234567890abcdef12345678");
-    
-    setTimeout(() => {
-      setIsWithdrawing(false);
-      setIsConfirming(true);
-      
-      setTimeout(() => {
-        setIsConfirming(false);
-        setIsSuccess(true);
-        onSuccess?.();
-        onClose();
-        resetForm();
-      }, 2000);
-    }, 2000);
-  }, [amount, isValid, pool, onSuccess, onClose, resetForm]);
+    await handleWithdrawCollateral(pool.lendingPool as `0x${string}`, amount);
+  }, [isValid, pool, handleWithdrawCollateral, amount]);
 
   /**
    * Handle dialog close
    */
   const handleClose = useCallback(() => {
     if (!isWithdrawing && !isConfirming) {
+      // Call onSuccess if transaction was successful
+      if (isSuccess && onSuccess) {
+        onSuccess();
+      }
       onClose();
       resetForm();
     }
-  }, [isWithdrawing, isConfirming, onClose, resetForm]);
+  }, [isWithdrawing, isConfirming, isSuccess, onSuccess, onClose, resetForm]);
 
   /**
    * Handle amount input change
    */
-  // eslint-disable-next-line no-undef
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
-  }, []);
+  }, [setAmount]);
 
   if (!pool) return null;
 
@@ -153,6 +166,21 @@ export const WithdrawCollateralDialog = memo(function WithdrawCollateralDialog({
                   <div className="font-mono text-xs break-all">{pool.lendingPool}</div>
                 </div>
               </div>
+              {/* User Balance Display */}
+              <div className="mt-4 pt-4 border-t border-orange-200">
+                <div className="flex justify-between items-center">
+                  <div className="text-gray-500 text-sm">Your Collateral Balance:</div>
+                  <div className="font-semibold text-orange-700">
+                    {userCollateralLoading ? (
+                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : userCollateralError ? (
+                      <span className="text-red-500 text-xs">Error loading</span>
+                    ) : (
+                      `${userCollateralFormatted} ${pool.collateralTokenInfo?.symbol}`
+                    )}
+                  </div>
+                </div>
+              </div>
             </Card>
 
             {/* Amount Input */}
@@ -178,59 +206,57 @@ export const WithdrawCollateralDialog = memo(function WithdrawCollateralDialog({
               </div>
             </div>
 
-            {/* Transaction Status */}
-            {(isWithdrawing || isConfirming || isSuccess || isError) && (
-              <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
-                <div className="space-y-3">
-                  {isWithdrawing && (
-                    <div className="flex items-center gap-3 text-blue-600">
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                       <span className="text-sm font-semibold">
-                         {LOADING_MESSAGES.WITHDRAWING || "Withdrawing collateral..."}
-                       </span>
-                    </div>
-                  )}
-
-                  {isConfirming && (
-                    <div className="flex items-center gap-3 text-orange-600">
-                      <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                       <span className="text-sm font-semibold">
-                         {LOADING_MESSAGES.CONFIRMING_TRANSACTION || "Confirming transaction..."}
-                       </span>
-                    </div>
-                  )}
-
-                  {isSuccess && (
-                    <div className="flex items-center gap-3 text-green-600">
-                      <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                       <span className="text-sm font-semibold">
-                         {SUCCESS_MESSAGES.COLLATERAL_WITHDRAWN || "Collateral withdrawn successfully!"}
-                       </span>
-                    </div>
-                  )}
-
-                  {isError && (
-                    <div className="flex items-center gap-3 text-red-600">
-                      <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                       <span className="text-sm font-semibold">
-                         {ERROR_MESSAGES.TRANSACTION_FAILED || "Transaction failed"}
-                       </span>
-                    </div>
-                  )}
-
-                  {txHash && (
-                    <div className="text-xs text-gray-500 break-all bg-white p-2 rounded border">
-                      <span className="font-medium">Transaction Hash:</span>
-                      <br />
-                      {txHash}
-                    </div>
-                  )}
+            {/* Error Display */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <div className="text-red-700">
+                    {error}
+                  </div>
                 </div>
-              </Card>
+                <button
+                  onClick={clearError}
+                  className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Loading Display */}
+            {(isWithdrawing || isConfirming) && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="text-blue-700">
+                    {isWithdrawing ? "Submitting transaction..." : "Confirming transaction..."}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Success Display */}
+            {showSuccessAlert && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <div className="text-green-700">
+                    Collateral withdrawn successfully!
+                  </div>
+                </div>
+                {successTxHash && (
+                  <div className="mt-2 text-xs text-gray-500 break-all bg-white p-2 rounded border">
+                    <span className="font-medium">Transaction Hash:</span>
+                    <br />
+                    {successTxHash}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Submit Button */}
