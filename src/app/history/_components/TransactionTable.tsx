@@ -6,19 +6,11 @@ import { ExternalLinkIcon } from "lucide-react";
 
 interface TransactionTableProps {
   transactions: Transaction[];
+  loading?: boolean;
   chainId?: number;
 }
 
-export function TransactionTable({ transactions, chainId = 8217 }: TransactionTableProps) {
-  if (transactions.length === 0) {
-    return (
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/20">
-        <div className="text-gray-500 text-lg mb-2">No transactions found</div>
-        <div className="text-gray-400 text-sm">Your transaction history will appear here</div>
-      </div>
-    );
-  }
-
+export function TransactionTable({ transactions, loading = false, chainId = 8217 }: TransactionTableProps) {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 overflow-hidden">
       {/* Desktop Table */}
@@ -47,7 +39,41 @@ export function TransactionTable({ transactions, chainId = 8217 }: TransactionTa
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200/50">
-            {transactions.map((transaction) => {
+            {loading ? (
+              // Loading skeleton rows
+              [...Array(5)].map((_, index) => (
+                <tr key={`loading-${index}`} className="animate-pulse">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </td>
+                </tr>
+              ))
+            ) : transactions.length === 0 ? (
+              // Empty state
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center">
+                  <div className="text-gray-500 text-lg mb-2">No transactions found</div>
+                  <div className="text-gray-400 text-sm">Your transaction history will appear here</div>
+                </td>
+              </tr>
+            ) : (
+              // Actual data rows
+              transactions.map((transaction) => {
               const token = getTokenByAddress(transaction.asset, chainId);
               const formattedAmount = token 
                 ? formatTokenAmount(transaction.amount, token.decimals)
@@ -83,10 +109,10 @@ export function TransactionTable({ transactions, chainId = 8217 }: TransactionTa
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <a
-                      href={`https://klaytnscope.com/tx/${transaction.transactionHash}`}
+                      href={`https://kaiascan.io/tx/${transaction.transactionHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-gray-800 hover:underline"
+                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
                     >
                       {shortenAddress(transaction.transactionHash)}
                       <ExternalLinkIcon className="w-3 h-3" />
@@ -94,14 +120,41 @@ export function TransactionTable({ transactions, chainId = 8217 }: TransactionTa
                   </td>
                 </tr>
               );
-            })}
+            })
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Mobile Cards */}
       <div className="lg:hidden">
-        {transactions.map((transaction) => {
+        {loading ? (
+          // Mobile loading skeleton
+          [...Array(3)].map((_, index) => (
+            <div key={`mobile-loading-${index}`} className="p-4 border-b border-gray-200/50 animate-pulse">
+              <div className="flex justify-between items-start mb-2">
+                <div className="h-6 bg-gray-200 rounded w-20"></div>
+                <div className="h-4 bg-gray-200 rounded w-4"></div>
+              </div>
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="h-3 bg-gray-200 rounded w-12"></div>
+                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        ) : transactions.length === 0 ? (
+          // Mobile empty state
+          <div className="p-8 text-center">
+            <div className="text-gray-500 text-lg mb-2">No transactions found</div>
+            <div className="text-gray-400 text-sm">Your transaction history will appear here</div>
+          </div>
+        ) : (
+          // Mobile data cards
+          transactions.map((transaction) => {
           const token = getTokenByAddress(transaction.asset, chainId);
           const formattedAmount = token 
             ? formatTokenAmount(transaction.amount, token.decimals)
@@ -159,7 +212,8 @@ export function TransactionTable({ transactions, chainId = 8217 }: TransactionTa
               </div>
             </div>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );
