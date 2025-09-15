@@ -19,16 +19,11 @@ export const queryLendingPool = () => {
 export const queryLendingPoolApy = () => {
   return gql`
     query MyQuery {
-      poolAPYSnapshots(
-        where: {}
-        limit: 1
-        orderDirection: "desc"
-        orderBy: "blockNumber"
-      ) {
+      lendingPools {
         items {
-          supplyAPY
           borrowAPY
-          pool
+          supplyAPY
+          address
         }
       }
     }

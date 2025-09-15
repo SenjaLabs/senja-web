@@ -60,6 +60,30 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     }
   }, [isSuccess, txHash, onSuccess]);
 
+  // Handle write error
+  useEffect(() => {
+    if (writeError) {
+      // Check if it's a user rejection
+      const isUserRejection = writeError.message?.includes('User rejected') || 
+                             writeError.message?.includes('User denied') ||
+                             writeError.message?.includes('cancelled') ||
+                             writeError.message?.includes('rejected');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setErrorMessage("");
+        setShowFailedAlert(false);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      } else {
+        setErrorMessage(`Supply failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setShowFailedAlert(true);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      }
+    }
+  }, [writeError]);
+
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
@@ -152,21 +176,35 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       console.error("Supply error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       
-      // Provide more specific error messages
-      if (errorMessage.includes("insufficient")) {
-        setErrorMessage("Insufficient balance. Please check your token balance.");
-      } else if (errorMessage.includes("allowance")) {
-        setErrorMessage("Insufficient allowance. Please approve more tokens.");
-      } else if (errorMessage.includes("user rejected")) {
-        setErrorMessage("Transaction rejected by user.");
-      } else if (errorMessage.includes("network")) {
-        setErrorMessage("Network error. Please check your connection.");
-      } else {
-        setErrorMessage(`Supply failed: ${errorMessage}`);
-      }
+      // Check if it's a user rejection first
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('user rejected') ||
+                             errorMessage.includes('User rejected the request');
       
-      setShowFailedAlert(true);
-      setIsSupplying(false);
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setErrorMessage("");
+        setShowFailedAlert(false);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      } else {
+        // Provide more specific error messages for other errors
+        if (errorMessage.includes("insufficient")) {
+          setErrorMessage("Insufficient balance. Please check your token balance.");
+        } else if (errorMessage.includes("allowance")) {
+          setErrorMessage("Insufficient allowance. Please approve more tokens.");
+        } else if (errorMessage.includes("network")) {
+          setErrorMessage("Network error. Please check your connection.");
+        } else {
+          setErrorMessage(`Supply failed: ${errorMessage}`);
+        }
+        setShowFailedAlert(true);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      }
     }
   };
 

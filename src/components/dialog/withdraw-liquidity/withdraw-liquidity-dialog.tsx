@@ -78,14 +78,6 @@ export const WithdrawLiquidityDialog = memo(function WithdrawLiquidityDialog({
   const chainId = useCurrentChainId();
   const [selectedAction, setSelectedAction] = useState<WithdrawActionType>("withdraw-liquidity");
   
-  console.log("WithdrawLiquidityDialog Debug:", {
-    chainId,
-    pool: pool ? {
-      lendingPool: pool.lendingPool,
-      borrowTokenSymbol: pool.borrowTokenInfo?.symbol,
-      collateralTokenSymbol: pool.collateralTokenInfo?.symbol
-    } : null
-  });
   
   // Get decimals from token info (use borrow token decimals as primary, fallback to collateral token, then 18)
   const decimals = pool?.borrowTokenInfo?.decimals || pool?.collateralTokenInfo?.decimals || 18;

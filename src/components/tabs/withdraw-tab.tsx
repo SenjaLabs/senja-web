@@ -1,116 +1,183 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PoolInfoCard } from "./shared/pool-info-card";
+import { AmountInput } from "./shared/amount-input";
+import { useRefetch } from "@/hooks/useRefetch";
+import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
+import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
+import { useCurrentChainId } from "@/lib/chain/use-chain";
+import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
+import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
+import { SuccessAlert, FailedAlert } from "@/components/alert";
 
-const WithdrawTab = () => {
+interface WithdrawTabProps {
+  pool?: {
+    lendingPool: string;
+    collateralTokenInfo: {
+      symbol: string;
+      logo: string;
+      addresses: Record<string, string>;
+      decimals: number;
+    };
+    borrowTokenInfo: {
+      symbol: string;
+      logo: string;
+      addresses: Record<string, string>;
+      decimals: number;
+    };
+    ltv: string;
+  };
+}
+
+const WithdrawTab = ({ pool }: WithdrawTabProps) => {
   const [withdrawType, setWithdrawType] = useState("liquidity");
-  const [selectedToken] = useState("");
   const [amount, setAmount] = useState("");
 
-  // Liquidity tokens (based on borrow tokens from lending pool)
-  const liquidityTokens = [
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      supplied: "2,000.00",
-      earned: "45.20",
-      total: "2,045.20",
-    },
-    {
-      symbol: "USDT",
-      name: "Tether USD",
-      supplied: "1,500.00",
-      earned: "32.10",
-      total: "1,532.10",
-    },
-    {
-      symbol: "WETH",
-      name: "Wrapped Ethereum",
-      supplied: "5.0",
-      earned: "0.15",
-      total: "5.15",
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      supplied: "0.2",
-      earned: "0.005",
-      total: "0.205",
-    },
-  ];
+  const currentChainId = useCurrentChainId();
 
-  // Collateral tokens (based on collateral tokens from lending pool)
-  const collateralTokens = [
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      supplied: "1,000.00",
-      used: "750.00",
-      available: "250.00",
-    },
-    {
-      symbol: "WETH",
-      name: "Wrapped Ethereum",
-      supplied: "3.0",
-      used: "2.0",
-      available: "1.0",
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      supplied: "0.1",
-      used: "0.05",
-      available: "0.05",
-    },
-  ];
+  // Refetch functionality
+  const { addRefetchFunction, removeRefetchFunction } = useRefetch({
+    refetchInterval: 0, // Disable auto-refetch, we'll trigger manually
+    enabled: false,
+  });
 
-  const handleWithdraw = () => {
-    console.log(`Withdraw ${withdrawType}:`, { token: selectedToken, amount });
-    // Handler akan diimplementasikan nanti
-  };
+  // Get APY for the pool
+  const {
+    supplyAPY,
+    loading: apyLoading,
+    refetch: refetchApy,
+  } = useReadPoolApy(pool?.lendingPool);
 
-  const getSelectedLiquidityToken = () => {
-    return liquidityTokens.find((t) => t.symbol === selectedToken);
-  };
+  // Withdraw Liquidity Hook
+  const {
+    handleWithdrawLiquidity,
+    isWithdrawing: isWithdrawingLiquidity,
+    isConfirming: isConfirmingLiquidity,
+    isSuccess: isSuccessLiquidity,
+    isError: isErrorLiquidity,
+    showSuccessAlert: showSuccessAlertLiquidity,
+    successTxHash: successTxHashLiquidity,
+    handleCloseSuccessAlert: handleCloseSuccessAlertLiquidity,
+    error: errorLiquidity,
+  } = useWithdrawLiquidity(
+    currentChainId,
+    pool?.borrowTokenInfo?.decimals || 18,
+    () => {
+      setAmount("");
+    }
+  );
 
-  const getSelectedCollateralToken = () => {
-    return collateralTokens.find((t) => t.symbol === selectedToken);
-  };
+  // Withdraw Collateral Hook
+  const {
+    handleWithdrawCollateral,
+    isWithdrawing: isWithdrawingCollateral,
+    isConfirming: isConfirmingCollateral,
+    isSuccess: isSuccessCollateral,
+    isError: isErrorCollateral,
+    showSuccessAlert: showSuccessAlertCollateral,
+    successTxHash: successTxHashCollateral,
+    handleCloseSuccessAlert: handleCloseSuccessAlertCollateral,
+  } = useWithdrawCollateral(
+    currentChainId,
+    pool?.collateralTokenInfo?.decimals || 18,
+    () => {
+      setAmount("");
+    }
+  );
+
+  // Get user balance for liquidity token (borrow token)
+  const {
+    userWalletBalanceFormatted: liquidityBalanceFormatted,
+    userWalletBalanceParsed: liquidityBalanceParsed,
+    walletBalanceLoading: liquidityBalanceLoading,
+    refetchWalletBalance: refetchLiquidityBalance,
+  } = useUserWalletBalance(
+    pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`,
+    pool?.borrowTokenInfo?.decimals || 18
+  );
+
+  // Get user balance for collateral token
+  const {
+    userWalletBalanceFormatted: collateralBalanceFormatted,
+    userWalletBalanceParsed: collateralBalanceParsed,
+    walletBalanceLoading: collateralBalanceLoading,
+    refetchWalletBalance: refetchCollateralBalance,
+  } = useUserWalletBalance(
+    pool?.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`,
+    pool?.collateralTokenInfo?.decimals || 18
+  );
+
+  // Add refetch functions
+  useEffect(() => {
+    addRefetchFunction(refetchApy);
+    addRefetchFunction(refetchLiquidityBalance);
+    addRefetchFunction(refetchCollateralBalance);
+
+    return () => {
+      removeRefetchFunction(refetchApy);
+      removeRefetchFunction(refetchLiquidityBalance);
+      removeRefetchFunction(refetchCollateralBalance);
+    };
+  }, [
+    addRefetchFunction,
+    removeRefetchFunction,
+    refetchApy,
+    refetchLiquidityBalance,
+    refetchCollateralBalance,
+  ]);
+
+  const handleSetMaxLiquidity = useCallback(() => {
+    if (liquidityBalanceParsed > 0) {
+      setAmount(liquidityBalanceFormatted);
+    }
+  }, [liquidityBalanceFormatted, liquidityBalanceParsed]);
+
+  const handleSetMaxCollateral = useCallback(() => {
+    if (collateralBalanceParsed > 0) {
+      setAmount(collateralBalanceFormatted);
+    }
+  }, [collateralBalanceFormatted, collateralBalanceParsed]);
+
+  const handleWithdraw = useCallback(async () => {
+    if (!pool || !amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    if (withdrawType === "liquidity") {
+      await handleWithdrawLiquidity(pool.lendingPool as `0x${string}`, amount);
+    } else if (withdrawType === "collateral") {
+      await handleWithdrawCollateral(pool.lendingPool as `0x${string}`, amount);
+    }
+  }, [
+    withdrawType,
+    amount,
+    pool,
+    handleWithdrawLiquidity,
+    handleWithdrawCollateral,
+  ]);
+
+  if (!pool) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center">
+          <p className="text-amber-600">No pool selected</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Pool Information Card */}
-      <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-amber-600 mb-1">Collateral Token:</p>
-            <p className="font-semibold text-amber-800">WKAIA</p>
-          </div>
-          <div>
-            <p className="text-sm text-amber-600 mb-1">Borrow Token:</p>
-            <p className="font-semibold text-amber-800">USDT</p>
-          </div>
-          <div>
-            <p className="text-sm text-amber-600 mb-1">APY:</p>
-            <p className="font-semibold text-amber-800">0.00000%</p>
-          </div>
-          <div>
-            <p className="text-sm text-amber-600 mb-1">LTV:</p>
-            <p className="font-semibold text-amber-800">85.0%</p>
-          </div>
-        </div>
-      </Card>
-
       <Tabs
         value={withdrawType}
         onValueChange={setWithdrawType}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
+        <TabsList className="grid w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg mb-4">
           <TabsTrigger
             value="liquidity"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-pink-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 rounded-md font-semibold m-0 flex items-center justify-center"
@@ -124,76 +191,38 @@ const WithdrawTab = () => {
             Withdraw Collateral
           </TabsTrigger>
         </TabsList>
+        
+        {/* Pool Information Card */}
+        <PoolInfoCard
+          collateralToken={{
+            symbol: pool.collateralTokenInfo.symbol,
+            logo: pool.collateralTokenInfo.logo,
+          }}
+          borrowToken={{
+            symbol: pool.borrowTokenInfo.symbol,
+            logo: pool.borrowTokenInfo.logo,
+          }}
+          apy={apyLoading ? "Loading..." : supplyAPY}
+          ltv={(Number(pool.ltv) / 1e16).toFixed(1)}
+        />
 
         <TabsContent value="liquidity" className="mt-4">
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <label className="text-sm font-medium text-amber-800">
-                      Amount to Withdraw
-                    </label>
-                  </div>
-                  <span className="text-sm text-amber-600">
-                    Available: {getSelectedLiquidityToken()?.total || "0.00"}
-                  </span>
-                </div>
-                
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Enter amount to withdraw"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                    <button
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                      onClick={() =>
-                        setAmount(getSelectedLiquidityToken()?.total || "0")
-                      }
-                    >
-                      Max
-                    </button>
-                    <span className="text-sm font-medium text-amber-800">USDT</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Token Info Display */}
-              {getSelectedLiquidityToken() && (
-                <div className="bg-gradient-to-br from-orange-50 to-pink-50 p-4 rounded-lg border-2 border-orange-200 shadow-md">
-                  <h4 className="font-medium text-amber-800 mb-2">
-                    Liquidity Position
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-amber-600">Supplied:</span>
-                      <span className="ml-2 font-medium">
-                        {getSelectedLiquidityToken()?.supplied}{" "}
-                        {getSelectedLiquidityToken()?.symbol}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-amber-600">Earned:</span>
-                      <span className="ml-2 font-medium text-orange-600">
-                        {getSelectedLiquidityToken()?.earned}{" "}
-                        {getSelectedLiquidityToken()?.symbol}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-amber-600">Total Available:</span>
-                      <span className="ml-2 font-medium">
-                        {getSelectedLiquidityToken()?.total}{" "}
-                        {getSelectedLiquidityToken()?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <AmountInput
+                label="Amount to Withdraw"
+                placeholder="Enter amount to withdraw"
+                value={amount}
+                onChange={setAmount}
+                onMaxClick={handleSetMaxLiquidity}
+                tokenSymbol={pool.borrowTokenInfo.symbol}
+                balance={`Available: ${
+                  liquidityBalanceLoading
+                    ? "Loading..."
+                    : liquidityBalanceFormatted || "0.00"
+                }`}
+                maxDisabled={liquidityBalanceParsed <= 0}
+              />
             </div>
           </Card>
         </TabsContent>
@@ -201,84 +230,166 @@ const WithdrawTab = () => {
         <TabsContent value="collateral" className="mt-4">
           <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <label className="text-sm font-medium text-amber-800">
-                      Amount to Withdraw
-                    </label>
-                  </div>
-                  <span className="text-sm text-amber-600">
-                    Available:{" "}
-                    {getSelectedCollateralToken()?.available || "0.00"}
-                  </span>
-                </div>
-                
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Enter amount to withdraw"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                    <button
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                      onClick={() =>
-                        setAmount(getSelectedCollateralToken()?.available || "0")
-                      }
-                    >
-                      Max
-                    </button>
-                    <span className="text-sm font-medium text-amber-800">WKAIA</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Token Info Display */}
-              {getSelectedCollateralToken() && (
-                <div className="bg-gradient-to-br from-orange-50 to-pink-50 p-4 rounded-lg border-2 border-orange-200 shadow-md">
-                  <h4 className="font-medium text-amber-800 mb-2">
-                    Collateral Position
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-amber-600">Supplied:</span>
-                      <span className="ml-2 font-medium">
-                        {getSelectedCollateralToken()?.supplied}{" "}
-                        {getSelectedCollateralToken()?.symbol}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-amber-600">Used:</span>
-                      <span className="ml-2 font-medium text-orange-600">
-                        {getSelectedCollateralToken()?.used}{" "}
-                        {getSelectedCollateralToken()?.symbol}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-amber-600">Available:</span>
-                      <span className="ml-2 font-medium">
-                        {getSelectedCollateralToken()?.available}{" "}
-                        {getSelectedCollateralToken()?.symbol}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <AmountInput
+                label="Amount to Withdraw"
+                placeholder="Enter amount to withdraw"
+                value={amount}
+                onChange={setAmount}
+                onMaxClick={handleSetMaxCollateral}
+                tokenSymbol={pool.collateralTokenInfo.symbol}
+                balance={`Available: ${
+                  collateralBalanceLoading
+                    ? "Loading..."
+                    : collateralBalanceFormatted || "0.00"
+                }`}
+                maxDisabled={collateralBalanceParsed <= 0}
+              />
             </div>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Transaction Status */}
+      {((withdrawType === "liquidity" &&
+        (isWithdrawingLiquidity ||
+          isConfirmingLiquidity ||
+          isSuccessLiquidity ||
+          isErrorLiquidity)) ||
+        (withdrawType === "collateral" &&
+          (isWithdrawingCollateral ||
+            isConfirmingCollateral ||
+            isSuccessCollateral ||
+            isErrorCollateral))) && (
+        <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
+          <div className="space-y-3">
+            {/* Withdraw Status */}
+            {(isWithdrawingLiquidity || isWithdrawingCollateral) && (
+              <div className="flex items-center gap-3 text-blue-600">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">
+                  {withdrawType === "collateral"
+                    ? "Withdrawing collateral..."
+                    : "Withdrawing liquidity..."}
+                </span>
+              </div>
+            )}
+
+            {(isConfirmingLiquidity || isConfirmingCollateral) && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">
+                  Confirming transaction...
+                </span>
+              </div>
+            )}
+
+            {(isSuccessLiquidity || isSuccessCollateral) && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-3 h-3 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">
+                  {withdrawType === "collateral"
+                    ? "Collateral withdrawn successfully!"
+                    : "Liquidity withdrawn successfully!"}
+                </span>
+              </div>
+            )}
+
+            {/* Error Status */}
+            {(isErrorLiquidity || isErrorCollateral) && (
+              <div className="flex items-center gap-3 text-red-600">
+                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span className="text-sm font-semibold">
+                  Transaction failed
+                </span>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
       <Button
         onClick={handleWithdraw}
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
-        disabled={!amount || !selectedToken}
+        disabled={
+          !amount ||
+          parseFloat(amount) <= 0 ||
+          isWithdrawingLiquidity ||
+          isConfirmingLiquidity ||
+          isWithdrawingCollateral ||
+          isConfirmingCollateral
+        }
+        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
-        Withdraw {withdrawType === "liquidity" ? "Liquidity" : "Collateral"}
+        {isWithdrawingLiquidity || isWithdrawingCollateral
+          ? "Withdrawing..."
+          : isConfirmingLiquidity || isConfirmingCollateral
+          ? "Confirming..."
+          : `Withdraw ${
+              withdrawType === "liquidity" ? "Liquidity" : "Collateral"
+            }`}
       </Button>
+
+      {/* Withdraw Liquidity Success Alert */}
+      {showSuccessAlertLiquidity && (
+        <SuccessAlert
+          isOpen={showSuccessAlertLiquidity}
+          onClose={handleCloseSuccessAlertLiquidity}
+          title="Transaction Success"
+          description="Liquidity withdrawn successfully!"
+          buttonText="Close"
+          txHash={successTxHashLiquidity}
+          chainId={currentChainId}
+        />
+      )}
+
+      {/* Withdraw Collateral Success Alert */}
+      {showSuccessAlertCollateral && (
+        <SuccessAlert
+          isOpen={showSuccessAlertCollateral}
+          onClose={handleCloseSuccessAlertCollateral}
+          title="Transaction Success"
+          description="Collateral withdrawn successfully!"
+          buttonText="Close"
+          txHash={successTxHashCollateral}
+          chainId={currentChainId}
+        />
+      )}
+
+      {/* Failed Alert */}
+      {(isErrorLiquidity || isErrorCollateral) && (
+        <FailedAlert
+          isOpen={isErrorLiquidity || isErrorCollateral}
+          onClose={() => {
+            // Reset error states
+            if (isErrorLiquidity) {
+              // Error will be cleared automatically by the hook
+            }
+            if (isErrorCollateral) {
+              // Error will be cleared automatically by the hook
+            }
+          }}
+          title="Transaction Failed"
+          description={
+            errorLiquidity || "Transaction failed. Please try again."
+          }
+          buttonText="Close"
+        />
+      )}
     </div>
   );
 };

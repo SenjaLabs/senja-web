@@ -15,11 +15,19 @@ import {
 import { useCurrentChainId } from "@/lib/chain/use-chain";
 
 /**
+ * Props for PoolsOverview component
+ */
+interface PoolsOverviewProps {
+  onPoolClick?: (pool: LendingPoolWithTokens) => void;
+}
+
+/**
  * PoolsOverview component for displaying and managing lending pools
  *
+ * @param props - Component props
  * @returns JSX element
  */
-export const PoolsOverview = memo(function PoolsOverview() {
+export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsOverviewProps = {}) {
   const [pools, setPools] = useState<LendingPoolWithTokens[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +40,14 @@ export const PoolsOverview = memo(function PoolsOverview() {
   /**
    * Handle pool click for mobile cards
    */
-  const handlePoolClick = useCallback((pool: LendingPoolWithTokens) => {
-    setSelectedPool(pool);
-    setIsPoolDialogOpen(true);
-  }, []);
+  const handlePoolClickInternal = useCallback((pool: LendingPoolWithTokens) => {
+    if (onPoolClick) {
+      onPoolClick(pool);
+    } else {
+      setSelectedPool(pool);
+      setIsPoolDialogOpen(true);
+    }
+  }, [onPoolClick]);
 
   /**
    * Handle pool dialog close
@@ -197,7 +209,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
 
   return (
     <div className="w-full max-w-6xl mx-auto">
-      <Card className="overflow-hidden border-0 shadow-2xl bg-white/95 backdrop-blur-sm ring-1 ring-white/20 hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
+      <Card className="overflow-hidden border-0 shadow-2xl bg-white/95 backdrop-blur-sm ring-1 ring-white/20 hover:shadow-3xl hover:bg-white transition-all duration-300">
         <div className="absolute inset-0 bg-gradient-to-br from-senja-primary/5 via-transparent to-senja-cream/10 pointer-events-none"></div>
         <div className="relative z-10">
           <PoolSearchControls
@@ -212,7 +224,7 @@ export const PoolsOverview = memo(function PoolsOverview() {
           <ResponsivePoolsTable
             pools={filteredPools}
             loading={loading}
-            onPoolClick={handlePoolClick}
+            onPoolClick={handlePoolClickInternal}
           />
         </div>
       </Card>

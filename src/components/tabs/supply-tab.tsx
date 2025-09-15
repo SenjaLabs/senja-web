@@ -1,18 +1,226 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
+import { useCurrentChainId } from "@/lib/chain/use-chain";
+import { useSupplyLiquidity } from "@/hooks/write/useSupplyLiquidity";
+import { useSupplyCollateral } from "@/hooks/write/useSupplyCollateral";
+import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
+import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
+import { useRefetch } from "@/hooks/useRefetch";
+import { SuccessAlert, FailedAlert } from "@/components/alert";
+import Image from "next/image";
 
-const SupplyTab = () => {
+interface SupplyTabProps {
+  pool?: LendingPoolWithTokens;
+}
+
+const SupplyTab = ({ pool }: SupplyTabProps) => {
   const [supplyType, setSupplyType] = useState("liquidity");
   const [amount, setAmount] = useState("");
 
-  const handleSupply = () => {
-    console.log(`Supply ${supplyType}:`, { amount });
+  const currentChainId = useCurrentChainId();
+
+  // Get APY for the pool
+  const { supplyAPY, loading: apyLoading, refetch: refetchApy } = useReadPoolApy(pool?.lendingPool);
+
+  // Refetch functionality
+  const { addRefetchFunction, removeRefetchFunction, triggerRefetch } = useRefetch({
+    refetchInterval: 0, // Disable auto-refetch, we'll trigger manually
+    enabled: false,
+  });
+
+  // Get user balance for the token being supplied
+  const getTokenAddress = () => {
+    if (supplyType === "collateral") {
+      return pool?.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`;
+    }
+    return pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
   };
+
+  const getTokenDecimals = () => {
+    if (supplyType === "collateral") {
+      return pool?.collateralTokenInfo?.decimals || 18;
+    }
+    return pool?.borrowTokenInfo?.decimals || 18;
+  };
+
+  const tokenAddress = getTokenAddress();
+  const tokenDecimals = getTokenDecimals();
+
+  const {
+    userWalletBalanceFormatted,
+    userWalletBalanceParsed,
+    walletBalanceLoading,
+    refetchWalletBalance,
+  } = useUserWalletBalance(
+    tokenAddress || "0xCEb5c8903060197e46Ab5ea5087b9F99CBc8da49",
+    tokenDecimals
+  );
+
+  // Add refetch functions
+  useEffect(() => {
+    addRefetchFunction(refetchApy);
+    addRefetchFunction(refetchWalletBalance);
+    
+    return () => {
+      removeRefetchFunction(refetchApy);
+      removeRefetchFunction(refetchWalletBalance);
+    };
+  }, [addRefetchFunction, removeRefetchFunction, refetchApy, refetchWalletBalance]);
+
+  // Supply Liquidity Hook
+  const {
+    handleApproveToken: handleApproveTokenLiquidity,
+    handleSupplyLiquidity,
+    isSupplying: isSupplyingLiquidity,
+    isConfirming: isConfirmingLiquidity,
+    isSuccess: isSuccessLiquidity,
+    isError: isErrorLiquidity,
+    showSuccessAlert: showSuccessAlertLiquidity,
+    showFailedAlert: showFailedAlertLiquidity,
+    errorMessage: errorMessageLiquidity,
+    successTxHash: successTxHashLiquidity,
+    handleCloseSuccessAlert: handleCloseSuccessAlertLiquidity,
+    handleCloseFailedAlert: handleCloseFailedAlertLiquidity,
+    isApproved: isApprovedLiquidity,
+    isApproving: isApprovingLiquidity,
+    isApproveConfirming: isApproveConfirmingLiquidity,
+    isApproveSuccess: isApproveSuccessLiquidity,
+    resetApproveStates: resetApproveStatesLiquidity,
+    resetAfterSuccess: resetAfterSuccessLiquidity,
+    resetSuccessStates: resetSuccessStatesLiquidity,
+  } = useSupplyLiquidity(currentChainId, () => {
+    resetForm();
+    // Trigger refetch after successful supply
+    triggerRefetch();
+  });
+
+  // Supply Collateral Hook
+  const {
+    handleApproveToken: handleApproveTokenCollateral,
+    handleSupplyCollateral,
+    isSupplying: isSupplyingCollateral,
+    isConfirming: isConfirmingCollateral,
+    isSuccess: isSuccessCollateral,
+    isError: isErrorCollateral,
+    showSuccessAlert: showSuccessAlertCollateral,
+    showFailedAlert: showFailedAlertCollateral,
+    errorMessage: errorMessageCollateral,
+    successTxHash: successTxHashCollateral,
+    handleCloseSuccessAlert: handleCloseSuccessAlertCollateral,
+    handleCloseFailedAlert: handleCloseFailedAlertCollateral,
+    isApproved: isApprovedCollateral,
+    isApproving: isApprovingCollateral,
+    isApproveConfirming: isApproveConfirmingCollateral,
+    isApproveSuccess: isApproveSuccessCollateral,
+    resetApproveStates: resetApproveStatesCollateral,
+    resetAfterSuccess: resetAfterSuccessCollateral,
+    resetSuccessStates: resetSuccessStatesCollateral,
+  } = useSupplyCollateral(currentChainId, () => {
+    resetForm();
+    // Trigger refetch after successful supply
+    triggerRefetch();
+  });
+
+  /**
+   * Reset form to initial state
+   */
+  const resetForm = useCallback(() => {
+    setAmount("");
+    resetApproveStatesLiquidity();
+    resetSuccessStatesLiquidity();
+    resetApproveStatesCollateral();
+    resetSuccessStatesCollateral();
+    // Reset success alerts
+    if (showSuccessAlertLiquidity) handleCloseSuccessAlertLiquidity();
+    if (showSuccessAlertCollateral) handleCloseSuccessAlertCollateral();
+    // Reset failed alerts
+    if (showFailedAlertLiquidity) handleCloseFailedAlertLiquidity();
+    if (showFailedAlertCollateral) handleCloseFailedAlertCollateral();
+  }, [resetApproveStatesLiquidity, resetSuccessStatesLiquidity, resetApproveStatesCollateral, resetSuccessStatesCollateral, showSuccessAlertLiquidity, handleCloseSuccessAlertLiquidity, showSuccessAlertCollateral, handleCloseSuccessAlertCollateral, showFailedAlertLiquidity, handleCloseFailedAlertLiquidity, showFailedAlertCollateral, handleCloseFailedAlertCollateral]);
+
+  const handleCloseSuccessAlertAndReset = useCallback(() => {
+    if (supplyType === "liquidity") {
+      handleCloseSuccessAlertLiquidity();
+      resetAfterSuccessLiquidity();
+    } else if (supplyType === "collateral") {
+      handleCloseSuccessAlertCollateral();
+      resetAfterSuccessCollateral();
+    }
+    setAmount("");
+  }, [supplyType, handleCloseSuccessAlertLiquidity, resetAfterSuccessLiquidity, handleCloseSuccessAlertCollateral, resetAfterSuccessCollateral]);
+
+  /**
+   * Handle setting maximum balance
+   */
+  const handleSetMax = useCallback(() => {
+    if (userWalletBalanceParsed > 0) {
+      setAmount(userWalletBalanceFormatted);
+    }
+  }, [userWalletBalanceFormatted, userWalletBalanceParsed]);
+
+  /**
+   * Handle approve token
+   */
+  const handleApprove = useCallback(async () => {
+    if (!pool || !amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    if (supplyType === "liquidity") {
+      resetSuccessStatesLiquidity();
+      const decimals = pool.borrowTokenInfo?.decimals || 18;
+      await handleApproveTokenLiquidity(
+        pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`, 
+        pool.lendingPool as `0x${string}`, 
+        amount,
+        decimals
+      );
+    } else if (supplyType === "collateral") {
+      resetSuccessStatesCollateral();
+      const decimals = pool.collateralTokenInfo?.decimals || 18;
+      await handleApproveTokenCollateral(
+        pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`, 
+        pool.lendingPool as `0x${string}`, 
+        amount,
+        decimals
+      );
+    }
+  }, [amount, pool, supplyType, handleApproveTokenLiquidity, handleApproveTokenCollateral, currentChainId, resetSuccessStatesLiquidity, resetSuccessStatesCollateral]);
+
+  /**
+   * Handle supply (liquidity or collateral)
+   */
+  const handleSupply = useCallback(async () => {
+    if (!pool || !amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    if (supplyType === "liquidity") {
+      const decimals = pool.borrowTokenInfo?.decimals || 18;
+      await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, decimals);
+    } else if (supplyType === "collateral") {
+      const decimals = pool.collateralTokenInfo?.decimals || 18;
+      await handleSupplyCollateral(pool.lendingPool as `0x${string}`, amount, decimals);
+    }
+  }, [amount, pool, supplyType, handleSupplyLiquidity, handleSupplyCollateral]);
+
+  // Early return if no pool is provided
+  if (!pool) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-gray-500 text-lg">No pool selected</p>
+          <p className="text-gray-400 text-sm mt-2">Please select a pool to continue</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -39,19 +247,37 @@ const SupplyTab = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-amber-600 mb-1">Collateral Token:</p>
-                  <p className="font-semibold text-amber-800">WKAIA</p>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={pool.collateralTokenInfo?.logo || "/token/kaia-logo.svg"}
+                      alt={pool.collateralTokenInfo?.symbol || "Token"}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    <p className="font-semibold text-amber-800">{pool.collateralTokenInfo?.symbol}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">Borrow Token:</p>
-                  <p className="font-semibold text-amber-800">USDT</p>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={pool.borrowTokenInfo?.logo || "/token/usdt.png"}
+                      alt={pool.borrowTokenInfo?.symbol || "Token"}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    <p className="font-semibold text-amber-800">{pool.borrowTokenInfo?.symbol}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">APY:</p>
-                  <p className="font-semibold text-amber-800">0.00000%</p>
+                  <p className="font-semibold text-amber-800">{apyLoading ? "Loading..." : supplyAPY}%</p>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">LTV:</p>
-                  <p className="font-semibold text-amber-800">85.0%</p>
+                  <p className="font-semibold text-amber-800">{((Number(pool.ltv) / 1e16)).toFixed(1)}%</p>
                 </div>
               </div>
             </Card>
@@ -66,7 +292,7 @@ const SupplyTab = () => {
                   </label>
                 </div>
                 <span className="text-sm text-amber-600">
-                  Balance: 99986.30 USDT
+                  Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.borrowTokenInfo?.symbol}
                 </span>
               </div>
               
@@ -79,13 +305,14 @@ const SupplyTab = () => {
                   className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
                 />
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                  <button
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                    onClick={() => setAmount("99986.30")}
-                  >
-                    Max
-                  </button>
-                  <span className="text-sm font-medium text-amber-800">USDT</span>
+                    <button
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                      onClick={handleSetMax}
+                      disabled={userWalletBalanceParsed <= 0}
+                    >
+                      Max
+                    </button>
+                    <span className="text-sm font-medium text-amber-800">{pool.borrowTokenInfo?.symbol}</span>
                 </div>
               </div>
             </div>
@@ -99,19 +326,37 @@ const SupplyTab = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-amber-600 mb-1">Collateral Token:</p>
-                  <p className="font-semibold text-amber-800">WKAIA</p>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={pool.collateralTokenInfo?.logo || "/token/kaia-logo.svg"}
+                      alt={pool.collateralTokenInfo?.symbol || "Token"}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    <p className="font-semibold text-amber-800">{pool.collateralTokenInfo?.symbol}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">Borrow Token:</p>
-                  <p className="font-semibold text-amber-800">USDT</p>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={pool.borrowTokenInfo?.logo || "/token/usdt.png"}
+                      alt={pool.borrowTokenInfo?.symbol || "Token"}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    <p className="font-semibold text-amber-800">{pool.borrowTokenInfo?.symbol}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">APY:</p>
-                  <p className="font-semibold text-amber-800">0.00000%</p>
+                  <p className="font-semibold text-amber-800">{apyLoading ? "Loading..." : supplyAPY}%</p>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">LTV:</p>
-                  <p className="font-semibold text-amber-800">85.0%</p>
+                  <p className="font-semibold text-amber-800">{((Number(pool.ltv) / 1e16)).toFixed(1)}%</p>
                 </div>
               </div>
             </Card>
@@ -126,7 +371,7 @@ const SupplyTab = () => {
                   </label>
                 </div>
                 <span className="text-sm text-amber-600">
-                  Balance: 50000.00 WKAIA
+                  Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.collateralTokenInfo?.symbol}
                 </span>
               </div>
               
@@ -139,13 +384,14 @@ const SupplyTab = () => {
                   className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
                 />
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                  <button
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                    onClick={() => setAmount("50000.00")}
-                  >
-                    Max
-                  </button>
-                  <span className="text-sm font-medium text-amber-800">WKAIA</span>
+                    <button
+                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                      onClick={handleSetMax}
+                      disabled={userWalletBalanceParsed <= 0}
+                    >
+                      Max
+                    </button>
+                    <span className="text-sm font-medium text-amber-800">{pool.collateralTokenInfo?.symbol}</span>
                 </div>
               </div>
             </div>
@@ -153,13 +399,162 @@ const SupplyTab = () => {
         </TabsContent>
       </Tabs>
 
-      <Button
-        onClick={handleSupply}
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
-        disabled={!amount}
-      >
-        Supply {supplyType === "liquidity" ? "Liquidity" : "Collateral"}
-      </Button>
+      {/* Transaction Status */}
+      {((supplyType === "liquidity" && (isApprovingLiquidity || isApproveConfirmingLiquidity || isApproveSuccessLiquidity || isSupplyingLiquidity || isConfirmingLiquidity || isSuccessLiquidity || isErrorLiquidity)) ||
+        (supplyType === "collateral" && (isApprovingCollateral || isApproveConfirmingCollateral || isApproveSuccessCollateral || isSupplyingCollateral || isConfirmingCollateral || isSuccessCollateral || isErrorCollateral))) && (
+        <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
+          <div className="space-y-3">
+            {/* Approve Status */}
+            {(isApprovingCollateral || isApprovingLiquidity) && (
+              <div className="flex items-center gap-3 text-blue-600">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Approving token...</span>
+              </div>
+            )}
+
+            {(isApproveConfirmingCollateral || isApproveConfirmingLiquidity) && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Confirming approval...</span>
+              </div>
+            )}
+
+            {(isApproveSuccessCollateral || isApproveSuccessLiquidity) && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">Token approved successfully!</span>
+              </div>
+            )}
+
+            {/* Supply Status */}
+            {(isSupplyingCollateral || isSupplyingLiquidity) && (
+              <div className="flex items-center gap-3 text-blue-600">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">
+                  {supplyType === "collateral" ? "Supplying collateral..." : "Supplying liquidity..."}
+                </span>
+              </div>
+            )}
+
+            {(isConfirmingCollateral || isConfirmingLiquidity) && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Confirming transaction...</span>
+              </div>
+            )}
+
+            {(isSuccessCollateral || isSuccessLiquidity) && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">
+                  {supplyType === "collateral" ? "Collateral supplied successfully!" : "Liquidity supplied successfully!"}
+                </span>
+              </div>
+            )}
+
+            {/* Error Status */}
+            {(isErrorCollateral || isErrorLiquidity) && (
+              <div className="flex items-center gap-3 text-red-600">
+                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span className="text-sm font-semibold">Transaction failed</span>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        {/* Approve Button */}
+        {((supplyType === "collateral" && !isApprovedCollateral) || 
+          (supplyType === "liquidity" && !isApprovedLiquidity)) && (
+          <Button
+            type="button"
+            onClick={handleApprove}
+            disabled={!amount || parseFloat(amount) <= 0 || 
+              (isApprovingCollateral || isApproveConfirmingCollateral || 
+               isApprovingLiquidity || isApproveConfirmingLiquidity)}
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {(isApprovingCollateral || isApprovingLiquidity)
+              ? "Approving..."
+              : (isApproveConfirmingCollateral || isApproveConfirmingLiquidity)
+              ? "Confirming Approval..."
+              : "Approve Token"}
+          </Button>
+        )}
+
+        {/* Supply Button */}
+        {((supplyType === "collateral" && isApprovedCollateral) || 
+          (supplyType === "liquidity" && isApprovedLiquidity)) && (
+          <Button
+            type="button"
+            onClick={handleSupply}
+            disabled={!amount || parseFloat(amount) <= 0 || 
+              (isSupplyingCollateral || isConfirmingCollateral || 
+               isSupplyingLiquidity || isConfirmingLiquidity)}
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {(isSupplyingCollateral || isSupplyingLiquidity)
+              ? "Supplying..."
+              : (isConfirmingCollateral || isConfirmingLiquidity)
+              ? "Confirming..."
+              : supplyType === "collateral" 
+                ? "Supply Collateral"
+                : "Supply Liquidity"}
+          </Button>
+        )}
+      </div>
+
+      {/* Supply Liquidity Success Alert */}
+      {showSuccessAlertLiquidity && (
+        <SuccessAlert
+          isOpen={showSuccessAlertLiquidity}
+          onClose={handleCloseSuccessAlertAndReset}
+          title="Transaction Success"
+          description="Liquidity supplied successfully!"
+          buttonText="Close"
+          txHash={successTxHashLiquidity}
+          chainId={currentChainId}
+        />
+      )}
+
+      {/* Supply Collateral Success Alert */}
+      {showSuccessAlertCollateral && (
+        <SuccessAlert
+          isOpen={showSuccessAlertCollateral}
+          onClose={handleCloseSuccessAlertAndReset}
+          title="Transaction Success"
+          description="Collateral supplied successfully!"
+          buttonText="Close"
+          txHash={successTxHashCollateral}
+          chainId={currentChainId}
+        />
+      )}
+
+      {/* Failed Alert */}
+      {(showFailedAlertLiquidity || showFailedAlertCollateral) && (
+        <FailedAlert
+          isOpen={showFailedAlertLiquidity || showFailedAlertCollateral}
+          onClose={() => {
+            if (showFailedAlertLiquidity) handleCloseFailedAlertLiquidity();
+            if (showFailedAlertCollateral) handleCloseFailedAlertCollateral();
+          }}
+          title="Transaction Failed"
+          description={errorMessageLiquidity || errorMessageCollateral}
+          buttonText="Close"
+        />
+      )}
     </div>
   );
 };

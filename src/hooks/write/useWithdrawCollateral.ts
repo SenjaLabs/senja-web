@@ -36,6 +36,27 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
     }
   }, [isSuccess, txHash]);
 
+  // Handle write error
+  useEffect(() => {
+    if (writeError) {
+      // Check if it's a user rejection
+      const isUserRejection = writeError.message?.includes('User rejected') || 
+                             writeError.message?.includes('User denied') ||
+                             writeError.message?.includes('cancelled') ||
+                             writeError.message?.includes('rejected');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      } else {
+        // For other errors, you might want to show an error message
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      }
+    }
+  }, [writeError]);
+
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
@@ -49,7 +70,7 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
     onSuccess(); // Call onSuccess when user closes the alert
   };
 
-  const handleWithdrawCollateral = async (lendingPoolAddress: HexAddress) => {
+  const handleWithdrawCollateral = async (lendingPoolAddress: HexAddress, amountParam?: string) => {
     if (!address) {
       return;
     }
@@ -59,7 +80,8 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
       return;
     }
 
-    if (!amount || parseFloat(amount) <= 0) {
+    const amountToUse = amountParam || amount;
+    if (!amountToUse || parseFloat(amountToUse) <= 0) {
       return;
     }
 
@@ -68,7 +90,7 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
       setTxHash(undefined);
 
       // Convert amount to BigInt with proper decimal conversion
-      const parsedAmount = parseFloat(amount);
+      const parsedAmount = parseFloat(amountToUse);
       const decimalMultiplier = Math.pow(10, decimals);
       const amountBigInt = BigInt(Math.floor(parsedAmount * decimalMultiplier));
 
@@ -80,8 +102,26 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
       });
 
       setTxHash(tx as HexAddress);
-    } catch {
-      setIsWithdrawing(false);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+      
+      // Check if it's a user rejection
+      const errorMessage = error instanceof Error ? error.message : "Please check your wallet and try again.";
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('User rejected the request');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      } else {
+        // For other errors, you might want to show an error message
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      }
     }
   };
 

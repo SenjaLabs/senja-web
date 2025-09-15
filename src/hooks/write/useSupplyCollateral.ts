@@ -72,6 +72,30 @@ export const useSupplyCollateral = (
     }
   }, [isSuccess, txHash]);
 
+  // Handle write error
+  useEffect(() => {
+    if (writeError) {
+      // Check if it's a user rejection
+      const isUserRejection = writeError.message?.includes('User rejected') || 
+                             writeError.message?.includes('User denied') ||
+                             writeError.message?.includes('cancelled') ||
+                             writeError.message?.includes('rejected');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setErrorMessage("");
+        setShowFailedAlert(false);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      } else {
+        setErrorMessage(`Supply failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setShowFailedAlert(true);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      }
+    }
+  }, [writeError]);
+
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
@@ -147,22 +171,59 @@ export const useSupplyCollateral = (
       return;
     }
 
-    setIsSupplying(true);
-    setTxHash(undefined);
+    try {
+      setIsSupplying(true);
+      setTxHash(undefined);
+      setErrorMessage("");
+      setShowFailedAlert(false);
 
-    // Convert amount to BigInt with proper decimal conversion
-    const amountBigInt = BigInt(
-      Math.floor(parseFloat(amount) * Math.pow(10, decimals))
-    );
+      // Convert amount to BigInt with proper decimal conversion
+      const amountBigInt = BigInt(
+        Math.floor(parseFloat(amount) * Math.pow(10, decimals))
+      );
 
-    const tx = await writeContractAsync({
-      address: lendingPoolAddress,
-      abi: lendingPoolAbi,
-      functionName: "supplyCollateral",
-      args: [amountBigInt, address],
-    });
+      const tx = await writeContractAsync({
+        address: lendingPoolAddress,
+        abi: lendingPoolAbi,
+        functionName: "supplyCollateral",
+        args: [amountBigInt, address],
+      });
 
-    setTxHash(tx as HexAddress);
+      setTxHash(tx as HexAddress);
+    } catch (error) {
+      console.error("Supply error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      
+      // Check if it's a user rejection first
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('user rejected') ||
+                             errorMessage.includes('User rejected the request');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setErrorMessage("");
+        setShowFailedAlert(false);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      } else {
+        // Provide more specific error messages for other errors
+        if (errorMessage.includes("insufficient")) {
+          setErrorMessage("Insufficient balance. Please check your token balance.");
+        } else if (errorMessage.includes("allowance")) {
+          setErrorMessage("Insufficient allowance. Please approve more tokens.");
+        } else if (errorMessage.includes("network")) {
+          setErrorMessage("Network error. Please check your connection.");
+        } else {
+          setErrorMessage(`Supply failed: ${errorMessage}`);
+        }
+        setShowFailedAlert(true);
+        setIsSupplying(false);
+        setTxHash(undefined);
+      }
+    }
   };
 
   const handleCloseSuccessAlert = () => {

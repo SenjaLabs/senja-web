@@ -43,9 +43,22 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
   // Handle write error
   useEffect(() => {
     if (writeError) {
-      setError(`Withdraw failed: ${writeError.message || "Please check your wallet and try again."}`);
-      setIsWithdrawing(false);
-      setTxHash(undefined);
+      // Check if it's a user rejection
+      const isUserRejection = writeError.message?.includes('User rejected') || 
+                             writeError.message?.includes('User denied') ||
+                             writeError.message?.includes('cancelled') ||
+                             writeError.message?.includes('rejected');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setError("");
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      } else {
+        setError(`Withdraw failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      }
     }
   }, [writeError]);
 
@@ -58,25 +71,13 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
     }
   }, [isError, confirmError]);
 
-  const handleWithdrawLiquidity = async (lendingPoolAddress: HexAddress) => {
-    console.log("=== WITHDRAW LIQUIDITY DEBUG ===");
-    console.log("Input parameters:", {
-      lendingPoolAddress,
-      chainId,
-      decimals,
-      shares,
-      address,
-      connectorsCount: connectors.length
-    });
-
+  const handleWithdrawLiquidity = async (lendingPoolAddress: HexAddress, amount?: string) => {
     // Try to connect wallet if not connected
     if (!address) {
       try {
-        console.log("No wallet connected, attempting to connect...");
         await connect({ connector: connectors[0] });
         // Wait a bit for connection to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log("Wallet connection completed");
       } catch (error) {
         console.error("Wallet connection failed:", error);
         setError("Failed to connect wallet. Please try again.");
@@ -85,13 +86,13 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
     }
 
     const chain = chains.find((c) => c.id === chainId);
-    console.log("Chain lookup:", { chainId, chain, availableChains: chains.map(c => c.id) });
     if (!chain) {
       setError(`Unsupported chain: ${chainId}. Available chains: ${chains.map(c => c.id).join(', ')}`);
       return;
     }
 
-    if (!shares || parseFloat(shares) <= 0) {
+    const amountToUse = amount || shares;
+    if (!amountToUse || parseFloat(amountToUse) <= 0) {
       setError("Please enter a valid amount of shares");
       return;
     }
@@ -102,7 +103,7 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
       setError("");
 
       // Convert shares to BigInt with proper decimal conversion
-      const parsedShares = parseFloat(shares);
+      const parsedShares = parseFloat(amountToUse);
       if (isNaN(parsedShares) || parsedShares <= 0) {
         throw new Error("Invalid shares amount");
       }
@@ -177,8 +178,25 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
       setTxHash(tx as HexAddress);
     } catch (error) {
       console.error("Transaction failed:", error);
-      setError(`Withdraw failed: ${error instanceof Error ? error.message : "Please check your wallet and try again."}`);
-      setIsWithdrawing(false);
+      
+      // Check if it's a user rejection
+      const errorMessage = error instanceof Error ? error.message : "Please check your wallet and try again.";
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('User rejected the request');
+      
+      if (isUserRejection) {
+        // Don't show error for user rejection, just reset state
+        setError("");
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      } else {
+        setError(`Withdraw failed: ${errorMessage}`);
+        setIsWithdrawing(false);
+        setTxHash(undefined);
+      }
     }
   };
 

@@ -4,11 +4,34 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 
-const RepayTab = () => {
+interface RepayTabProps {
+  pool?: {
+    lendingPool: string;
+    collateralTokenInfo: {
+      symbol: string;
+      logo: string;
+      addresses: Record<string, string>;
+      decimals: number;
+    };
+    borrowTokenInfo: {
+      symbol: string;
+      logo: string;
+      addresses: Record<string, string>;
+      decimals: number;
+    };
+    ltv: string;
+  };
+}
+
+const RepayTab = ({ pool }: RepayTabProps) => {
   const [selectedToken] = useState("");
   const [amount, setAmount] = useState("");
   const [repayType] = useState("partial");
+
+  // Get APY for the pool
+  const { borrowAPY, loading: apyLoading } = useReadPoolApy(pool?.lendingPool);
 
   // Borrow tokens from lending pool (based on borrowable tokens)
   const borrowedTokens = [
@@ -66,7 +89,7 @@ const RepayTab = () => {
           </div>
           <div>
             <p className="text-sm text-amber-600 mb-1">APY:</p>
-            <p className="font-semibold text-amber-800">0.00000%</p>
+            <p className="font-semibold text-amber-800">{apyLoading ? "Loading..." : borrowAPY}%</p>
           </div>
           <div>
             <p className="text-sm text-amber-600 mb-1">LTV:</p>
