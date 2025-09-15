@@ -95,7 +95,7 @@ const PoolRow = React.memo(({ pool, onPoolClick }: { pool: LendingPoolWithTokens
       <td className="py-4 px-6 text-center">
         <Badge 
           variant="secondary" 
-          className="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium"
+          className=" text-gray-800 px-2 py-1 text-xs font-medium"
         >
           {formattedLTV}
         </Badge>

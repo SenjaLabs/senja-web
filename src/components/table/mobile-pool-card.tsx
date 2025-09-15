@@ -127,12 +127,12 @@ export const MobilePoolCard = memo(function MobilePoolCard({
           {/* LTV */}
           <div className="flex items-center space-x-2">
             <div>
-              <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+              <div className="ml-2 text-xs font-medium text-blue-600 uppercase tracking-wide">
                 LTV
               </div>
               <Badge
                 variant="secondary"
-                className="bg-blue-100 text-blue-800 px-1.5 py-0.5 text-xs font-semibold"
+                className="text-gray-800 text-xs font-semibold"
               >
                 {formattedLTV}
               </Badge>

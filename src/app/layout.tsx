@@ -6,6 +6,7 @@ import "@/utils/global-polyfills";
 import LiffProvider from "./LiffProvider";
 import { BottomNavigation } from "@/components/navbar";
 import AppWrapper from "@/components/app-wrapper";
+import AuroraBackground from "@/components/aurora-ui";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} bg-root antialiased min-h-screen`}
       >
+        <AuroraBackground />
         <AppWrapper>
           <LiffProvider>
             {children}
