@@ -50,7 +50,6 @@ export const useSupplyCollateral = (
     handleApprove,
     isApproving: isApprovePending,
     isConfirming: isApproveConfirming,
-    isSuccess: isApproveSuccess,
     isError: isApproveError,
   } = useApprove(currentChainId, (txHash) => {
     setIsApproving(false);

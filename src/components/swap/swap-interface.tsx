@@ -38,10 +38,6 @@ export const SwapInterface = memo(function SwapInterface({
     useState<LendingPoolWithTokens | null>(null);
 
   const exchangeRate = 1850.42; // Mock exchange rate
-  const minReceived = toAmount
-    ? (parseFloat(toAmount) * 0.995).toFixed(6)
-    : "0";
-
   const handleSwapTokens = useCallback(() => {
     const tempToken = fromToken;
     const tempAmount = fromAmount;

@@ -38,11 +38,25 @@ if (typeof window !== 'undefined' && window.crypto && !window.crypto.getRandomVa
 // Ensure process is available
 if (typeof window !== 'undefined' && !window.process) {
   window.process = {
-    env: {},
+    env: {
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      NEXT_PUBLIC_CHAIN_ID: process.env.NEXT_PUBLIC_CHAIN_ID,
+      NEXT_PUBLIC_RPC_URL: process.env.NEXT_PUBLIC_RPC_URL,
+      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    },
     nextTick: (fn: () => void) => setTimeout(fn, 0),
-    version: '',
-    versions: {},
-  };
+    version: 'v16.0.0',
+    versions: {
+      http_parser: '2.9.4',
+      node: '16.0.0',
+      v8: '9.0.0',
+      ares: '1.17.2',
+      uv: '1.41.0',
+      zlib: '1.2.11',
+      modules: '93',
+      openssl: '1.1.1k',
+    },
+  } as typeof window.process;
 }
 
 // Initialize tweetnacl with proper random number generator

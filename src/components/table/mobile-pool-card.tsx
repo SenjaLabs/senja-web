@@ -34,8 +34,8 @@ export const MobilePoolCard = memo(function MobilePoolCard({
 }: MobilePoolCardProps) {
   const { totalSupplyAssets, totalSupplyAssetsLoading } =
     useReadTotalSupplyAssets(
-      pool.lendingPool,
-      pool.borrowTokenInfo?.decimals || 18
+      pool.lendingPool as `0x${string}`,
+      pool.borrowToken as `0x${string}`
     );
 
   const formattedLTV = useMemo(() => {

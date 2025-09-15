@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, memo } from "react";
+import React, { useCallback, memo } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

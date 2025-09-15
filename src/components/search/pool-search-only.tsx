@@ -48,7 +48,7 @@ export const PoolSearchOnly = memo(function PoolSearchOnly({
       if (autoSelectFirst && validPools.length > 0 && !selectedPool) {
         onPoolSelect(validPools[0]);
       }
-    } catch (error) {
+    } catch {
       // Silent error handling for production
       setPools([]);
     } finally {

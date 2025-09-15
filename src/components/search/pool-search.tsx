@@ -1,15 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, memo } from "react";
+import React, { useCallback, memo } from "react";
 import { Check, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  fetchLendingPools,
-  pairLendingPoolsWithTokens,
-  LendingPoolWithTokens,
-} from "@/lib/graphql/lendingpool-list.fetch";
-import { useCurrentChainId } from "@/lib/chain";
+import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import Image from "next/image";
 
 interface PoolSearchProps {
@@ -108,6 +103,7 @@ export const PoolSearch = memo(function PoolSearch({
   className = "",
 }: PoolSearchProps) {
   const handleSearchChange = useCallback(
+    // eslint-disable-next-line no-undef
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onSearchChange(e.target.value);
     },
@@ -156,9 +152,7 @@ export const PoolSearch = memo(function PoolSearch({
           </div>
         ) : filteredPools.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            <div className="text-4xl mb-2">
-              {searchQuery ? "🔍" : "🏦"}
-            </div>
+            <div className="text-4xl mb-2">{searchQuery ? "🔍" : "🏦"}</div>
             <div className="text-sm">
               {searchQuery
                 ? "No pools found matching your search"

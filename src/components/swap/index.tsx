@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-undef */
 "use client";
 
 import { useLiff } from "@/app/LiffProvider";

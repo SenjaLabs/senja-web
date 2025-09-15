@@ -126,7 +126,7 @@ export const PoolSelector = memo(function PoolSelector({
       if (validPools.length > 0 && !selectedPool) {
         onPoolSelect(validPools[0]);
       }
-    } catch (error) {
+    } catch {
       // Silent error handling for production
       setPools([]);
     } finally {
@@ -175,6 +175,7 @@ export const PoolSelector = memo(function PoolSelector({
   );
 
   const handleSearchChange = useCallback(
+    // eslint-disable-next-line no-undef
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchQuery(e.target.value);
     },

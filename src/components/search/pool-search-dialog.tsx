@@ -58,7 +58,7 @@ export const PoolSearchDialog = memo(function PoolSearchDialog({
       if (validPools.length > 0 && !selectedPool) {
         onPoolSelect(validPools[0]);
       }
-    } catch (error) {
+    } catch {
       // Silent error handling for production
       setPools([]);
     } finally {
