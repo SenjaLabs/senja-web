@@ -3,6 +3,7 @@ import { Chain } from "@/types";
 export const chains: Chain[] = [
   {
     id: 8453,
+    destinationEndpoint: 30184,
     name: "Base",
     logo: "/chain/base.png",
     contracts: {
@@ -15,6 +16,7 @@ export const chains: Chain[] = [
 
   {
     id: 8217,
+    destinationEndpoint: 30150,
     name: "Kaia",
     logo: "/chain/kaia-logo.svg",
     contracts: {
@@ -27,6 +29,7 @@ export const chains: Chain[] = [
 
   {
     id: 10,
+    destinationEndpoint: 30111,
     name: "Optimism",
     logo: "/chain/optimism-logo.svg",
     contracts: {

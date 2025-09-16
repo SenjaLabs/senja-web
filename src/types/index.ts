@@ -24,6 +24,8 @@ export interface Token {
 export interface Chain {
   /** Unique chain identifier */
   id: number;
+  /** Unique chain identifier */
+  destinationEndpoint: number;
   /** Human-readable chain name */
   name: string;
   /** URL or path to the chain logo image */

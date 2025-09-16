@@ -57,3 +57,43 @@ export const formatTokenAmount = (amount: string | number, decimals: number): st
     const displayDecimals = getDisplayDecimals(decimals);
     return numAmount.toFixed(displayDecimals);
 };
+
+/**
+ * Parse string amount to bigint with proper decimal conversion
+ * @param amount - Amount as string (e.g., "1.5", "100", "0.001")
+ * @param decimals - Token decimals
+ * @returns BigInt representation of the amount
+ */
+export const parseAmountToBigInt = (amount: string, decimals: number): bigint => {
+    if (!amount || amount.trim() === '') {
+        return BigInt(0);
+    }
+
+    const cleanAmount = amount.trim();
+    const numAmount = parseFloat(cleanAmount);
+    
+    if (isNaN(numAmount) || numAmount < 0) {
+        throw new Error(`Invalid amount: ${amount}`);
+    }
+
+    // Convert to BigInt with proper decimal conversion
+    const decimalMultiplier = Math.pow(10, decimals);
+    const amountBigInt = BigInt(Math.floor(numAmount * decimalMultiplier));
+    
+    return amountBigInt;
+};
+
+/**
+ * Parse string amount to bigint with proper decimal conversion (safe version)
+ * @param amount - Amount as string (e.g., "1.5", "100", "0.001")
+ * @param decimals - Token decimals
+ * @returns BigInt representation of the amount, or BigInt(0) if invalid
+ */
+export const parseAmountToBigIntSafe = (amount: string, decimals: number): bigint => {
+    try {
+        return parseAmountToBigInt(amount, decimals);
+    } catch (error) {
+        console.warn('Failed to parse amount:', amount, error);
+        return BigInt(0);
+    }
+};
