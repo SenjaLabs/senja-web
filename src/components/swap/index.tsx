@@ -1,34 +1,67 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-undef */
 "use client";
 
 import { useLiff } from "@/app/LiffProvider";
 import { SwapInterface } from "@/components/swap/swap-interface";
 import { memo, useCallback } from "react";
 import { Token } from "@/types";
+import { useSwapCollateral } from "@/hooks/write/useSwapCollateral";
+import { useCurrentChainId } from "@/lib/chain";
+//import { useReadUserPosition } from "@/hooks/read/readUserPosition";
 
 export default memo(function SwapPage() {
   const { liff, liffError } = useLiff();
+  const currentChainId = useCurrentChainId();
+
+  const {
+    handleSwapCollateral,
+    handleApproveToken,
+    isSwapping,
+    isApproved,
+    needsApproval,
+    isApproving,
+    showSuccessAlert,
+    showFailedAlert,
+    errorMessage,
+    successTxHash,
+    handleCloseSuccessAlert,
+    handleCloseFailedAlert,
+  } = useSwapCollateral(currentChainId, () => {
+    console.log("Swap completed successfully");
+  });
 
   const handleSwap = useCallback(async (
     fromToken: Token,
     toToken: Token,
-    amount: string
+    amount: string,
+    selectedPoolAddress?: string,
+    userPositionAddress?: string
   ) => {
-    if (liff) {
+    if (liff && selectedPoolAddress && userPositionAddress) {
       try {
-        const result = confirm(
-          `Swap ${amount} ${fromToken.symbol} for ${toToken.symbol}?`
-        );
-        if (result) {
-          // In a real implementation, you would call your swap API here
-          // TODO: Implement proper success notification
+        if (needsApproval) {
+          // Approve the token first
+          await handleApproveToken(
+            fromToken.addresses[currentChainId] as `0x${string}`,
+            userPositionAddress as `0x${string}`,
+            amount,
+            fromToken.decimals
+          );
+        } else {
+          // Execute the swap directly
+          await handleSwapCollateral(
+            userPositionAddress as `0x${string}`,
+            fromToken.addresses[currentChainId] as `0x${string}`,
+            toToken.addresses[currentChainId] as `0x${string}`,
+            amount,
+            fromToken.decimals,
+            300 // 3% slippage tolerance
+          );
         }
       } catch (error) {
-        // TODO: Implement proper error notification
+        console.error("Swap failed:", error);
       }
     }
-  }, [liff]);
+  }, [liff, handleSwapCollateral, handleApproveToken, needsApproval, currentChainId]);
 
   if (liffError) {
     return (
@@ -58,7 +91,19 @@ export default memo(function SwapPage() {
     <div className="min-h-screen">
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-7xl mx-auto">
-          <SwapInterface onSwap={handleSwap} />
+          <SwapInterface 
+            onSwap={handleSwap}
+            isSwapping={isSwapping}
+            isApproved={isApproved}
+            needsApproval={needsApproval}
+            isApproving={isApproving}
+            showSuccessAlert={showSuccessAlert}
+            showFailedAlert={showFailedAlert}
+            errorMessage={errorMessage}
+            successTxHash={successTxHash}
+            onCloseSuccessAlert={handleCloseSuccessAlert}
+            onCloseFailedAlert={handleCloseFailedAlert}
+          />
         </div>
       </div>
     </div>

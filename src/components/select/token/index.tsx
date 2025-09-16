@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Token } from "@/types";
 import { TokenSelectorDialog } from "./token-selector-dialog";
 import Image from "next/image";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
 
 interface TokenSelectorProps {
   selectedToken?: Token;
   onTokenSelect: (token: Token) => void;
   otherToken?: Token;
   label: string;
+  selectedPoolAddress?: string;
+  showBalance?: boolean;
 }
 
 export const TokenSelector = memo(function TokenSelector({
@@ -19,8 +22,16 @@ export const TokenSelector = memo(function TokenSelector({
   onTokenSelect,
   otherToken,
   label,
+  selectedPoolAddress,
+  showBalance = false,
 }: TokenSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Get user collateral balance for the selected token
+  const { userCollateralFormatted } = useReadUserCollateral(
+    selectedPoolAddress as `0x${string}` || "0x0000000000000000000000000000000000000000",
+    selectedToken?.decimals || 18
+  );
 
   const handleTokenSelect = (token: Token) => {
     onTokenSelect(token);
@@ -47,32 +58,41 @@ export const TokenSelector = memo(function TokenSelector({
         }`}
       >
         {selectedToken ? (
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded-full overflow-hidden">
-              <Image
-                src={selectedToken.logo}
-                alt={selectedToken.name}
-                width={24}
-                height={24}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                  const fallback = e.currentTarget
-                    // eslint-disable-next-line no-undef
-                    .nextElementSibling as HTMLElement;
-                  if (fallback) {
-                    fallback.classList.remove("hidden");
-                    fallback.classList.add("flex");
-                  }
-                }}
-              />
-              <div className="w-full h-full bg-gradient-twilight items-center justify-center text-white text-xs font-semibold hidden">
-                {selectedToken.symbol.charAt(0)}
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 rounded-full overflow-hidden">
+                <Image
+                  src={selectedToken.logo}
+                  alt={selectedToken.name}
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    const fallback = e.currentTarget
+                      // eslint-disable-next-line no-undef
+                      .nextElementSibling as HTMLElement;
+                    if (fallback) {
+                      fallback.classList.remove("hidden");
+                      fallback.classList.add("flex");
+                    }
+                  }}
+                />
+                <div className="w-full h-full bg-gradient-twilight items-center justify-center text-white text-xs font-semibold hidden">
+                  {selectedToken.symbol.charAt(0)}
+                </div>
               </div>
+              <span className="text-gray-900 font-semibold">
+                {selectedToken.symbol}
+              </span>
             </div>
-            <span className="text-gray-900 font-semibold">
-              {selectedToken.symbol}
-            </span>
+            {selectedPoolAddress && showBalance && (
+              <div className="text-right mr-2">
+                <div className="text-sm text-gray-600">
+                  {userCollateralFormatted || "0.00000"}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <span className="text-gray-600">Select token</span>
@@ -86,6 +106,8 @@ export const TokenSelector = memo(function TokenSelector({
         onTokenSelect={handleTokenSelect}
         otherToken={otherToken}
         title={label}
+        selectedPoolAddress={selectedPoolAddress}
+        showBalance={showBalance}
       />
     </>
   );
