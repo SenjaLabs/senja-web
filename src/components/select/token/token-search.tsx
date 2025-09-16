@@ -5,12 +5,42 @@ import { Search, X } from "lucide-react";
 import { tokens } from "@/lib/addresses/tokenAddress";
 import { Token } from "@/types";
 import Image from "next/image";
+import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+
+// Component to display token balance
+const TokenBalance = memo(function TokenBalance({ 
+  token, 
+  poolAddress 
+}: { 
+  token: Token; 
+  poolAddress?: string; 
+}) {
+  const { userCollateralFormatted, userCollateralLoading } = useReadUserCollateral(
+    poolAddress as `0x${string}` || "0x0000000000000000000000000000000000000000",
+    token.decimals
+  );
+
+  if (userCollateralLoading) {
+    return <div className="text-sm text-gray-400">Loading...</div>;
+  }
+
+  return (
+    <div className="text-right">
+      <div className="text-sm text-gray-900 font-medium">
+        {userCollateralFormatted || "0.00000"}
+      </div>
+      <div className="text-xs text-gray-500">{token.symbol}</div>
+    </div>
+  );
+});
 
 interface TokenSearchProps {
   onTokenSelect: (token: Token) => void;
   otherToken?: Token;
   showPopularTokens?: boolean;
   className?: string;
+  selectedPoolAddress?: string;
+  showBalance?: boolean;
 }
 
 export const TokenSearch = memo(function TokenSearch({
@@ -18,6 +48,8 @@ export const TokenSearch = memo(function TokenSearch({
   otherToken,
   showPopularTokens = true,
   className = "",
+  selectedPoolAddress,
+  showBalance = false,
 }: TokenSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -196,9 +228,13 @@ export const TokenSearch = memo(function TokenSearch({
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-500">0</div>
-                </div>
+                {showBalance ? (
+                  <TokenBalance token={token} poolAddress={selectedPoolAddress} />
+                ) : (
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">-</div>
+                  </div>
+                )}
               </button>
             ))
           )}

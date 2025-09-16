@@ -19,6 +19,8 @@ interface TokenSelectorDialogProps {
   otherToken?: Token;
   title?: string;
   showPopularTokens?: boolean;
+  selectedPoolAddress?: string;
+  showBalance?: boolean;
 }
 
 export const TokenSelectorDialog = memo(function TokenSelectorDialog({
@@ -28,6 +30,8 @@ export const TokenSelectorDialog = memo(function TokenSelectorDialog({
   otherToken,
   title = "Select token",
   showPopularTokens = true,
+  selectedPoolAddress,
+  showBalance = false,
 }: TokenSelectorDialogProps) {
   const handleTokenSelect = useCallback((token: Token) => {
     onTokenSelect(token);
@@ -54,6 +58,8 @@ export const TokenSelectorDialog = memo(function TokenSelectorDialog({
             onTokenSelect={handleTokenSelect}
             otherToken={otherToken}
             showPopularTokens={showPopularTokens}
+            selectedPoolAddress={selectedPoolAddress}
+            showBalance={showBalance}
           />
         </div>
       </DialogContent>
