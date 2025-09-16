@@ -207,21 +207,6 @@ export const SwapInterface = memo(function SwapInterface({
                 </div>
               </div>
 
-              {/* Warning for insufficient balance */}
-              {fromToken && selectedPool && fromAmount && fromTokenBalance && 
-                parseFloat(fromTokenBalance) > 0 && 
-                parseFloat(fromAmount) > parseFloat(fromTokenBalance) && (
-                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="w-5 h-5 text-red-600 mr-2">❌</div>
-                    <div className="text-sm text-red-800">
-                      <p className="font-medium">Insufficient balance</p>
-                      <p>You&apos;re trying to swap {fromAmount} {fromToken.symbol} but only have {fromTokenBalance} {fromToken.symbol} available.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="relative bg-sunset-pink-light rounded-xl p-4 border border-sunset-orange">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 mr-4">
@@ -332,7 +317,7 @@ export const SwapInterface = memo(function SwapInterface({
                 disabled
                 className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
               >
-                {!fromTokenBalance || parseFloat(fromTokenBalance) === 0 ? "No collateral balance" : "Enter amount"}
+                {!fromTokenBalance || parseFloat(fromTokenBalance) === 0 ? "Insufficient balance" : "Enter amount"}
               </Button>
             ) : fromAmount && fromTokenBalance && parseFloat(fromAmount) > parseFloat(fromTokenBalance) ? (
               <Button
