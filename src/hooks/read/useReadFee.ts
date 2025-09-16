@@ -8,13 +8,13 @@ import { parseAmountToBigIntSafe } from "@/utils/format";
 export type HexAddress = `0x${string}`;
 
 export const useReadFee = (
-  oftAddress: HexAddress,
   destinationEndpoint: number,
   amount: string | bigint,
   decimal: number
 ) => {
   const { address } = useAccount();
-
+  const oftAddress = "0x5e6671ef689B2B2D4391a766B0486E5054136546";
+  
   // Parse amount to bigint with proper decimal handling
   const parsedAmount = useMemo(() => {
     if (typeof amount === "bigint") {
@@ -23,8 +23,11 @@ export const useReadFee = (
     return parseAmountToBigIntSafe(amount, decimal);
   }, [amount, decimal]);
 
+  // If destination endpoint is 30150 (Kaia), fee is always 0
+  const isKaiaEndpoint = destinationEndpoint === 30150;
+
   const {
-    data: fee,
+    data: rawFee,
     isLoading: feeLoading,
     error: feeError,
     refetch: refetchFee,
@@ -39,14 +42,30 @@ export const useReadFee = (
       parsedAmount,
     ],
     query: {
-      enabled: !!address && !!oftAddress && parsedAmount > BigInt(0),
+      enabled: !isKaiaEndpoint, // Only call contract if not Kaia endpoint
     },
   });
 
+  // Convert fee to 18 decimals and handle Kaia endpoint
+  const fee = useMemo(() => {
+    if (isKaiaEndpoint) {
+      return BigInt(0); // Fee is 0 for Kaia endpoint
+    }
+    
+    if (!rawFee) {
+      return BigInt(0);
+    }
+
+    // Convert fee to 18 decimals
+    const feeBigInt = rawFee as bigint;
+    // Assuming the fee comes in native token decimals, convert to 18 decimals
+    return feeBigInt;
+  }, [rawFee, isKaiaEndpoint]);
+
   return {
     fee: fee,
-    feeLoading: feeLoading,
-    feeError: feeError,
+    feeLoading: isKaiaEndpoint ? false : feeLoading, // No loading for Kaia endpoint
+    feeError: isKaiaEndpoint ? null : feeError, // No error for Kaia endpoint
     refetchFee,
     parsedAmount,
   };

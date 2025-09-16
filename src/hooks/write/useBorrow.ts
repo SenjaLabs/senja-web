@@ -105,6 +105,9 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
       // Parse amount with proper decimal conversion
       const amountBigInt = parseAmountToBigIntSafe(amount, borrowTokenDecimals);
 
+      // If destination endpoint is 30150 (Kaia), fee is 0
+      const finalGasFee = destinationEndpoint === 30150 ? BigInt(0) : gasFee;
+
       console.log("Borrow attempt:", {
         lendingPoolAddress,
         amount,
@@ -112,7 +115,8 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
         borrowTokenDecimals,
         destinationChainId,
         destinationEndpoint,
-        gasFee: gasFee.toString(),
+        gasFee: finalGasFee.toString(),
+        isKaiaEndpoint: destinationEndpoint === 30150,
         address
       });
 
@@ -126,7 +130,7 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
           destinationEndpoint,             // _dstEid (uint32)
           BigInt(6500)                     // _addExecutorLzReceiveOption (uint128)
         ],
-        value: gasFee,                     // Gas fee as value
+        value: finalGasFee,                // Gas fee as value (0 for Kaia endpoint)
       });
 
       setTxHash(tx as HexAddress);

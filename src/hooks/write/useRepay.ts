@@ -204,9 +204,9 @@ export const useRepay = (
       // Convert amount to BigInt with proper decimal conversion
       const userAmount = Number(amount) * Math.pow(10, decimals);
 
-      // Use data from hooks or fallback to default values for calculation
-      const effectiveTotalAssets = totalBorrowAssets?.toString() || "1000000000000000000"; // 1 token with 18 decimals as fallback
-      const effectiveTotalShares = totalBorrowShares?.toString() || "1000000000000000000"; // 1 share with 18 decimals as fallback
+      // Use data from hooks or fallback to 0 if borrow amount is not found
+      const effectiveTotalAssets = totalBorrowAssets?.toString() || "0"; // Return 0 if not found
+      const effectiveTotalShares = totalBorrowShares?.toString() || "0"; // Return 0 if not found
 
       console.log("Shares calculation data:", {
         userAmount,

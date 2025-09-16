@@ -18,16 +18,21 @@ export const useReadTotalBorrowShares = (lendingPoolAddress: HexAddress) => {
     functionName: "totalBorrowShares",
     args: [],
   });
+  
+  // If borrow shares is not found, return 0
+  const effectiveTotalBorrowShares = totalBorrowShares || BigInt(0);
+  
   console.log("useReadTotalBorrowShares:", {
     lendingPoolAddress,
     routerAddress,
     totalBorrowShares,
+    effectiveTotalBorrowShares,
     totalBorrowSharesLoading,
     totalBorrowSharesError,
   });
 
   return {
-    totalBorrowShares: totalBorrowShares,
+    totalBorrowShares: effectiveTotalBorrowShares,
     totalBorrowSharesLoading: totalBorrowSharesLoading,
     totalBorrowSharesError: totalBorrowSharesError,
     refetchTotalBorrowShares,

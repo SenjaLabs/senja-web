@@ -7,10 +7,14 @@ import { Button } from "@/components/ui/button";
 import { PoolInfoCard } from "./shared/pool-info-card";
 import { ChainSelector } from "./shared/chain-selector";
 import { AmountInput } from "./shared/amount-input";
+import { SuccessAlert } from "@/components/alert/success-alert";
+import { FailedAlert } from "@/components/alert/failed-alert";
 import { useRefetch } from "@/hooks/useRefetch";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
 import { useReadFee } from "@/hooks/read/useReadFee";
+import { useReadMaxBorrow } from "@/hooks/read/useReadMaxBorrow";
+import { useBorrow } from "@/hooks/write/useBorrow";
 import { useCurrentChainId } from "@/lib/chain/use-chain";
 import { chains } from "@/lib/addresses/chainAddress";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
@@ -22,13 +26,15 @@ interface BorrowTabProps {
 const BorrowTab = ({ pool }: BorrowTabProps) => {
   const [chainFrom] = useState("8217"); // Default to Kaia
   const [chainTo, setChainTo] = useState("8217"); // Default to Kaia for on-chain borrowing
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(""); // Amount to borrow
 
   const currentChainId = useCurrentChainId();
 
   // Get destination endpoint from selected chain
   const destinationEndpoint = useMemo(() => {
-    const selectedChain = chains.find(chain => chain.id.toString() === chainTo);
+    const selectedChain = chains.find(
+      (chain) => chain.id.toString() === chainTo
+    );
     return selectedChain?.destinationEndpoint || 30150; // Default to Kaia endpoint
   }, [chainTo]);
 
@@ -45,42 +51,64 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
     refetch: refetchApy,
   } = useReadPoolApy(pool?.lendingPool);
 
-  // Get user balance for the borrow token
-  const {
-    userWalletBalanceFormatted,
-    userWalletBalanceParsed,
-    walletBalanceLoading,
-    refetchWalletBalance,
-  } = useUserWalletBalance(
+  // Get user balance for the borrow token (keeping for potential future use)
+  const { refetchWalletBalance } = useUserWalletBalance(
     (pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`) ||
       "0xCEb5c8903060197e46Ab5ea5087b9F99CBc8da49",
     pool?.borrowTokenInfo?.decimals || 18
   );
 
-  // Get fee for cross-chain borrowing
+  // Get max borrow amount
   const {
-    fee,
-    feeLoading,
-    feeError,
-    refetchFee,
-    parsedAmount,
-  } = useReadFee(
-    (pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`) ||
-      "0xCEb5c8903060197e46Ab5ea5087b9F99CBc8da49",
-    destinationEndpoint,
-    amount,
+    maxBorrowFormatted,
+    maxBorrowLoading,
+    maxBorrowError,
+    refetchMaxBorrow,
+  } = useReadMaxBorrow(
+    (pool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
     pool?.borrowTokenInfo?.decimals || 18
   );
+
+  // Get fee for cross-chain borrowing (using amount to borrow)
+  const { fee, feeLoading, feeError, refetchFee, parsedAmount } = useReadFee(
+    destinationEndpoint,
+    amount || "0",
+    pool?.borrowTokenInfo?.decimals || 18
+  );
+
+  // Borrow hook
+  const {
+    handleBorrow: executeBorrow,
+    isBorrowing,
+    isConfirming,
+    isSuccess: isBorrowSuccess,
+    isError: isBorrowError,
+    showSuccessAlert,
+    showFailedAlert,
+    errorMessage,
+    successTxHash,
+    handleCloseSuccessAlert,
+    handleCloseFailedAlert,
+  } = useBorrow(currentChainId, () => {
+    // Refetch all data after successful borrow
+    refetchApy();
+    refetchWalletBalance();
+    refetchMaxBorrow();
+    refetchFee();
+  });
 
   // Add refetch functions
   useEffect(() => {
     addRefetchFunction(refetchApy);
     addRefetchFunction(refetchWalletBalance);
+    addRefetchFunction(refetchMaxBorrow);
     addRefetchFunction(refetchFee);
 
     return () => {
       removeRefetchFunction(refetchApy);
       removeRefetchFunction(refetchWalletBalance);
+      removeRefetchFunction(refetchMaxBorrow);
       removeRefetchFunction(refetchFee);
     };
   }, [
@@ -88,26 +116,35 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
     removeRefetchFunction,
     refetchApy,
     refetchWalletBalance,
+    refetchMaxBorrow,
     refetchFee,
   ]);
 
   const handleSetMax = useCallback(() => {
-    if (userWalletBalanceParsed > 0) {
-      setAmount(userWalletBalanceFormatted);
+    if (maxBorrowFormatted && parseFloat(maxBorrowFormatted) > 0) {
+      setAmount(maxBorrowFormatted);
     }
-  }, [userWalletBalanceFormatted, userWalletBalanceParsed]);
+  }, [maxBorrowFormatted]);
 
-  const handleBorrow = useCallback(() => {
-    console.log("Borrow:", {
-      chainFrom,
-      chainTo,
-      destinationEndpoint,
-      amount,
-      parsedAmount: parsedAmount?.toString(),
-      fee: fee?.toString(),
-      pool: pool?.lendingPool,
-    });
-  }, [chainFrom, chainTo, destinationEndpoint, amount, parsedAmount, fee, pool]);
+  const handleBorrow = useCallback(async () => {
+    if (!pool?.lendingPool || !amount || fee === undefined) {
+      console.error("Missing required data for borrow");
+      return;
+    }
+
+    try {
+      await executeBorrow(
+        pool.lendingPool as `0x${string}`,
+        amount,
+        pool.borrowTokenInfo?.decimals || 18,
+        parseInt(chainTo),
+        destinationEndpoint,
+        fee
+      );
+    } catch (error) {
+      console.error("Borrow failed:", error);
+    }
+  }, [pool, amount, fee, chainTo, destinationEndpoint, executeBorrow]);
 
   if (!pool) {
     return (
@@ -153,50 +190,146 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
             onChange={setAmount}
             onMaxClick={handleSetMax}
             tokenSymbol={pool.borrowTokenInfo?.symbol || "Token"}
-            balance={`Balance: ${
-              walletBalanceLoading
+            balance={`Max Borrow: ${
+              maxBorrowLoading
                 ? "Loading..."
-                : userWalletBalanceFormatted || "0.00"
+                : maxBorrowError
+                ? "Error loading max borrow"
+                : maxBorrowFormatted || "0.00"
             } ${pool.borrowTokenInfo?.symbol || "Token"}`}
-            maxDisabled={userWalletBalanceParsed <= 0}
+            maxDisabled={
+              !maxBorrowFormatted || parseFloat(maxBorrowFormatted) <= 0
+            }
           />
 
           {/* Fee Information */}
           {amount && parsedAmount > BigInt(0) && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-blue-800">
+                <span className="text-sm font-medium text-orange-800">
                   Cross-chain Fee:
                 </span>
-                <span className="text-sm text-blue-600">
+                <span className="text-sm text-orange-600">
                   {feeLoading ? (
                     "Loading..."
                   ) : feeError ? (
                     <span className="text-red-500">Error loading fee</span>
+                  ) : destinationEndpoint === 30150 ? (
+                    "0"
                   ) : fee ? (
-                    `${Number(formatUnits(fee, pool.borrowTokenInfo?.decimals || 18)).toFixed(6)} ${pool.borrowTokenInfo?.symbol || "Token"}`
+                    `${Number(
+                      formatUnits(fee, 18) // Convert fee with 18 decimals
+                    ).toFixed(6)} KAIA`
                   ) : (
                     "No fee data"
                   )}
                 </span>
               </div>
-              {destinationEndpoint && (
-                <div className="text-xs text-blue-500 mt-1">
-                  Destination Endpoint: {destinationEndpoint}
-                </div>
-              )}
             </div>
           )}
+
+          {/* Transaction Status */}
+          <div className="space-y-2">
+            {/* Loading Status */}
+            {isBorrowing && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">
+                  Processing borrow request...
+                </span>
+              </div>
+            )}
+
+            {/* Confirming Status */}
+            {isConfirming && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">
+                  Confirming transaction...
+                </span>
+              </div>
+            )}
+
+            {/* Success Status */}
+            {isBorrowSuccess && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-3 h-3 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">
+                  Borrow successful!
+                </span>
+              </div>
+            )}
+
+            {/* Error Status */}
+            {isBorrowError && (
+              <div className="flex items-center gap-3 text-red-600">
+                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span className="text-sm font-semibold">
+                  Transaction failed
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </Card>
 
       <Button
         onClick={handleBorrow}
         className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
-        disabled={!amount || !chainTo}
+        disabled={
+          !amount ||
+          !chainTo ||
+          isBorrowing ||
+          isConfirming ||
+          maxBorrowLoading ||
+          feeLoading
+        }
       >
-        Borrow {pool.borrowTokenInfo?.symbol || "Token"}
+        {isBorrowing
+          ? "Borrowing..."
+          : isConfirming
+          ? "Confirming..."
+          : `Borrow ${pool.borrowTokenInfo?.symbol || "Token"}`}
       </Button>
+
+      {/* Alert Components */}
+      {showSuccessAlert && (
+        <SuccessAlert
+          isOpen={showSuccessAlert}
+          onClose={handleCloseSuccessAlert}
+          txHash={successTxHash}
+          title="Borrow Successful!"
+          description="Your borrow transaction has been completed successfully."
+          chainId={currentChainId}
+        />
+      )}
+
+      {showFailedAlert && (
+        <FailedAlert
+          isOpen={showFailedAlert}
+          onClose={handleCloseFailedAlert}
+          title="Borrow Failed"
+          description={
+            errorMessage || "Your borrow transaction failed. Please try again."
+          }
+        />
+      )}
     </div>
   );
 };

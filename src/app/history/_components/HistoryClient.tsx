@@ -45,7 +45,7 @@ const HistoryClient = memo(function HistoryClient() {
         />
         {!isConnected ? (
           <div className="text-center text-white/80 py-10">
-            Please connect your wallet to view transaction history
+            
           </div>
         ) : (
           <>

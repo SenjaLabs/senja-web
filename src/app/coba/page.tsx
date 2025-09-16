@@ -43,13 +43,26 @@ const Page = () => {
     abi: lendingPoolRouterAbi,
     functionName: "totalBorrowAssets",
   });
+  const { data: fee } = useReadContract({
+    address: helperAddress,
+    abi: helperAbi,
+    functionName: "getFee",
+    args: [
+      "0x5e6671ef689B2B2D4391a766B0486E5054136546",
+      30184,
+      "0x6d9dae901fba6d51a37c57b1619dff67a6e39eb3",
+      BigInt(1000000),
+    ],
+  });
 
   console.log("matrix ", matrix);
   console.log("totalBorrowShares ", totalBorrowShares);
   console.log("totalBorrowAssets ", totalBorrowAssets);
+  console.log("feeData ", fee);
   return (
     <div>
       <button onClick={handleSwap}>Execute Swap</button>
+      {fee}
     </div>
   );
 };

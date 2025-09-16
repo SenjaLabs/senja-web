@@ -1,5 +1,6 @@
-import { useReadContract } from "wagmi";
+"use client";
 
+import { useReadContract } from "wagmi";
 import { lendingPoolRouterAbi } from "@/lib/abis/lendingPoolRouterAbi";
 import { useAccount } from "wagmi";
 import { useReadRouterAddress } from "./useReadRouter";

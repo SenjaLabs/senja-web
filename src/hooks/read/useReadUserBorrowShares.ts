@@ -33,6 +33,11 @@ export const useReadUserBorrowShares = (
       // userBorrowShares returns a single bigint value (borrow shares)
       const userBorrowSharesBigInt = rawUserBorrowSharesData as bigint;
 
+      // If borrow amount is not found or is 0, return 0
+      if (userBorrowSharesBigInt === BigInt(0)) {
+        return "0.00000";
+      }
+
       console.log("Raw userBorrowShares:", userBorrowSharesBigInt, "Type:", typeof userBorrowSharesBigInt);
       console.log("Decimal:", decimal, "Multiplier:", Math.pow(10, decimal));
 
