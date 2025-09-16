@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useReadUserBorrowShares } from "@/hooks/read/useReadUserBorrowShares";
 import { useRefetch } from "@/hooks/useRefetch";
+import { useRepay } from "@/hooks/write/useRepay";
+import { useCurrentChainId } from "@/lib/chain";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
+import { SuccessAlert, FailedAlert } from "@/components/alert";
 import Image from "next/image";
 
 interface RepayTabProps {
@@ -17,6 +20,8 @@ interface RepayTabProps {
 const RepayTab = ({ pool }: RepayTabProps) => {
   const [amount, setAmount] = useState("");
   const [repayType] = useState("partial");
+
+  const currentChainId = useCurrentChainId();
 
   // Refetch functionality
   const { addRefetchFunction, removeRefetchFunction } = useRefetch({
@@ -44,26 +49,70 @@ const RepayTab = ({ pool }: RepayTabProps) => {
     pool?.borrowTokenInfo?.decimals || 18
   );
 
+
   // Parse the raw borrow shares for max button functionality
   const borrowSharesParsed = userBorrowSharesRaw
     ? Number(userBorrowSharesRaw) /
       Math.pow(10, pool?.borrowTokenInfo?.decimals || 18)
     : 0;
 
+  // Repay hook with integrated approval
+  const {
+    handleApproveToken,
+    handleRepayLoan,
+    isRepaying,
+    isConfirming,
+    isSuccess: isRepaySuccess,
+    isError: isRepayError,
+    showSuccessAlert,
+    showFailedAlert,
+    errorMessage,
+    successTxHash,
+    handleCloseSuccessAlert,
+    handleCloseFailedAlert,
+    // Approval states
+    needsApproval,
+    isApproved,
+    isApproving,
+    isApproveConfirming,
+    isApproveSuccess,
+    resetSuccessStates,
+    // Data states
+    totalBorrowAssets,
+    totalBorrowShares,
+    // Refetch functions
+    refetchTotalBorrowAssets,
+    refetchTotalBorrowShares,
+  } = useRepay(
+    currentChainId,
+    (pool?.lendingPool as `0x${string}`) || "0x0000000000000000000000000000000000000000",
+    (pool?.borrowTokenInfo?.addresses?.[currentChainId] as `0x${string}`) || "0x0000000000000000000000000000000000000000",
+    () => {
+      setAmount("");
+    },
+    refetchUserBorrowShares
+  );
+
   // Add refetch functions
   useEffect(() => {
     addRefetchFunction(refetchApy);
     addRefetchFunction(refetchUserBorrowShares);
+    addRefetchFunction(refetchTotalBorrowAssets);
+    addRefetchFunction(refetchTotalBorrowShares);
 
     return () => {
       removeRefetchFunction(refetchApy);
       removeRefetchFunction(refetchUserBorrowShares);
+      removeRefetchFunction(refetchTotalBorrowAssets);
+      removeRefetchFunction(refetchTotalBorrowShares);
     };
   }, [
     addRefetchFunction,
     removeRefetchFunction,
     refetchApy,
     refetchUserBorrowShares,
+    refetchTotalBorrowAssets,
+    refetchTotalBorrowShares,
   ]);
 
   const handleSetMax = useCallback(() => {
@@ -72,13 +121,41 @@ const RepayTab = ({ pool }: RepayTabProps) => {
     }
   }, [userBorrowSharesFormatted, borrowSharesParsed]);
 
-  const handleRepay = () => {
-    console.log("Repay:", {
+  const handleApprove = async () => {
+    if (!pool || !amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    resetSuccessStates();
+    const decimals = pool.borrowTokenInfo?.decimals || 18;
+    await handleApproveToken(
+      pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`, 
+      pool.lendingPool as `0x${string}`, 
       amount,
-      type: repayType,
-      pool: pool?.lendingPool,
+      decimals
+    );
+  };
+
+  const handleRepay = async () => {
+    if (!pool || !amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    const decimals = pool.borrowTokenInfo?.decimals || 18;
+    
+    console.log("Repay data from hooks:", {
+      totalBorrowAssets,
+      totalBorrowShares,
+      totalBorrowAssetsString: totalBorrowAssets?.toString(),
+      totalBorrowSharesString: totalBorrowShares?.toString(),
+      amount,
+      decimals,
+      poolAddress: pool.lendingPool,
+      borrowTokenAddress: pool.borrowTokenInfo?.addresses?.[currentChainId],
+      currentChainId,
     });
-    // Handler akan diimplementasikan nanti
+
+    await handleRepayLoan(amount, decimals);
   };
 
   if (!pool) {
@@ -202,13 +279,140 @@ const RepayTab = ({ pool }: RepayTabProps) => {
         </div>
       </Card>
 
-      <Button
-        onClick={handleRepay}
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!amount || parseFloat(amount) <= 0 || borrowSharesParsed <= 0}
-      >
-        Repay {pool.borrowTokenInfo?.symbol || "Token"}
-      </Button>
+      {/* Transaction Status */}
+      {((isApproving || isApproveConfirming || isApproveSuccess || isRepaying || isConfirming || isRepaySuccess || isRepayError)) && (
+        <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
+          <div className="space-y-3">
+            {/* Approve Status */}
+            {isApproving && (
+              <div className="flex items-center gap-3 text-blue-600">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Approving token...</span>
+              </div>
+            )}
+
+            {isApproveConfirming && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Confirming approval...</span>
+              </div>
+            )}
+
+            {isApproveSuccess && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">Token approved successfully!</span>
+              </div>
+            )}
+
+            {/* Repay Status */}
+            {isRepaying && (
+              <div className="flex items-center gap-3 text-blue-600">
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Repaying loan...</span>
+              </div>
+            )}
+
+            {isConfirming && (
+              <div className="flex items-center gap-3 text-orange-600">
+                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">Confirming transaction...</span>
+              </div>
+            )}
+
+            {isRepaySuccess && (
+              <div className="flex items-center gap-3 text-green-600">
+                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold">Loan repaid successfully!</span>
+              </div>
+            )}
+
+            {/* Error Status */}
+            {isRepayError && (
+              <div className="flex items-center gap-3 text-red-600">
+                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+                <span className="text-sm font-semibold">Transaction failed</span>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        {needsApproval && !isApproved ? (
+          <Button
+            onClick={handleApprove}
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              !amount ||
+              parseFloat(amount) <= 0 ||
+              borrowSharesParsed <= 0 ||
+              isApproving ||
+              isApproveConfirming
+            }
+          >
+            {isApproving
+              ? "Approving..."
+              : isApproveConfirming
+              ? "Confirming Approval..."
+              : `Approve ${pool.borrowTokenInfo?.symbol || "Token"}`}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleRepay}
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              !amount ||
+              parseFloat(amount) <= 0 ||
+              borrowSharesParsed <= 0 ||
+              isRepaying ||
+              isConfirming ||
+              !isApproved
+            }
+          >
+            {isRepaying
+              ? "Repaying..."
+              : isConfirming
+              ? "Confirming..."
+              : `Repay ${pool.borrowTokenInfo?.symbol || "Token"}`}
+          </Button>
+        )}
+      </div>
+
+      {/* Repay Success Alert */}
+      {showSuccessAlert && (
+        <SuccessAlert
+          isOpen={showSuccessAlert}
+          onClose={handleCloseSuccessAlert}
+          title="Transaction Success"
+          description="Loan repaid successfully!"
+          buttonText="Close"
+          txHash={successTxHash}
+          chainId={currentChainId}
+        />
+      )}
+
+      {/* Failed Alert */}
+      {showFailedAlert && (
+        <FailedAlert
+          isOpen={showFailedAlert}
+          onClose={handleCloseFailedAlert}
+          title="Transaction Failed"
+          description={errorMessage}
+          buttonText="Close"
+        />
+      )}
     </div>
   );
 };

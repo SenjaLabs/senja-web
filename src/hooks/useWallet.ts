@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import  DappPortalSDK  from '@linenext/dapp-portal-sdk';
+import DappPortalSDK from '@linenext/dapp-portal-sdk';
 import { chains } from '@/lib/addresses/chainAddress';
+import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance } from 'wagmi';
 
 interface WalletState {
   isConnected: boolean;
@@ -10,6 +11,7 @@ interface WalletState {
   isLoading: boolean;
   error: string | null;
   currentChainId: number | null;
+  walletType: 'dapp-portal' | 'wagmi' | null;
 }
 
 interface WalletActions {
@@ -27,11 +29,20 @@ export const useWallet = (): WalletState & WalletActions => {
     isLoading: false,
     error: null,
     currentChainId: null,
+    walletType: null,
   });
 
   const [sdk, setSdk] = useState<DappPortalSDK | null>(null);
+  const [useDappPortal, setUseDappPortal] = useState<boolean>(true);
 
-  // Initialize SDK
+  // Wagmi hooks as fallback
+  const { address: wagmiAddress, isConnected: wagmiConnected, chainId: wagmiChainId } = useAccount();
+  const { connect: wagmiConnect, connectors } = useConnect();
+  const { disconnect: wagmiDisconnect } = useDisconnect();
+  const { switchChain: wagmiSwitchChain } = useSwitchChain();
+  const { data: wagmiBalance } = useBalance({ address: wagmiAddress });
+
+  // Initialize SDK with fallback
   useEffect(() => {
     const initSDK = async () => {
       try {
@@ -50,7 +61,15 @@ export const useWallet = (): WalletState & WalletActions => {
         // Validate environment variables
         const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
         if (!clientId) {
-          throw new Error('NEXT_PUBLIC_CLIENT_ID is not set. Please check your environment variables.');
+          console.warn('NEXT_PUBLIC_CLIENT_ID not set, falling back to wagmi');
+          setUseDappPortal(false);
+          setState(prev => ({ 
+            ...prev, 
+            isLoading: false, 
+            walletType: 'wagmi',
+            error: null
+          }));
+          return;
         }
 
         const dappPortalSDK = await DappPortalSDK.init({
@@ -60,29 +79,23 @@ export const useWallet = (): WalletState & WalletActions => {
         });
 
         setSdk(dappPortalSDK);
-        setState(prev => ({ ...prev, isLoading: false }));
-      } catch (error) {
-        console.error('Failed to initialize DApp Portal SDK:', error);
-        
-        // Handle specific error cases
-        let errorMessage = 'Failed to initialize wallet SDK';
-        
-        if (error instanceof Error) {
-          if (error.message.includes('400') || error.message.includes('metric.dappportal.io')) {
-            errorMessage = 'Invalid Channel ID. Please check your NEXT_PUBLIC_CLIENT_ID in .env.local file.';
-          } else if (error.message.includes('NEXT_PUBLIC_CLIENT_ID is not set')) {
-            errorMessage = 'Environment variables not configured. Please run setup and add your Channel ID.';
-          } else if (error.message.includes('no PRNG')) {
-            errorMessage = 'Crypto initialization failed. Please refresh the page.';
-          } else {
-            errorMessage = error.message;
-          }
-        }
-        
+        setUseDappPortal(true);
         setState(prev => ({ 
           ...prev, 
           isLoading: false, 
-          error: errorMessage
+          walletType: 'dapp-portal',
+          error: null
+        }));
+      } catch (error) {
+        console.error('Failed to initialize DApp Portal SDK, falling back to wagmi:', error);
+        
+        // Fallback to wagmi
+        setUseDappPortal(false);
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          walletType: 'wagmi',
+          error: null
         }));
       }
     };
@@ -95,7 +108,7 @@ export const useWallet = (): WalletState & WalletActions => {
 
   // Check if wallet is already connected
   useEffect(() => {
-    if (sdk) {
+    if (useDappPortal && sdk) {
       const checkConnection = async () => {
         try {
           const walletProvider = sdk.getWalletProvider();
@@ -122,42 +135,63 @@ export const useWallet = (): WalletState & WalletActions => {
       };
 
       checkConnection();
+    } else if (!useDappPortal) {
+      // Use wagmi state
+      setState(prev => ({
+        ...prev,
+        isConnected: wagmiConnected,
+        account: wagmiAddress || null,
+        currentChainId: wagmiChainId || null,
+      }));
     }
-  }, [sdk]);
+  }, [sdk, useDappPortal, wagmiConnected, wagmiAddress, wagmiChainId]);
 
   const connect = useCallback(async () => {
-    if (!sdk) {
-      setState(prev => ({ ...prev, error: 'SDK not initialized' }));
-      return;
-    }
-
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const walletProvider = sdk.getWalletProvider();
-      const accounts = await walletProvider.request({ 
-        method: 'kaia_requestAccounts' 
-      }) as string[];
+      if (useDappPortal && sdk) {
+        // Use DApp Portal SDK for connection
+        const walletProvider = sdk.getWalletProvider();
+        const accounts = await walletProvider.request({ 
+          method: 'kaia_requestAccounts' 
+        }) as string[];
 
-      if (accounts && accounts.length > 0) {
-        // Get current chain ID
-        const chainId = await walletProvider.request({ 
-          method: 'kaia_chainId' 
-        }) as string;
-        
-        setState(prev => ({
-          ...prev,
-          isConnected: true,
-          account: accounts[0],
-          currentChainId: parseInt(chainId, 16),
-          isLoading: false,
-        }));
+        if (accounts && accounts.length > 0) {
+          // Get current chain ID
+          const chainId = await walletProvider.request({ 
+            method: 'kaia_chainId' 
+          }) as string;
+          
+          setState(prev => ({
+            ...prev,
+            isConnected: true,
+            account: accounts[0],
+            currentChainId: parseInt(chainId, 16),
+            isLoading: false,
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: 'No accounts returned from wallet',
+          }));
+        }
       } else {
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          error: 'No accounts returned from wallet',
-        }));
+        // Fallback to wagmi when DApp Portal SDK is not available
+        if (connectors.length > 0) {
+          await wagmiConnect({ connector: connectors[0] });
+          setState(prev => ({
+            ...prev,
+            isLoading: false,
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: 'No wallet connectors available',
+          }));
+        }
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
@@ -168,16 +202,18 @@ export const useWallet = (): WalletState & WalletActions => {
         error: errorMessage,
       }));
     }
-  }, [sdk]);
+  }, [sdk, useDappPortal, wagmiConnect, connectors]);
 
   const disconnect = useCallback(async () => {
-    if (!sdk) {
-      return;
-    }
-
     try {
-      const walletProvider = sdk.getWalletProvider();
-      await walletProvider.disconnectWallet();
+      if (useDappPortal && sdk) {
+        // Use DApp Portal SDK for disconnection
+        const walletProvider = sdk.getWalletProvider();
+        await walletProvider.disconnectWallet();
+      } else {
+        // Fallback to wagmi when DApp Portal SDK is not available
+        await wagmiDisconnect();
+      }
       
       setState(prev => ({
         ...prev,
@@ -189,38 +225,39 @@ export const useWallet = (): WalletState & WalletActions => {
       console.error('Failed to disconnect wallet:', error);
       setState(prev => ({ ...prev, error: 'Failed to disconnect wallet' }));
     }
-  }, [sdk]);
+  }, [sdk, useDappPortal, wagmiDisconnect]);
 
   const getBalance = useCallback(async (): Promise<string> => {
-    if (!sdk || !state.account) {
+    if (!state.account) {
       throw new Error('Wallet not connected');
     }
 
     try {
-      const walletProvider = sdk.getWalletProvider();
-      const balance = await walletProvider.request({
-        method: 'kaia_getBalance',
-        params: [state.account, 'latest'],
-      });
-
-      return balance as string;
+      if (useDappPortal && sdk) {
+        // Use DApp Portal SDK for balance
+        const walletProvider = sdk.getWalletProvider();
+        const balance = await walletProvider.request({
+          method: 'kaia_getBalance',
+          params: [state.account, 'latest'],
+        });
+        return balance as string;
+      } else {
+        // Fallback to wagmi balance when DApp Portal SDK is not available
+        if (wagmiBalance) {
+          return wagmiBalance.formatted;
+        }
+        return '0';
+      }
     } catch (error) {
       console.error('Failed to get balance:', error);
       throw new Error('Failed to get balance');
     }
-  }, [sdk, state.account]);
+  }, [sdk, state.account, useDappPortal, wagmiBalance]);
 
 
   const switchNetwork = useCallback(async (chainId: number) => {
-    if (!sdk) {
-      setState(prev => ({ ...prev, error: 'SDK not initialized' }));
-      return;
-    }
-
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const walletProvider = sdk.getWalletProvider();
       
       // Check if the chain is supported
       const targetChain = chains.find(chain => chain.id === chainId);
@@ -228,11 +265,8 @@ export const useWallet = (): WalletState & WalletActions => {
         throw new Error(`Chain with ID ${chainId} is not supported`);
       }
 
-      // Switch to the target chain
-      await walletProvider.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${chainId.toString(16)}` }],
-      });
+      // Always use wagmi for chain switching
+      await wagmiSwitchChain({ chainId });
 
       setState(prev => ({
         ...prev,
@@ -248,7 +282,7 @@ export const useWallet = (): WalletState & WalletActions => {
         error: errorMessage,
       }));
     }
-  }, [sdk]);
+  }, [wagmiSwitchChain]);
 
   const getCurrentChain = useCallback(() => {
     if (!state.currentChainId) {

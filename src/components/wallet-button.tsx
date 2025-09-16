@@ -1,6 +1,7 @@
 "use client";
 
-import { useWagmiWallet } from "@/hooks/useWagmiWallet";
+import { useState, useEffect } from "react";
+import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SwitchChainButton from "./button/switch-wallet-button";
@@ -23,10 +24,35 @@ export const WalletButton = ({
     error,
     connect,
     disconnect,
-    balance,
-    isLoadingBalance,
-  } = useWagmiWallet();
-  // Balance is now provided by wagmi
+    getBalance,
+  } = useWallet();
+  
+  const [balance, setBalance] = useState<string | null>(null);
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+
+  // Get balance when connected using DApp Portal SDK
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (isConnected && account) {
+        try {
+          setIsLoadingBalance(true);
+          const walletBalance = await getBalance();
+          // Convert from wei to KAIA (divide by 1e18)
+          const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
+          setBalance(balanceInKAIA);
+        } catch (error) {
+          console.error('Failed to fetch balance:', error);
+          setBalance(null);
+        } finally {
+          setIsLoadingBalance(false);
+        }
+      } else {
+        setBalance(null);
+      }
+    };
+
+    fetchBalance();
+  }, [isConnected, account, getBalance]);
 
   const handleConnect = async () => {
     await connect();
@@ -35,8 +61,6 @@ export const WalletButton = ({
   const handleDisconnect = async () => {
     await disconnect();
   };
-
-  // Balance is now automatically managed by wagmi
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -142,7 +166,7 @@ export const WalletButton = ({
                 {formatAddress(account)}
               </p>
             {showBalance && balance && (
-              <p className="text-xs text-gray-600">{balance.formatted} {balance.symbol}</p>
+              <p className="text-xs text-gray-600">{balance} KAIA</p>
             )}
             </div>
             <div className="flex items-center gap-2">
@@ -232,14 +256,28 @@ export const WalletButton = ({
                 <p className="text-sm text-gray-600">Balance</p>
                 {balance ? (
                   <p className="text-lg font-semibold text-gray-900">
-                    {balance.formatted} {balance.symbol}
+                    {balance} KAIA
                   </p>
                 ) : (
                   <p className="text-sm text-gray-500">Not loaded</p>
                 )}
               </div>
               <Button
-                onClick={() => window.location.reload()}
+                onClick={async () => {
+                  if (isConnected && account) {
+                    try {
+                      setIsLoadingBalance(true);
+                      const walletBalance = await getBalance();
+                      // Convert from wei to KAIA (divide by 1e18)
+                      const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
+                      setBalance(balanceInKAIA);
+                    } catch (error) {
+                      console.error('Failed to refresh balance:', error);
+                    } finally {
+                      setIsLoadingBalance(false);
+                    }
+                  }
+                }}
                 disabled={isLoadingBalance}
                 className="bg-gradient-sunset hover:bg-gradient-twilight text-white"
                 size="sm"

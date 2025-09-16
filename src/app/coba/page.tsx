@@ -1,7 +1,10 @@
 "use client";
+import { helperAbi } from "@/lib/abis/helperAbi";
+import { lendingPoolRouterAbi } from "@/lib/abis/lendingPoolRouterAbi";
 import { positionAbi } from "@/lib/abis/positionAbi";
+import { helperAddress } from "@/lib/addresses/tokenAddress";
 import React from "react";
-import { useWriteContract } from "wagmi";
+import { useReadContract, useWriteContract } from "wagmi";
 
 const Page = () => {
   const { writeContractAsync } = useWriteContract();
@@ -24,6 +27,26 @@ const Page = () => {
     }
   };
 
+  const { data: matrix } = useReadContract({
+    address: helperAddress,
+    abi: helperAbi,
+    functionName: "getLendingPoolMetrics",
+    args: ["0xc4a40e5c52ad84e0796367282a6cfcac36ffcda9"],
+  });
+  const { data: totalBorrowShares } = useReadContract({
+    address: "0x3881F4B841160956B4e14aBfdc5e7c3403BA315F",
+    abi: lendingPoolRouterAbi,
+    functionName: "totalBorrowShares",
+  });
+  const { data: totalBorrowAssets } = useReadContract({
+    address: "0x3881F4B841160956B4e14aBfdc5e7c3403BA315F",
+    abi: lendingPoolRouterAbi,
+    functionName: "totalBorrowAssets",
+  });
+
+  console.log("matrix ", matrix);
+  console.log("totalBorrowShares ", totalBorrowShares);
+  console.log("totalBorrowAssets ", totalBorrowAssets);
   return (
     <div>
       <button onClick={handleSwap}>Execute Swap</button>
