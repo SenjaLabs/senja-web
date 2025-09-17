@@ -22,14 +22,6 @@ export const useReadTotalBorrowAssets = (lendingPoolAddress: HexAddress) => {
   // If borrow amount is not found, return 0
   const effectiveTotalBorrowAssets = totalBorrowAssets || BigInt(0);
   
-  console.log("useReadTotalBorrowAssets:", {
-    lendingPoolAddress,
-    routerAddress,
-    totalBorrowAssets,
-    effectiveTotalBorrowAssets,
-    totalBorrowAssetsLoading,
-    totalBorrowAssetsError,
-  });
 
   return {
     totalBorrowAssets: effectiveTotalBorrowAssets,

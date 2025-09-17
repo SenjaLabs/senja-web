@@ -38,19 +38,15 @@ export const useReadUserBorrowShares = (
         return "0.00000";
       }
 
-      console.log("Raw userBorrowShares:", userBorrowSharesBigInt, "Type:", typeof userBorrowSharesBigInt);
-      console.log("Decimal:", decimal, "Multiplier:", Math.pow(10, decimal));
 
       // Convert from raw bigint to decimal number
       const userBorrowSharesNumber =
         Number(userBorrowSharesBigInt) / Math.pow(10, decimal);
 
-      console.log("Converted borrow shares number:", userBorrowSharesNumber);
 
       // Use dynamic decimal places based on token decimals
       const decimalPlaces = Math.min(decimal, 6); // Cap at 6 decimal places for display
       const result = userBorrowSharesNumber.toFixed(decimalPlaces);
-      console.log("Final formatted borrow shares result:", result);
 
       return result;
     } catch (error) {

@@ -32,19 +32,15 @@ export const useReadMaxBorrow = (
       // getMaxBorrowAmount returns bigint
       const maxBorrowBigInt = rawMaxBorrowData as bigint;
 
-      console.log("Raw maxBorrow:", maxBorrowBigInt, "Type:", typeof maxBorrowBigInt);
-      console.log("Decimal:", decimal, "Multiplier:", Math.pow(10, decimal));
 
       // Convert from raw bigint to decimal number
       const maxBorrowNumber =
         Number(maxBorrowBigInt) / Math.pow(10, decimal);
       
-      console.log("Converted number:", maxBorrowNumber);
       
       // Use dynamic decimal places based on token decimals
       const decimalPlaces = Math.min(decimal, 6); // Cap at 6 decimal places for display
       const result = maxBorrowNumber.toFixed(decimalPlaces);
-      console.log("Final formatted result:", result);
       
       return result;
     } catch (error) {

@@ -9,7 +9,7 @@ import { AmountInput } from "./shared/amount-input";
 import { useRefetch } from "@/hooks/useRefetch";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useReadUserSupply } from "@/hooks/read/useReadUserSupply";
-import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
 import { useCurrentChainId } from "@/lib/chain/use-chain";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
@@ -91,13 +91,14 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
 
   // Get user collateral balance for collateral withdrawal
   const {
-    userCollateralFormatted: collateralBalanceFormatted,
-    userCollateral: userCollateralRaw,
-    userCollateralLoading: collateralBalanceLoading,
-    userCollateralError: collateralBalanceError,
-    refetchUserCollateral: refetchCollateralBalance,
-  } = useReadUserCollateral(
+    parsedUserCollateralBalance: collateralBalanceFormatted,
+    userCollateralBalanceLoading: collateralBalanceLoading,
+    userCollateralBalanceError: collateralBalanceError,
+    refetchUserCollateralBalance: refetchCollateralBalance,
+  } = useReadUserCollateralBalance(
     (pool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
+    (pool?.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`) ||
       "0x0000000000000000000000000000000000000000",
     pool?.collateralTokenInfo?.decimals || 18
   );
@@ -107,10 +108,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
     ? Number(userSupplySharesRaw) /
       Math.pow(10, pool?.borrowTokenInfo?.decimals || 6)
     : 0;
-  const collateralBalanceParsed = userCollateralRaw
-    ? Number(userCollateralRaw) /
-      Math.pow(10, pool?.collateralTokenInfo?.decimals || 18)
-    : 0;
+  const collateralBalanceParsed = collateralBalanceFormatted || 0;
 
   // Add refetch functions
   useEffect(() => {
@@ -139,7 +137,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
 
   const handleSetMaxCollateral = useCallback(() => {
     if (collateralBalanceParsed > 0) {
-      setAmount(collateralBalanceFormatted);
+      setAmount(collateralBalanceFormatted.toString());
     }
   }, [collateralBalanceFormatted, collateralBalanceParsed]);
 

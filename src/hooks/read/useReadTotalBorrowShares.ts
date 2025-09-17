@@ -22,14 +22,6 @@ export const useReadTotalBorrowShares = (lendingPoolAddress: HexAddress) => {
   // If borrow shares is not found, return 0
   const effectiveTotalBorrowShares = totalBorrowShares || BigInt(0);
   
-  console.log("useReadTotalBorrowShares:", {
-    lendingPoolAddress,
-    routerAddress,
-    totalBorrowShares,
-    effectiveTotalBorrowShares,
-    totalBorrowSharesLoading,
-    totalBorrowSharesError,
-  });
 
   return {
     totalBorrowShares: effectiveTotalBorrowShares,

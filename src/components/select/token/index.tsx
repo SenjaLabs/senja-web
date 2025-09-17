@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Token } from "@/types";
 import { TokenSelectorDialog } from "./token-selector-dialog";
 import Image from "next/image";
-import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
 
 interface TokenSelectorProps {
   selectedToken?: Token;
@@ -15,6 +14,7 @@ interface TokenSelectorProps {
   label: string;
   selectedPoolAddress?: string;
   showBalance?: boolean;
+  isCollateralBalance?: boolean;
 }
 
 export const TokenSelector = memo(function TokenSelector({
@@ -24,14 +24,9 @@ export const TokenSelector = memo(function TokenSelector({
   label,
   selectedPoolAddress,
   showBalance = false,
+  isCollateralBalance = false,
 }: TokenSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  // Get user collateral balance for the selected token
-  const { userCollateralFormatted } = useReadUserCollateral(
-    selectedPoolAddress as `0x${string}` || "0x0000000000000000000000000000000000000000",
-    selectedToken?.decimals || 18
-  );
 
   const handleTokenSelect = (token: Token) => {
     onTokenSelect(token);
@@ -69,9 +64,8 @@ export const TokenSelector = memo(function TokenSelector({
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
-                    const fallback = e.currentTarget
-                      // eslint-disable-next-line no-undef
-                      .nextElementSibling as HTMLElement;
+                    const fallback = // eslint-disable-next-line no-undef
+                      e.currentTarget.nextElementSibling as HTMLElement;
                     if (fallback) {
                       fallback.classList.remove("hidden");
                       fallback.classList.add("flex");
@@ -86,13 +80,6 @@ export const TokenSelector = memo(function TokenSelector({
                 {selectedToken.symbol}
               </span>
             </div>
-            {selectedPoolAddress && showBalance && (
-              <div className="text-right mr-2">
-                <div className="text-sm text-gray-600">
-                  {userCollateralFormatted || "0.00000"}
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <span className="text-gray-600">Select token</span>
@@ -108,6 +95,7 @@ export const TokenSelector = memo(function TokenSelector({
         title={label}
         selectedPoolAddress={selectedPoolAddress}
         showBalance={showBalance}
+        isCollateralBalance={isCollateralBalance}
       />
     </>
   );

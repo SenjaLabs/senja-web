@@ -22,7 +22,6 @@ export const useReadUserCollateral = (
     args: [lendingPoolAddress, address as HexAddress],
   });
 
-  console.log("userCollateral", userCollateral);
   // Format user collateral with dynamic decimal places
   const formatUserCollateral = (rawUserCollateralData: unknown): string => {
     if (!rawUserCollateralData || rawUserCollateralData === undefined)

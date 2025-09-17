@@ -5,29 +5,38 @@ import { Search, X } from "lucide-react";
 import { tokens } from "@/lib/addresses/tokenAddress";
 import { Token } from "@/types";
 import Image from "next/image";
-import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
+import { useCurrentChainId } from "@/lib/chain";
 
 // Component to display token balance
 const TokenBalance = memo(function TokenBalance({ 
   token, 
-  poolAddress 
+  poolAddress,
 }: { 
   token: Token; 
-  poolAddress?: string; 
+  poolAddress?: string;
+  isCollateralBalance?: boolean;
 }) {
-  const { userCollateralFormatted, userCollateralLoading } = useReadUserCollateral(
+  const currentChainId = useCurrentChainId();
+  
+  // Always use collateral balance from position for both "from" and "to" tokens
+  const { parsedUserCollateralBalance, userCollateralBalanceLoading } = useReadUserCollateralBalance(
     poolAddress as `0x${string}` || "0x0000000000000000000000000000000000000000",
+    token.addresses[currentChainId] as `0x${string}` || "0x0000000000000000000000000000000000000000",
     token.decimals
   );
 
-  if (userCollateralLoading) {
+  const balance = parsedUserCollateralBalance;
+  const isLoading = userCollateralBalanceLoading;
+
+  if (isLoading) {
     return <div className="text-sm text-gray-400">Loading...</div>;
   }
 
   return (
     <div className="text-right">
       <div className="text-sm text-gray-900 font-medium">
-        {userCollateralFormatted || "0.00000"}
+        {balance?.toFixed(5) || "0.00000"}
       </div>
       <div className="text-xs text-gray-500">{token.symbol}</div>
     </div>
@@ -41,6 +50,7 @@ interface TokenSearchProps {
   className?: string;
   selectedPoolAddress?: string;
   showBalance?: boolean;
+  isCollateralBalance?: boolean;
 }
 
 export const TokenSearch = memo(function TokenSearch({
@@ -50,11 +60,17 @@ export const TokenSearch = memo(function TokenSearch({
   className = "",
   selectedPoolAddress,
   showBalance = false,
+  isCollateralBalance = false,
 }: TokenSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const availableTokens = tokens.filter(
     (token) => {
+      // Filter out KAIA tokens
+      if (token.symbol === "KAIA" || token.symbol === "WKAI") {
+        return false;
+      }
+      
       // Filter out the other token if it exists
       if (otherToken && token.symbol === otherToken.symbol) {
         return false;
@@ -80,7 +96,7 @@ export const TokenSearch = memo(function TokenSearch({
     setSearchQuery("");
   }, []);
 
-  const popularTokens = ["WETH", "USDC", "USDT", "WBTC", "KAIA"];
+  const popularTokens = ["WETH", "USDC", "USDT", "WBTC"];
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -229,7 +245,11 @@ export const TokenSearch = memo(function TokenSearch({
                   </div>
                 </div>
                 {showBalance ? (
-                  <TokenBalance token={token} poolAddress={selectedPoolAddress} />
+                  <TokenBalance 
+                    token={token} 
+                    poolAddress={isCollateralBalance ? selectedPoolAddress : undefined}
+                    isCollateralBalance={isCollateralBalance}
+                  />
                 ) : (
                   <div className="text-right">
                     <div className="text-sm text-gray-500">-</div>

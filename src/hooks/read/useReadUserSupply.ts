@@ -33,19 +33,15 @@ const { routerAddress } = useReadRouterAddress(lendingPoolAddress);
       // userSupplyShares returns a single bigint value (supply shares)
       const userSupplySharesBigInt = rawUserSupplySharesData as bigint;
 
-      console.log("Raw userSupplyShares:", userSupplySharesBigInt, "Type:", typeof userSupplySharesBigInt);
-      console.log("Decimal:", decimal, "Multiplier:", Math.pow(10, decimal));
 
       // Convert from raw bigint to decimal number
       const userSupplySharesNumber =
         Number(userSupplySharesBigInt) / Math.pow(10, decimal);
       
-      console.log("Converted number:", userSupplySharesNumber);
       
       // Use dynamic decimal places based on token decimals
       const decimalPlaces = Math.min(decimal, 6); // Cap at 6 decimal places for display
       const result = userSupplySharesNumber.toFixed(decimalPlaces);
-      console.log("Final formatted result:", result);
       
       return result;
     } catch (error) {

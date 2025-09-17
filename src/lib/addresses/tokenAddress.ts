@@ -52,17 +52,6 @@ export const tokens: Token[] = [
       10: "0x6Ab9c1AAf4f8172138086AA72be2AB8aA6579dbd",
     },
   },
-  {
-    name: "USDC",
-    symbol: "USDC",
-    logo: "/token/usdc.png",
-    decimals: 6,
-    addresses: {
-      84532: "0xDa11C806176678e4228C904ec27014267e128fb5",
-      8217: "0xAE1b8d3B428d6A8F62df2f623081EAC8734168fe",
-      10: "0xAE1b8d3B428d6A8F62df2f623081EAC8734168fe",
-    },
-  },
 ];
 
 export const helperAddress = "0x03e7669B2e85CB7C61Af39307D79390B79c3aB7B";

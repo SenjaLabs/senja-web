@@ -26,7 +26,7 @@ export default memo(function SwapPage() {
     handleCloseSuccessAlert,
     handleCloseFailedAlert,
   } = useSwapCollateral(currentChainId, () => {
-    console.log("Swap completed successfully");
+    // Swap completed successfully
   });
 
   const handleSwap = useCallback(async (

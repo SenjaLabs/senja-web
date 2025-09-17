@@ -10,17 +10,25 @@ import { TokenSelector } from "../select/token";
 import { PoolSearchDialog } from "../search";
 import { Token } from "@/types";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
-import { useReadUserPosition } from "@/hooks/read/readUserPosition";
+import { useReadUserPosition } from "@/hooks/read/usereadUserPosition";
 import { useAccount } from "wagmi";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
-import { useReadUserCollateral } from "@/hooks/read/useReadUserCollateral";
+import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
+import { useCurrentChainId } from "@/lib/chain";
+import { useReadExchangeRate } from "@/hooks/read/useReadExchangeRate";
 
 /**
  * Props for the SwapInterface component
  */
 interface SwapInterfaceProps {
   /** Callback function when swap is executed */
-  onSwap: (fromToken: Token, toToken: Token, amount: string, selectedPoolAddress?: string, userPositionAddress?: string) => void;
+  onSwap: (
+    fromToken: Token,
+    toToken: Token,
+    amount: string,
+    selectedPoolAddress?: string,
+    userPositionAddress?: string
+  ) => void;
   /** Whether a swap is currently in progress */
   isSwapping?: boolean;
   /** Whether the token is approved for spending */
@@ -45,7 +53,7 @@ interface SwapInterfaceProps {
 
 /**
  * SwapInterface component for token swapping functionality
- * 
+ *
  * @param props - Component props
  * @returns JSX element
  */
@@ -71,16 +79,23 @@ export const SwapInterface = memo(function SwapInterface({
   const [selectedPool, setSelectedPool] =
     useState<LendingPoolWithTokens | null>(null);
 
+  const currentChainId = useCurrentChainId();
+
   // Get user position for the selected pool
   const { userPosition } = useReadUserPosition(
-    selectedPool?.lendingPool as `0x${string}` || "0x0000000000000000000000000000000000000000"
+    (selectedPool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000"
   );
 
   // Get user collateral balance for the from token
-  const { userCollateralFormatted: fromTokenBalance } = useReadUserCollateral(
-    selectedPool?.lendingPool as `0x${string}` || "0x0000000000000000000000000000000000000000",
-    fromToken?.decimals || 18
-  );
+  const { parsedUserCollateralBalance: fromTokenBalance } =
+    useReadUserCollateralBalance(
+      (selectedPool?.lendingPool as `0x${string}`) ||
+        "0x0000000000000000000000000000000000000000",
+      (fromToken?.addresses[currentChainId] as `0x${string}`) ||
+        "0x0000000000000000000000000000000000000000",
+      fromToken?.decimals || 18
+    );
   const handleSwapTokens = useCallback(() => {
     const tempToken = fromToken;
     const tempAmount = fromAmount;
@@ -89,7 +104,7 @@ export const SwapInterface = memo(function SwapInterface({
     setToToken(tempToken);
     setFromAmount(toAmount);
     setToAmount(tempAmount);
-    
+
     // Recalculate the new amount if we have valid input
     if (toAmount && toToken && tempToken && parseFloat(toAmount) > 0) {
       const baseRate = 1.0;
@@ -99,8 +114,18 @@ export const SwapInterface = memo(function SwapInterface({
     }
   }, [fromToken, toToken, fromAmount, toAmount]);
 
-  const exchangeRate = 1850.42; // Mock exchange rate
-  
+  const { parsedExchangeRate: exchangeRate } = useReadExchangeRate(
+    (selectedPool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
+    (fromToken?.addresses[currentChainId] as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
+    (toToken?.addresses[currentChainId] as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000",
+    Math.floor(parseFloat(fromAmount || "0") * Math.pow(10, fromToken?.decimals || 18)),
+    fromToken?.decimals || 18,
+    toToken?.decimals || 18
+  );
+
   const handleFromAmountChange = useCallback(
     (value: string) => {
       setFromAmount(value);
@@ -111,7 +136,7 @@ export const SwapInterface = memo(function SwapInterface({
         setToAmount("");
       }
     },
-    [fromToken, toToken]
+    [fromToken, toToken, exchangeRate]
   );
 
   const handleToAmountChange = useCallback(
@@ -124,12 +149,12 @@ export const SwapInterface = memo(function SwapInterface({
         setFromAmount("");
       }
     },
-    [fromToken, toToken]
+    [fromToken, toToken, exchangeRate]
   );
 
   const handleMaxAmount = useCallback(() => {
-    if (fromTokenBalance && parseFloat(fromTokenBalance) > 0) {
-      handleFromAmountChange(fromTokenBalance);
+    if (fromTokenBalance && parseFloat(fromTokenBalance.toString()) > 0) {
+      handleFromAmountChange(fromTokenBalance.toString());
     }
   }, [fromTokenBalance, handleFromAmountChange]);
 
@@ -147,10 +172,17 @@ export const SwapInterface = memo(function SwapInterface({
   }, []);
 
   const handleSwap = useCallback(async () => {
-    if (!fromToken || !toToken || !fromAmount || !selectedPool || !userPosition) return;
+    if (!fromToken || !toToken || !fromAmount || !selectedPool || !userPosition)
+      return;
 
     try {
-      await onSwap(fromToken, toToken, fromAmount, selectedPool.lendingPool, userPosition as string);
+      await onSwap(
+        fromToken,
+        toToken,
+        fromAmount,
+        selectedPool.lendingPool,
+        userPosition as string
+      );
     } catch (error) {
       console.error("Swap failed:", error);
     }
@@ -161,16 +193,16 @@ export const SwapInterface = memo(function SwapInterface({
   }, []);
 
   const canSwap =
-    fromToken && 
-    toToken && 
-    fromAmount && 
-    parseFloat(fromAmount) > 0 && 
-    selectedPool && 
-    userPosition && 
+    fromToken &&
+    toToken &&
+    fromAmount &&
+    parseFloat(fromAmount) > 0 &&
+    selectedPool &&
+    userPosition &&
     address &&
     fromTokenBalance &&
-    parseFloat(fromTokenBalance) > 0 &&
-    parseFloat(fromAmount) <= parseFloat(fromTokenBalance);
+    parseFloat(fromTokenBalance.toString()) > 0 &&
+    parseFloat(fromAmount) <= parseFloat(fromTokenBalance.toString());
   const needsWalletConnection = !address;
 
   return (
@@ -179,7 +211,9 @@ export const SwapInterface = memo(function SwapInterface({
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Swap Collateral</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Swap Collateral
+            </h2>
             <PoolSearchDialog
               selectedPool={selectedPool}
               onPoolSelect={handlePoolSelect}
@@ -195,15 +229,16 @@ export const SwapInterface = memo(function SwapInterface({
                   <span className="text-sm text-gray-500">
                     Balance: {fromTokenBalance || "0.00000"}
                   </span>
-                  {fromTokenBalance && parseFloat(fromTokenBalance) > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleMaxAmount}
-                      className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-600 px-2 py-1 rounded-md transition-colors"
-                    >
-                      MAX
-                    </button>
-                  )}
+                  {fromTokenBalance &&
+                    parseFloat(fromTokenBalance.toString()) > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMaxAmount}
+                        className="text-xs bg-orange-100 hover:bg-orange-200 text-orange-600 px-2 py-1 rounded-md transition-colors"
+                      >
+                        MAX
+                      </button>
+                    )}
                 </div>
               </div>
 
@@ -220,13 +255,18 @@ export const SwapInterface = memo(function SwapInterface({
                     {fromToken && fromAmount ? (
                       <div className="text-sm text-gray-500 mt-1">
                         {selectedPool ? (
-                          <span>From {selectedPool.collateralTokenInfo?.symbol} collateral</span>
+                          <span>
+                            From {selectedPool.collateralTokenInfo?.symbol}{" "}
+                            collateral
+                          </span>
                         ) : (
                           <span>Amount to swap</span>
                         )}
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-500 mt-1">Enter amount to swap</div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Enter amount to swap
+                      </div>
                     )}
                   </div>
                   <TokenSelector
@@ -236,6 +276,7 @@ export const SwapInterface = memo(function SwapInterface({
                     label="Select token to swap from"
                     selectedPoolAddress={selectedPool?.lendingPool}
                     showBalance={true}
+                    isCollateralBalance={true}
                   />
                 </div>
               </div>
@@ -285,7 +326,9 @@ export const SwapInterface = memo(function SwapInterface({
                     onTokenSelect={setToToken}
                     otherToken={fromToken}
                     label="Select token to receive"
-                    showBalance={false}
+                    selectedPoolAddress={selectedPool?.lendingPool}
+                    showBalance={true}
+                    isCollateralBalance={true}
                   />
                 </div>
               </div>
@@ -317,9 +360,15 @@ export const SwapInterface = memo(function SwapInterface({
                 disabled
                 className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
               >
-                {!fromTokenBalance || parseFloat(fromTokenBalance) === 0 ? "Insufficient balance" : "Enter amount"}
+                {!fromTokenBalance ||
+                parseFloat(fromTokenBalance.toString()) === 0
+                  ? "Insufficient balance"
+                  : "Enter amount"}
               </Button>
-            ) : fromAmount && fromTokenBalance && parseFloat(fromAmount) > parseFloat(fromTokenBalance) ? (
+            ) : fromAmount &&
+              fromTokenBalance &&
+              parseFloat(fromAmount) >
+                parseFloat(fromTokenBalance.toString()) ? (
               <Button
                 disabled
                 className="w-full h-14 text-lg font-semibold bg-red-100 text-red-600 rounded-xl border border-red-200"
@@ -332,9 +381,7 @@ export const SwapInterface = memo(function SwapInterface({
                 disabled={isApproving}
                 className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
               >
-                {isApproving
-                  ? "Approving..."
-                  : `Approve ${fromToken.symbol}`}
+                {isApproving ? "Approving..." : `Approve ${fromToken.symbol}`}
               </Button>
             ) : (
               <Button
@@ -375,11 +422,12 @@ export const SwapInterface = memo(function SwapInterface({
                         <Info className="h-3 w-3 ml-1 text-gray-500" />
                       </div>
                       <span className="text-gray-900 font-medium">
-                        {fromToken && toToken && fromAmount && toAmount ? (
-                          `1 ${fromToken.symbol} = ${((parseFloat(toAmount) || 0) / (parseFloat(fromAmount) || 1)).toFixed(4)} ${toToken.symbol}`
-                        ) : (
-                          "1:1 (estimated)"
-                        )}
+                        {fromToken && toToken && fromAmount && toAmount
+                          ? `1 ${fromToken.symbol} = ${(
+                              (parseFloat(toAmount) || 0) /
+                              (parseFloat(fromAmount) || 1)
+                            ).toFixed(4)} ${toToken.symbol}`
+                          : "1:1 (estimated)"}
                       </span>
                     </div>
 
@@ -389,7 +437,8 @@ export const SwapInterface = memo(function SwapInterface({
                         <Info className="h-3 w-3 ml-1 text-gray-500" />
                       </div>
                       <span className="text-gray-900 font-medium">
-                        {selectedPool.collateralTokenInfo?.symbol} / {selectedPool.borrowTokenInfo?.symbol}
+                        {selectedPool.collateralTokenInfo?.symbol} /{" "}
+                        {selectedPool.borrowTokenInfo?.symbol}
                       </span>
                     </div>
 
@@ -399,7 +448,11 @@ export const SwapInterface = memo(function SwapInterface({
                         <Info className="h-3 w-3 ml-1 text-gray-500" />
                       </div>
                       <span className="text-gray-900 font-medium">
-                        {userPosition ? `${(userPosition as string).slice(0, 6)}...${(userPosition as string).slice(-4)}` : "N/A"}
+                        {userPosition
+                          ? `${(userPosition as string).slice(0, 6)}...${(
+                              userPosition as string
+                            ).slice(-4)}`
+                          : "N/A"}
                       </span>
                     </div>
 
@@ -416,7 +469,9 @@ export const SwapInterface = memo(function SwapInterface({
                         <span>Swap type</span>
                         <Info className="h-3 w-3 ml-1 text-gray-500" />
                       </div>
-                      <span className="text-gray-900 font-medium">Position-based</span>
+                      <span className="text-gray-900 font-medium">
+                        Position-based
+                      </span>
                     </div>
                   </div>
                 </div>
