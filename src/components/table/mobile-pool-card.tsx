@@ -74,44 +74,44 @@ export const MobilePoolCard = memo(function MobilePoolCard({
 
   return (
     <Card
-      className={`overflow-hidden border-0 bg-white mobile-animate mobile-card mobile-no-select ${
-        clickable ? "hover:shadow-lg hover:bg-orange-50 cursor-pointer" : ""
+      className={`w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group ${
+        clickable ? "hover:shadow-lg hover:bg-gradient-to-br hover:from-orange-100/80 hover:via-pink-50/70 hover:to-orange-50/80 cursor-pointer" : ""
       }`}
       onClick={handleClick}
     >
-      <CardContent className="mobile-spacing-sm">
+      <CardContent className="p-3 sm:p-4">
         {/* Header with token logos and names */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-3">
             {/* Token logos */}
             <div className="flex items-center">
-              <div className="relative">
+              <div className="relative group-hover:animate-pulse">
                 <Image
                   src={pool.collateralTokenInfo?.logo || "/token/kaia-logo.svg"}
                   alt={pool.collateralTokenInfo?.name || "Collateral Token"}
-                  width={32}
-                  height={32}
-                  className="rounded-full border-2 border-white shadow-sm"
+                  width={28}
+                  height={28}
+                  className="rounded-full border-2 border-white shadow-lg hover:shadow-xl transition-all duration-300"
                 />
               </div>
-              <div className="relative -ml-2">
+              <div className="relative -ml-2 group-hover:animate-pulse" style={{animationDelay: '0.1s'}}>
                 <Image
                   src={pool.borrowTokenInfo?.logo || "/token/kaia-logo.svg"}
                   alt={pool.borrowTokenInfo?.name || "Borrow Token"}
-                  width={32}
-                  height={32}
-                  className="rounded-full border-2 border-white shadow-sm"
+                  width={28}
+                  height={28}
+                  className="rounded-full border-2 border-white shadow-lg hover:shadow-xl transition-all duration-300"
                 />
               </div>
             </div>
 
             {/* Token names */}
-            <div>
-              <div className="text-sm font-semibold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-gray-900 truncate">
                 {pool.collateralTokenInfo?.symbol || "UNK"} /{" "}
                 {pool.borrowTokenInfo?.symbol || "UNK"}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 truncate">
                 {pool.collateralTokenInfo?.name || "Unknown"} →{" "}
                 {pool.borrowTokenInfo?.name || "Unknown"}
               </div>
@@ -119,20 +119,20 @@ export const MobilePoolCard = memo(function MobilePoolCard({
           </div>
 
           {/* Arrow icon for clickable cards */}
-          {clickable && <ArrowRight className="h-4 w-4 text-gray-400" />}
+          {clickable && <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 group-hover:text-orange-500 group-hover:translate-x-1 transition-all duration-300" />}
         </div>
 
         {/* Stats row - LTV and Liquidity side by side */}
-        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-2">
+        <div className="flex items-center justify-between bg-gradient-to-r from-orange-100/60 via-pink-50/70 to-orange-50/60 rounded-xl p-2.5 sm:p-3 border border-orange-200/40 shadow-inner hover:shadow-md transition-all duration-300">
           {/* LTV */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <div>
-              <div className="ml-2 text-xs font-medium text-blue-600 uppercase tracking-wide">
+              <div className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
                 LTV
               </div>
               <Badge
                 variant="secondary"
-                className="text-gray-800 text-xs font-semibold"
+                className="text-gray-800 text-xs sm:text-sm font-semibold px-2 py-1"
               >
                 {formattedLTV}
               </Badge>
@@ -140,12 +140,12 @@ export const MobilePoolCard = memo(function MobilePoolCard({
           </div>
 
           {/* Liquidity */}
-          <div className="flex items-center space-x-2">
-            <div className="text-right">
-              <div className="text-xs font-medium text-green-600 uppercase tracking-wide">
+          <div className="flex items-center space-x-1.5">
+            <div className="text-right min-w-0">
+              <div className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1">
                 Liquidity
               </div>
-              <div className="text-xs font-semibold text-green-800">
+              <div className="text-xs sm:text-sm font-semibold text-green-800 truncate">
                 {formattedLiquidity}
               </div>
               {totalSupplyAssetsLoading && (

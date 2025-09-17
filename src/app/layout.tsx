@@ -7,6 +7,7 @@ import LiffProvider from "./LiffProvider";
 import { BottomNavigation } from "@/components/navbar";
 import AppWrapper from "@/components/app-wrapper";
 import AuroraBackground from "@/components/aurora-ui";
+import SenjaHeader from "@/components/header/senja-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
         <AuroraBackground />
         <AppWrapper>
           <LiffProvider>
+            <SenjaHeader />
             {children}
             <div className="mt-6">
               <BottomNavigation />

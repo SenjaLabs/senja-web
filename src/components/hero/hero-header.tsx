@@ -1,14 +1,11 @@
-"use client";
-
 import React from "react";
-import Image from "next/image";
 import { Card, CardHeader, CardTitle } from "../ui/card";
+import Image from "next/image";
 
-const SenjaHeader = () => {
+const HeroHeader = () => {
   return (
-    <Card className="max-w-xl mx-auto p-1 bg-gradient-to-r from-[#FFF3E0] to-[#FFE0B2] border-t border-[#FFE0B2]/50 shadow-lg backdrop-blur-lg">
-      <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent rounded-t-3xl"></div>
-      <CardHeader className="relative">
+    <Card className="max-w-xl mx-auto p-1 background-blur border-1 border-senja-cream backdrop-blur-lg">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 justify-between">
           <Image
             src="/senja-logo.png"
@@ -24,4 +21,4 @@ const SenjaHeader = () => {
   );
 };
 
-export default SenjaHeader;
+export default HeroHeader;

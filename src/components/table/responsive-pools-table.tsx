@@ -2,7 +2,6 @@
 
 import React, { memo } from 'react';
 import { Card } from '@/components/ui/card';
-import { PoolsTableOnly } from './pools-table-only';
 import { MobilePoolCard } from './mobile-pool-card';
 import { LendingPoolWithTokens } from '@/lib/graphql/lendingpool-list.fetch';
 
@@ -33,7 +32,7 @@ export const ResponsivePoolsTable = memo(function ResponsivePoolsTable({
   // Loading state
   if (loading) {
     return (
-      <Card className="overflow-hidden border-0 shadow-lg bg-white">
+      <Card className="w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500">
         <div className="p-8 md:p-12">
           <div className="flex flex-col items-center justify-center">
             <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -48,7 +47,7 @@ export const ResponsivePoolsTable = memo(function ResponsivePoolsTable({
   // Empty state
   if (pools.length === 0) {
     return (
-      <Card className="overflow-hidden border-0 shadow-lg bg-white">
+      <Card className="w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500">
         <div className="p-8 md:p-12">
           <div className="flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-6">
@@ -67,13 +66,8 @@ export const ResponsivePoolsTable = memo(function ResponsivePoolsTable({
 
   return (
     <>
-      {/* Desktop Table View - Hidden on mobile */}
-      <div className="hidden lg:block">
-        <PoolsTableOnly pools={pools} loading={loading} onPoolClick={onPoolClick} />
-      </div>
-
-      {/* Mobile Card View - Hidden on desktop */}
-      <div className="lg:hidden space-y-2">
+      {/* Card View - Show on all screen sizes */}
+      <div className="space-y-4 sm:space-y-6">
         {pools.map((pool) => (
           <MobilePoolCard
             key={pool.id}
