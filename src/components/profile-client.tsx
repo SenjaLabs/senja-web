@@ -54,28 +54,24 @@ const ProfileClient = memo(function ProfileClient() {
   }, []);
 
   return (
-    <div className="min-h-screen mt-8 xl:mt-16">
+    <div className="min-h-screen">
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
-        {/* Header Section */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center justify-center mb-3 sm:mb-4 overflow-hidden">
+        {/* Header Section - Icon close to hero header */}
+        <div className="text-center mb-4 sm:mb-6">
+          <div className="inline-flex items-center justify-center overflow-hidden">
             <Image
               src="/beary/beary.png"
               alt="Profile Picture"
               width={128}
               height={128}
-              className="object-cover rounded-full w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 xl:w-56 xl:h-56 "
+              className="object-cover rounded-full w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28"
               priority
             />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Profile</h1>
-          <p className="text-sm sm:text-base text-gray-600 px-4">
-            Manage your wallet and account settings
-          </p>
         </div>
 
-        {/* Wallet Connection Card */}
-        <Card className="mb-4 sm:mb-6 shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm">
+        {/* Wallet Connection Card - Same width as pool cards */}
+        <Card className="mb-4 sm:mb-6 shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm mx-auto max-w-xl">
           <CardHeader className=" px-3 ">
             <div className="flex px-3 gap-3 justify-between">
               <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2">

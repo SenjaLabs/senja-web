@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 
 import {
   Dialog,
@@ -11,6 +11,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PoolsOverview } from "@/components/table/pools-overview";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
+import { WalletConnectionGuard } from "@/components/wallet/wallet-connection-guard";
+import { useWalletConnectionGuard } from "@/hooks/useWalletConnectionGuard";
 
 // Import tab components
 import { SupplyTab, BorrowTab, RepayTab, WithdrawTab } from "@/components/tabs";
@@ -32,19 +34,48 @@ const Page = () => {
   const [selectedPool, setSelectedPool] =
     useState<LendingPoolWithTokens | null>(null);
 
+  // Wallet connection guard
+  const {
+    isGuardActive,
+    selectedPool: guardSelectedPool,
+    triggerWalletGuard,
+    handleWalletReady,
+    handleCancelWallet,
+    isWalletReady,
+  } = useWalletConnectionGuard();
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
   const handlePoolClick = useCallback((pool: LendingPoolWithTokens) => {
-    setSelectedPool(pool);
-    setIsDialogOpen(true);
-  }, []);
+    // Use wallet connection guard to ensure wallet is connected and on correct chain
+    triggerWalletGuard(pool);
+  }, [triggerWalletGuard]);
 
   const handleDialogClose = useCallback(() => {
     setIsDialogOpen(false);
     setSelectedPool(null);
-  }, []);
+    // Also clear the guard selected pool to prevent conflicts
+    if (guardSelectedPool) {
+      handleCancelWallet();
+    }
+  }, [guardSelectedPool, handleCancelWallet]);
+
+  // Handle when wallet is ready - open the pool dialog
+  const handleWalletReadyAndOpenDialog = useCallback(() => {
+    if (guardSelectedPool) {
+      setSelectedPool(guardSelectedPool);
+      setIsDialogOpen(true);
+    }
+  }, [guardSelectedPool]);
+
+  // Auto-open dialog when wallet becomes ready
+  React.useEffect(() => {
+    if (isWalletReady && guardSelectedPool && !isDialogOpen && !isGuardActive) {
+      handleWalletReadyAndOpenDialog();
+    }
+  }, [isWalletReady, guardSelectedPool, isDialogOpen, isGuardActive, handleWalletReadyAndOpenDialog]);
 
   return (
     <div className="min-h-screen w-full pb-20 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex items-center justify-center">
@@ -57,12 +88,12 @@ const Page = () => {
 
         {/* Tab Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-senja-orange/30">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-senja-orange/30 w-[calc(100vw-2rem)] sm:w-full">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-gradient-sunset text-center">
                 {selectedPool
                   ? `${selectedPool.collateralTokenInfo?.symbol} / ${selectedPool.borrowTokenInfo?.symbol}`
-                  : "Pool Actions"}
+                  : ""}
               </DialogTitle>
             </DialogHeader>
 
@@ -72,7 +103,7 @@ const Page = () => {
                 onValueChange={handleTabChange}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
+                <TabsList className="grid h-12 w-full grid-cols-4 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
                   <TabsTrigger
                     value="supply"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-pink-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 rounded-md font-semibold m-0 flex items-center justify-center"
@@ -119,6 +150,15 @@ const Page = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Wallet Connection Guard */}
+      <WalletConnectionGuard
+        isActive={isGuardActive}
+        onReady={handleWalletReady}
+        onCancel={handleCancelWallet}
+        pool={guardSelectedPool || undefined}
+        targetChainId={8217}
+      />
     </div>
   );
 };

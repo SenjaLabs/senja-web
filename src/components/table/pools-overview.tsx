@@ -12,7 +12,7 @@ import {
   pairLendingPoolsWithTokens,
   LendingPoolWithTokens,
 } from "@/lib/graphql/lendingpool-list.fetch";
-import { useCurrentChainId } from "@/lib/chain/use-chain";
+// Note: Removed useCurrentChainId import as we now fetch from all chains
 
 /**
  * Props for PoolsOverview component
@@ -35,15 +35,26 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
   const [selectedPool, setSelectedPool] =
     useState<LendingPoolWithTokens | null>(null);
   const [isPoolDialogOpen, setIsPoolDialogOpen] = useState(false);
-  const currentChainId = useCurrentChainId();
+  // Note: We now fetch pools from all chains, not just the current chain
+
+  // Reset internal dialog state when external onPoolClick is provided
+  useEffect(() => {
+    if (onPoolClick) {
+      setIsPoolDialogOpen(false);
+      setSelectedPool(null);
+    }
+  }, [onPoolClick]);
 
   /**
    * Handle pool click for mobile cards
    */
   const handlePoolClickInternal = useCallback((pool: LendingPoolWithTokens) => {
     if (onPoolClick) {
+      // Use external handler if provided (e.g., from home page with wallet guard)
       onPoolClick(pool);
     } else {
+      // Fallback to internal dialog - but this should not be used when onPoolClick is provided
+      console.warn('PoolsOverview: onPoolClick not provided, using internal dialog. This may cause conflicts.');
       setSelectedPool(pool);
       setIsPoolDialogOpen(true);
     }
@@ -74,10 +85,8 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
         setLoading(true);
         setError(null);
         const rawPools = await fetchLendingPools();
-        const poolsWithTokens = pairLendingPoolsWithTokens(
-          rawPools,
-          currentChainId
-        );
+        // Fetch pools from all chains, not just current chain
+        const poolsWithTokens = pairLendingPoolsWithTokens(rawPools);
         // Filter out pools with missing token info
         const validPools = poolsWithTokens.filter(
           (pool) => pool.borrowTokenInfo && pool.collateralTokenInfo
@@ -93,7 +102,7 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
     };
 
     loadPools();
-  }, [currentChainId]);
+  }, []); // Remove currentChainId dependency to fetch from all chains
 
   // Filtered pools based on search
   const filteredPools = useMemo(() => {
@@ -134,10 +143,8 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
         setError(null);
         
         const rawPools = await fetchLendingPools();
-        const poolsWithTokens = pairLendingPoolsWithTokens(
-          rawPools,
-          currentChainId
-        );
+        // Fetch pools from all chains, not just current chain
+        const poolsWithTokens = pairLendingPoolsWithTokens(rawPools);
         // Filter out pools with missing token info
         const validPools = poolsWithTokens.filter(
           (pool) => pool.borrowTokenInfo && pool.collateralTokenInfo
@@ -152,7 +159,7 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
     };
 
     loadPools();
-  }, [currentChainId]);
+  }, []); // Remove currentChainId dependency to fetch from all chains
 
   // Error state
   if (error) {
@@ -225,13 +232,15 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
         />
       </div>
 
-      {/* Pool Actions Dialog */}
-      <PoolActionsDialog
-        isOpen={isPoolDialogOpen}
-        onClose={handlePoolDialogClose}
-        pool={selectedPool}
-        onActionSelect={handleActionSelect}
-      />
+      {/* Pool Actions Dialog - only show if no external onPoolClick handler is provided */}
+      {!onPoolClick && isPoolDialogOpen && (
+        <PoolActionsDialog
+          isOpen={isPoolDialogOpen}
+          onClose={handlePoolDialogClose}
+          pool={selectedPool}
+          onActionSelect={handleActionSelect}
+        />
+      )}
 
 
     </div>

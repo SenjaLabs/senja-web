@@ -84,8 +84,8 @@ export const PoolSearchControls = memo(function PoolSearchControls({
 
   return (
     <>
-      <div className={`px-3 sm:px-4 py-4 ${className || ''}`}>
-        <Card className="w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group">
+      <div className={`py-4 ${className || ''}`}>
+        <Card className="w-full max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group">
           <div className="relative z-10 p-3 sm:p-4">
             {/* Mobile Layout */}
             <div className="lg:hidden space-y-3">

@@ -4,6 +4,7 @@ import React, { useCallback, memo } from "react";
 import { Check, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import Image from "next/image";
 
@@ -41,13 +42,14 @@ const PoolItem = memo(
     isSelected: boolean;
     onSelect: () => void;
   }) => (
-    <Button
-      key={pool.id}
+    <Card
+      className="w-full max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group cursor-pointer"
       onClick={onSelect}
-      className="w-full px-4 py-6 text-left hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100 transition-all duration-200 flex items-center justify-between group rounded-xl border border-transparent hover:border-orange-200"
     >
-      <div className="flex items-center gap-4">
-        <div className="flex space-x-2">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex space-x-2">
           {pool.collateralTokenInfo && (
             <div className="relative">
               <Image
@@ -69,23 +71,25 @@ const PoolItem = memo(
                 className="rounded-full border-2 border-white shadow-md group-hover:shadow-lg transition-shadow"
               />
             </div>
+            )}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">
+                {getPoolDisplayName(pool)}
+              </div>
+              <div className="text-xs text-gray-500">
+                {pool.collateralTokenInfo?.name || "Unknown"} → {pool.borrowTokenInfo?.name || "Unknown"}
+              </div>
+            </div>
+          </div>
+          {isSelected && (
+            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 flex items-center justify-center">
+              <Check className="h-3 w-3 text-white" />
+            </div>
           )}
         </div>
-        <div>
-          <div className="text-sm font-semibold text-gray-900 group-hover:text-orange-700 transition-colors">
-            {getPoolDisplayName(pool)}
-          </div>
-          <div className="text-xs text-orange-600 font-medium">
-            LTV: {formatLTV(pool.ltv)}
-          </div>
-        </div>
-      </div>
-      {isSelected && (
-        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-400 to-orange-500 flex items-center justify-center">
-          <Check className="h-3 w-3 text-white" />
-        </div>
-      )}
-    </Button>
+      </CardContent>
+    </Card>
   )
 );
 
@@ -165,7 +169,7 @@ export const PoolSearch = memo(function PoolSearch({
             )}
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4 sm:space-y-6">
             {filteredPools.map((pool) => (
               <PoolItem
                 key={pool.id}

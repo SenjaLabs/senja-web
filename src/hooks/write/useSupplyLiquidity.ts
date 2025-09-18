@@ -5,6 +5,7 @@ import { lendingPoolAbi } from "@/lib/abis/lendingPoolAbi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { useApprove } from "./useApprove";
 import { useCurrentChainId } from "@/lib/chain";
+import { isUserRejection } from "@/utils/error-handling";
 
 export type HexAddress = `0x${string}`;
 
@@ -18,7 +19,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   const [showFailedAlert, setShowFailedAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [needsApproval, setNeedsApproval] = useState(true);
-  const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isSupplySuccess, setIsSupplySuccess] = useState(false);
   const [showApproveSuccessAlert, setShowApproveSuccessAlert] = useState(false);
@@ -41,7 +41,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     isConfirming: isApproveConfirming,
     isError: isApproveError,
   } = useApprove(currentChainId, (txHash) => {
-    setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
     setApproveTxHash(txHash);
@@ -63,26 +62,46 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   // Handle write error
   useEffect(() => {
     if (writeError) {
-      // Check if it's a user rejection
-      const isUserRejection = writeError.message?.includes('User rejected') || 
-                             writeError.message?.includes('User denied') ||
-                             writeError.message?.includes('cancelled') ||
-                             writeError.message?.includes('rejected');
+      const errorMessage = writeError.message || "";
       
-      if (isUserRejection) {
+      if (isUserRejection(errorMessage)) {
         // Don't show error for user rejection, just reset state
         setErrorMessage("");
         setShowFailedAlert(false);
         setIsSupplying(false);
         setTxHash(undefined);
       } else {
-        setErrorMessage(`Supply failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setErrorMessage(`Supply failed: ${errorMessage}`);
         setShowFailedAlert(true);
         setIsSupplying(false);
         setTxHash(undefined);
       }
     }
   }, [writeError]);
+
+  // Handle approval error
+  useEffect(() => {
+    if (isApproveError) {
+      const errorMessage = isApproveError.message || "";
+      
+      if (isUserRejection(errorMessage)) {
+        // Automatically revert state for user rejection
+        setIsApproved(false);
+        setNeedsApproval(true);
+        setShowApproveSuccessAlert(false);
+        setApproveTxHash(undefined);
+        setShowApproveSuccess(false);
+        setErrorMessage("");
+        setShowFailedAlert(false);
+      } else {
+        // Show error for non-user-rejection errors
+        setErrorMessage(`Approval failed: ${errorMessage}`);
+        setShowFailedAlert(true);
+        setIsApproved(false);
+        setNeedsApproval(true);
+      }
+    }
+  }, [isApproveError]);
 
   // Handle transaction confirmation error
   useEffect(() => {
@@ -95,7 +114,10 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   }, [isError, confirmError]);
 
   const handleApproveToken = async (tokenAddress: HexAddress, spenderAddress: HexAddress, amount: string, decimals: number) => {
+    console.log("handleApproveToken called with:", { tokenAddress, spenderAddress, amount, decimals, address, chainId });
+    
     if (!address) {
+      console.log("No address in handleApproveToken");
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
       return;
@@ -103,12 +125,14 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
 
     const chain = chains.find((c) => c.id === chainId);
     if (!chain) {
+      console.log("Chain not found in handleApproveToken:", chainId);
       setErrorMessage("Unsupported chain");
       setShowFailedAlert(true);
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
+      console.log("Invalid amount in handleApproveToken:", amount);
       setErrorMessage("Please enter a valid amount");
       setShowFailedAlert(true);
       return;
@@ -118,7 +142,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     const amountWithBuffer = parseFloat(amount) * 1.1;
     const amountString = amountWithBuffer.toString();
 
-    setIsApproving(true);
+    console.log("Calling handleApprove with buffered amount:", amountString);
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
@@ -255,7 +279,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   return {
     handleApproveToken,
     handleSupplyLiquidity,
-    isSupplying: isSupplying || isWritePending,
+    isSupplying: isSupplying || (isWritePending && !writeError),
     isConfirming,
     isSuccess: isSupplySuccess,
     isError,
@@ -276,7 +300,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     // Approval states
     needsApproval,
     isApproved,
-    isApproving: isApproving || isApprovePending,
+    isApproving: isApprovePending,
     isApproveConfirming,
     isApproveSuccess: showApproveSuccess,
     isApproveError,

@@ -598,7 +598,7 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
                       }}
                       min="0"
                       step="0.000001"
-                      className="w-full h-12 px-4 pr-20 border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-orange-400 bg-white text-gray-900 placeholder-gray-500"
+                      className="w-full h-12 px-4 pr-24 sm:pr-28 border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:border-orange-400 bg-white text-gray-900 placeholder-gray-500"
                       disabled={isSupplyingLiquidity || isConfirmingLiquidity || isApprovingLiquidity || isSupplyingCollateral || isConfirmingCollateral || isApprovingCollateral || isWithdrawingLiquidity || isConfirmingWithdrawLiquidity || isWithdrawingCollateral || isConfirmingWithdrawCollateral}
                     />
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">

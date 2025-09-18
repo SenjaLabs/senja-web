@@ -19,6 +19,20 @@ import { useCurrentChainId } from "@/lib/chain/use-chain";
 import { chains } from "@/lib/addresses/chainAddress";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
+// Utility function to format large numbers
+const formatLargeNumber = (value: string | number): string => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num) || num === 0) return "0.00";
+  
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2) + "M";
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(2) + "K";
+  } else {
+    return num.toFixed(4);
+  }
+};
+
 interface BorrowTabProps {
   pool?: LendingPoolWithTokens;
 }
@@ -182,6 +196,22 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
             onChainToChange={setChainTo}
           />
 
+          {/* Max Borrow Amount Card */}
+          <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-700">Max Borrow:</span>
+              <span className="text-md font-bold text-orange-700">
+                {maxBorrowLoading ? (
+                  "Loading..."
+                ) : maxBorrowError ? (
+                  <span className="text-red-500 text-xs">Error</span>
+                ) : (
+                  `${formatLargeNumber(maxBorrowFormatted || "0.00")} ${pool.borrowTokenInfo?.symbol || "Token"}`
+                )}
+              </span>
+            </div>
+          </div>
+
           {/* Amount Input */}
           <AmountInput
             label="Borrow Amount"
@@ -190,13 +220,6 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
             onChange={setAmount}
             onMaxClick={handleSetMax}
             tokenSymbol={pool.borrowTokenInfo?.symbol || "Token"}
-            balance={`Max Borrow: ${
-              maxBorrowLoading
-                ? "Loading..."
-                : maxBorrowError
-                ? "Error loading max borrow"
-                : maxBorrowFormatted || "0.00"
-            } ${pool.borrowTokenInfo?.symbol || "Token"}`}
             maxDisabled={
               !maxBorrowFormatted || parseFloat(maxBorrowFormatted) <= 0
             }
@@ -291,7 +314,7 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
 
       <Button
         onClick={handleBorrow}
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg"
         disabled={
           !amount ||
           !chainTo ||

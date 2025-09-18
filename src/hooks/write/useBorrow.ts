@@ -195,7 +195,7 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
 
   return {
     handleBorrow,
-    isBorrowing: isBorrowing || isWritePending,
+    isBorrowing: isBorrowing || (isWritePending && !writeError),
     isConfirming,
     isSuccess: isBorrowSuccess,
     isError,

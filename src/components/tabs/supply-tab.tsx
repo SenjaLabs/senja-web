@@ -15,6 +15,20 @@ import { useRefetch } from "@/hooks/useRefetch";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
 import Image from "next/image";
 
+// Utility function to format large numbers
+const formatLargeNumber = (value: string | number): string => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num) || num === 0) return "0.00";
+  
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(2) + "M";
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(2) + "K";
+  } else {
+    return num.toFixed(4);
+  }
+};
+
 interface SupplyTabProps {
   pool?: LendingPoolWithTokens;
 }
@@ -168,28 +182,31 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
    * Handle approve token
    */
   const handleApprove = useCallback(async () => {
+    console.log("Supply tab handleApprove called with:", { pool, amount, supplyType, currentChainId });
+    
     if (!pool || !amount || parseFloat(amount) <= 0) {
+      console.log("Invalid pool, amount, or supplyType:", { pool: !!pool, amount, supplyType });
       return;
     }
 
     if (supplyType === "liquidity") {
+      console.log("Approving liquidity token");
       resetSuccessStatesLiquidity();
       const decimals = pool.borrowTokenInfo?.decimals || 18;
-      await handleApproveTokenLiquidity(
-        pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`, 
-        pool.lendingPool as `0x${string}`, 
-        amount,
-        decimals
-      );
+      const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      const spenderAddress = pool.lendingPool as `0x${string}`;
+      
+      console.log("Liquidity approval params:", { tokenAddress, spenderAddress, amount, decimals });
+      await handleApproveTokenLiquidity(tokenAddress, spenderAddress, amount, decimals);
     } else if (supplyType === "collateral") {
+      console.log("Approving collateral token");
       resetSuccessStatesCollateral();
       const decimals = pool.collateralTokenInfo?.decimals || 18;
-      await handleApproveTokenCollateral(
-        pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`, 
-        pool.lendingPool as `0x${string}`, 
-        amount,
-        decimals
-      );
+      const tokenAddress = pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      const spenderAddress = pool.lendingPool as `0x${string}`;
+      
+      console.log("Collateral approval params:", { tokenAddress, spenderAddress, amount, decimals });
+      await handleApproveTokenCollateral(tokenAddress, spenderAddress, amount, decimals);
     }
   }, [amount, pool, supplyType, handleApproveTokenLiquidity, handleApproveTokenCollateral, currentChainId, resetSuccessStatesLiquidity, resetSuccessStatesCollateral]);
 
@@ -225,7 +242,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
   return (
     <div className="space-y-6">
       <Tabs value={supplyType} onValueChange={setSupplyType} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
+        <TabsList className="grid h-12 w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
           <TabsTrigger 
             value="liquidity" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-pink-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 rounded-md font-semibold m-0 flex items-center justify-center"
@@ -284,36 +301,47 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
 
             {/* Amount Input Section */}
             <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
+              <div className="space-y-4">
+                {/* Wallet Balance Card */}
+                <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Balance:</span>
+                    <span className="text-md font-bold text-orange-700">
+                      {walletBalanceLoading ? (
+                        "Loading..."
+                      ) : (
+                        `${formatLargeNumber(userWalletBalanceFormatted || "0.00")} ${pool.borrowTokenInfo?.symbol}`
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     <label className="text-sm font-medium text-amber-800">
                       Amount to Supply
                     </label>
                   </div>
-                  <span className="text-sm text-amber-600">
-                    Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.borrowTokenInfo?.symbol}
-                  </span>
-                </div>
-                
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Enter amount to supply"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                      <button
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                        onClick={handleSetMax}
-                        disabled={userWalletBalanceParsed <= 0}
-                      >
-                        Max
-                      </button>
-                      <span className="text-sm font-medium text-amber-800">{pool.borrowTokenInfo?.symbol}</span>
+                  
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Enter amount to supply"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                        <button
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                          onClick={handleSetMax}
+                          disabled={userWalletBalanceParsed <= 0}
+                        >
+                          Max
+                        </button>
+                        <span className="text-sm font-medium text-amber-800">{pool.borrowTokenInfo?.symbol}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -361,36 +389,47 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
 
             {/* Amount Input Section */}
             <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
+              <div className="space-y-4">
+                {/* Wallet Balance Card */}
+                <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-700">Balance:</span>
+                    <span className="text-md font-bold text-orange-700">
+                      {walletBalanceLoading ? (
+                        "Loading..."
+                      ) : (
+                        `${formatLargeNumber(userWalletBalanceFormatted || "0.00")} ${pool.collateralTokenInfo?.symbol}`
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     <label className="text-sm font-medium text-amber-800">
                       Amount to Supply
                     </label>
                   </div>
-                  <span className="text-sm text-amber-600">
-                    Balance: {walletBalanceLoading ? "Loading..." : userWalletBalanceFormatted || "0.00"} {pool.collateralTokenInfo?.symbol}
-                  </span>
-                </div>
-                
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Enter amount to supply"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
-                  />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
-                      <button
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-                        onClick={handleSetMax}
-                        disabled={userWalletBalanceParsed <= 0}
-                      >
-                        Max
-                      </button>
-                      <span className="text-sm font-medium text-amber-800">{pool.collateralTokenInfo?.symbol}</span>
+                  
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Enter amount to supply"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
+                    />
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                        <button
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+                          onClick={handleSetMax}
+                          disabled={userWalletBalanceParsed <= 0}
+                        >
+                          Max
+                        </button>
+                        <span className="text-sm font-medium text-amber-800">{pool.collateralTokenInfo?.symbol}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -484,7 +523,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
             disabled={!amount || parseFloat(amount) <= 0 || 
               (isApprovingCollateral || isApproveConfirmingCollateral || 
                isApprovingLiquidity || isApproveConfirmingLiquidity)}
-            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {(isApprovingCollateral || isApprovingLiquidity)
               ? "Approving..."
@@ -503,7 +542,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
             disabled={!amount || parseFloat(amount) <= 0 || 
               (isSupplyingCollateral || isConfirmingCollateral || 
                isSupplyingLiquidity || isConfirmingLiquidity)}
-            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {(isSupplyingCollateral || isSupplyingLiquidity)
               ? "Supplying..."

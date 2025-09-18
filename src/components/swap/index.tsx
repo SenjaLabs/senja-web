@@ -66,7 +66,7 @@ export default memo(function SwapPage() {
   if (liffError) {
     return (
       <div className="min-h-screen bg-gradient-warm flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-xl w-full">
           <h1 className="text-2xl font-bold mb-4 text-red-600">LIFF Error</h1>
           <p className="text-red-500">{liffError}</p>
         </div>
@@ -77,7 +77,7 @@ export default memo(function SwapPage() {
   if (!liff) {
     return (
       <div className="min-h-screen bg-gradient-warm flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-xl w-full">
           <p>Please wait while we initialize the LINE Front-end Framework.</p>
           <div className="mt-4 flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
@@ -89,8 +89,8 @@ export default memo(function SwapPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-7xl mx-auto">
+      <div className="relative z-10 flex justify-center pt-8 pb-4 px-3">
+        <div className="w-full max-w-xl mx-auto">
           <SwapInterface 
             onSwap={handleSwap}
             isSwapping={isSwapping}

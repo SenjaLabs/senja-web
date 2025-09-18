@@ -74,7 +74,7 @@ export const MobilePoolCard = memo(function MobilePoolCard({
 
   return (
     <Card
-      className={`w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group ${
+      className={`w-full max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group ${
         clickable ? "hover:shadow-lg hover:bg-gradient-to-br hover:from-orange-100/80 hover:via-pink-50/70 hover:to-orange-50/80 cursor-pointer" : ""
       }`}
       onClick={handleClick}

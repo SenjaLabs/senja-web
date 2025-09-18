@@ -86,7 +86,7 @@ export function PoolCard({
         </div>
 
         {/* Mobile Layout */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-2">
           {/* Tokens Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">

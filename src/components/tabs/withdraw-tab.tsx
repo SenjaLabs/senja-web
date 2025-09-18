@@ -11,6 +11,7 @@ import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useReadUserSupply } from "@/hooks/read/useReadUserSupply";
 import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
 import { useCurrentChainId } from "@/lib/chain/use-chain";
+import { useAccount } from "wagmi";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
@@ -25,6 +26,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
   const [amount, setAmount] = useState("");
 
   const currentChainId = useCurrentChainId();
+  const { address, isConnected } = useAccount();
 
   // Refetch functionality
   const { addRefetchFunction, removeRefetchFunction } = useRefetch({
@@ -106,15 +108,17 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
   // Parse the raw values for max button functionality
   const liquidityBalanceParsed = userSupplySharesRaw
     ? Number(userSupplySharesRaw) /
-      Math.pow(10, pool?.borrowTokenInfo?.decimals || 6)
+      Math.pow(10, pool?.borrowTokenInfo?.decimals || 18)
     : 0;
   const collateralBalanceParsed = collateralBalanceFormatted || 0;
 
   // Add refetch functions
   useEffect(() => {
-    addRefetchFunction(refetchApy);
-    addRefetchFunction(refetchLiquidityBalance);
-    addRefetchFunction(refetchCollateralBalance);
+    if (isConnected && address) {
+      addRefetchFunction(refetchApy);
+      addRefetchFunction(refetchLiquidityBalance);
+      addRefetchFunction(refetchCollateralBalance);
+    }
 
     return () => {
       removeRefetchFunction(refetchApy);
@@ -127,16 +131,18 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
     refetchApy,
     refetchLiquidityBalance,
     refetchCollateralBalance,
+    isConnected,
+    address,
   ]);
 
   const handleSetMaxLiquidity = useCallback(() => {
-    if (liquidityBalanceParsed > 0) {
+    if (liquidityBalanceParsed > 0 && liquidityBalanceFormatted) {
       setAmount(liquidityBalanceFormatted);
     }
   }, [liquidityBalanceFormatted, liquidityBalanceParsed]);
 
   const handleSetMaxCollateral = useCallback(() => {
-    if (collateralBalanceParsed > 0) {
+    if (collateralBalanceParsed > 0 && collateralBalanceFormatted !== undefined) {
       setAmount(collateralBalanceFormatted.toString());
     }
   }, [collateralBalanceFormatted, collateralBalanceParsed]);
@@ -171,6 +177,18 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
     );
   }
 
+  if (!isConnected || !address) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center">
+          <p className="text-amber-600">
+            Please connect your wallet to view balances
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Tabs
@@ -178,7 +196,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
         onValueChange={setWithdrawType}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg mb-4">
+        <TabsList className="grid h-12 w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg mb-4">
           <TabsTrigger
             value="liquidity"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-400 data-[state=active]:to-pink-400 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300 rounded-md font-semibold m-0 flex items-center justify-center"
@@ -217,9 +235,12 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                   <span className="text-sm text-gray-700">Your Liquidity:</span>
                   <span className="text-md font-bold text-orange-700">
                     {liquidityBalanceLoading ? (
-                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-gray-500">Loading...</span>
+                      </div>
                     ) : liquidityBalanceError ? (
-                      <span className="text-red-500 text-xs">Error</span>
+                      <span className="text-red-500 text-xs">Error loading balance</span>
                     ) : (
                       `${liquidityBalanceFormatted || "0.00"} ${
                         pool.borrowTokenInfo.symbol
@@ -253,9 +274,12 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                   </span>
                   <span className="font-bold text-md text-orange-700">
                     {collateralBalanceLoading ? (
-                      <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-xs text-gray-500">Loading...</span>
+                      </div>
                     ) : collateralBalanceError ? (
-                      <span className="text-red-500 text-xs">Error</span>
+                      <span className="text-red-500 text-xs">Error loading balance</span>
                     ) : (
                       `${collateralBalanceFormatted || "0.00"} ${
                         pool.collateralTokenInfo.symbol
@@ -363,7 +387,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
           isWithdrawingCollateral ||
           isConfirmingCollateral
         }
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg"
       >
         {isWithdrawingLiquidity || isWithdrawingCollateral
           ? "Withdrawing..."

@@ -206,7 +206,7 @@ export const SwapInterface = memo(function SwapInterface({
   const needsWalletConnection = !address;
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-xl mx-auto">
       <Card className="bg-white/80 backdrop-blur-sm border border-sunset-orange shadow-xl">
         <CardContent className="p-6">
           {/* Header */}

@@ -13,13 +13,13 @@ export function TransactionFilter({ selectedType, onTypeChange }: TransactionFil
   ];
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 border border-white/20 mb-4 sm:mb-6">
-      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+    <div className="w-full bg-white/80 backdrop-blur-sm rounded-2xl p-3 border border-white/20 mb-4">
+      <div className="flex flex-wrap gap-2 justify-center">
         {filterOptions.map((option) => (
           <button
             key={option.value}
             onClick={() => onTypeChange(option.value)}
-            className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
               selectedType === option.value
                 ? 'bg-orange-500 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

@@ -167,7 +167,7 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
     amount,
     setAmount,
     handleWithdrawCollateral,
-    isWithdrawing: isWithdrawing || isWritePending,
+    isWithdrawing: isWithdrawing || (isWritePending && !writeError),
     isConfirming,
     isSuccess,
     isError,

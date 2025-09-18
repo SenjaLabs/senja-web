@@ -37,43 +37,79 @@ const HistoryClient = memo(function HistoryClient() {
   const hasPrev = page > 0;
 
   return (
-    <div className="min-h-screen mx-auto pt-8 xl:pt-32 relative z-10 px-4 pb-18 sm:px-6 lg:px-8 lg:pb-28 xl:pb-32">
-      <div className="max-w-6xl mx-auto">
-        <TransactionFilter
-          selectedType={selectedType}
-          onTypeChange={setSelectedType}
-        />
-        {!isConnected ? (
-          <div className="text-center text-white/80 py-10">
-            
-          </div>
-        ) : (
-          <>
-            <TransactionTable 
-              transactions={pagedTransactions} 
-              loading={loading}
-            />
-            <div className="flex justify-center gap-2 mt-4">
-              <button
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={loading || !hasPrev}
-              >
-                Prev
-              </button>
-              <button
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-                onClick={() => setPage((p) => p + 1)}
-                disabled={loading || !hasNext}
-              >
-                Next
-              </button>
+    <div className="min-h-screen w-full pb-20 pt-4 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex items-center justify-center">
+      {/* Mobile-optimized container - same width as navbar */}
+      <div className="w-full max-w-xl mx-auto px-3 sm:px-0">
+        <div className="relative">
+          <TransactionFilter
+            selectedType={selectedType}
+            onTypeChange={setSelectedType}
+          />
+          
+          {!isConnected ? (
+            <div className="w-full mx-auto">
+              <div className="overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 rounded-xl">
+                <div className="p-8 md:p-12">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="mb-6">
+                      <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Wallet Not Connected</h3>
+                    <p className="text-gray-600 text-center mb-6 max-w-md">
+                      Please connect your wallet to view your transaction history.
+                    </p>
+                    <button
+                      onClick={() => window.location.href = '/'}
+                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                    >
+                      Go to Home
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </>
-        )}
-        {error && (
-          <div className="text-center text-red-300 py-4 mt-4">{error}</div>
-        )}
+          ) : (
+            <>
+              <TransactionTable 
+                transactions={pagedTransactions} 
+                loading={loading}
+              />
+              <div className="flex justify-center gap-2 mt-6">
+                <button
+                  className="px-6 py-2 rounded-lg bg-gradient-to-r from-orange-100 to-pink-100 text-gray-700 hover:from-orange-200 hover:to-pink-200 disabled:opacity-50 transition-all duration-300 font-semibold"
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={loading || !hasPrev}
+                >
+                  Previous
+                </button>
+                <button
+                  className="px-6 py-2 rounded-lg bg-gradient-to-r from-orange-100 to-pink-100 text-gray-700 hover:from-orange-200 hover:to-pink-200 disabled:opacity-50 transition-all duration-300 font-semibold"
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={loading || !hasNext}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
+          
+          {error && (
+            <div className="w-full mx-auto mt-6">
+              <div className="overflow-hidden border-0 bg-gradient-to-br from-red-50/80 via-red-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-red-200/30 rounded-xl">
+                <div className="p-6">
+                  <div className="flex items-center gap-3">
+                    <svg className="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-red-700 font-medium">{error}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

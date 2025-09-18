@@ -209,7 +209,7 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
     shares,
     setShares,
     handleWithdrawLiquidity,
-    isWithdrawing: isWithdrawing || isWritePending,
+    isWithdrawing: isWithdrawing || (isWritePending && !writeError),
     isConfirming,
     isSuccess: isWithdrawSuccess,
     isError,

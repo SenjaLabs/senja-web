@@ -16,7 +16,7 @@ export const buttonStyles = {
  * Common input styles
  */
 export const inputStyles = {
-  default: "border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-200",
+  default: "border-2 border-gray-200 rounded-xl focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-200 pr-24 sm:pr-28",
   search: "pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all duration-200",
 } as const;
 
@@ -33,7 +33,7 @@ export const cardStyles = {
  * Common dialog styles
  */
 export const dialogStyles = {
-  content: "bg-white border-0 shadow-2xl rounded-2xl max-w-lg w-[calc(100vw-2rem)] sm:w-full p-0 overflow-hidden",
+  content: "bg-white border-0 shadow-2xl rounded-2xl max-w-xl w-[calc(100vw-2rem)] sm:w-full p-0 overflow-hidden",
   header: "bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-4 border-b border-orange-200",
 } as const;
 

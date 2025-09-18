@@ -6,7 +6,7 @@ import {
   pairLendingPoolsWithTokens,
   LendingPoolWithTokens,
 } from "@/lib/graphql/lendingpool-list.fetch";
-import { useCurrentChainId } from "@/lib/chain";
+// Note: Removed useCurrentChainId import as we now fetch from all chains
 import { PoolSearch } from "./pool-search";
 
 interface PoolSearchOnlyProps {
@@ -28,16 +28,16 @@ export const PoolSearchOnly = memo(function PoolSearchOnly({
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Get current chain ID dynamically
-  const currentChainId = useCurrentChainId();
+  // Note: We now fetch pools from all chains, not just the current chain
 
   const loadPools = useCallback(async () => {
     setLoading(true);
     try {
       const rawPools = await fetchLendingPools();
-      const enrichedPools = pairLendingPoolsWithTokens(rawPools, currentChainId);
+      // Fetch pools from all chains, not just current chain
+      const enrichedPools = pairLendingPoolsWithTokens(rawPools);
       
-      // Filter out pools with unknown tokens (when switching networks)
+      // Filter out pools with unknown tokens
       const validPools = enrichedPools.filter(pool => 
         pool.borrowTokenInfo && pool.collateralTokenInfo
       );
@@ -54,7 +54,7 @@ export const PoolSearchOnly = memo(function PoolSearchOnly({
     } finally {
       setLoading(false);
     }
-  }, [selectedPool, onPoolSelect, currentChainId, autoSelectFirst]);
+  }, [selectedPool, onPoolSelect, autoSelectFirst]); // Remove currentChainId dependency
 
   useEffect(() => {
     loadPools();

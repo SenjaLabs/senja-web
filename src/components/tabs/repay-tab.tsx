@@ -122,18 +122,20 @@ const RepayTab = ({ pool }: RepayTabProps) => {
   }, [userBorrowSharesFormatted, borrowSharesParsed]);
 
   const handleApprove = async () => {
+    console.log("Repay tab handleApprove called with:", { pool, amount, currentChainId });
+    
     if (!pool || !amount || parseFloat(amount) <= 0) {
+      console.log("Invalid pool, amount in repay tab:", { pool: !!pool, amount });
       return;
     }
 
     resetSuccessStates();
     const decimals = pool.borrowTokenInfo?.decimals || 18;
-    await handleApproveToken(
-      pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`, 
-      pool.lendingPool as `0x${string}`, 
-      amount,
-      decimals
-    );
+    const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
+    const spenderAddress = pool.lendingPool as `0x${string}`;
+    
+    console.log("Repay approval params:", { tokenAddress, spenderAddress, amount, decimals });
+    await handleApproveToken(tokenAddress, spenderAddress, amount, decimals);
   };
 
   const handleRepay = async () => {
@@ -353,7 +355,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
         {needsApproval && !isApproved ? (
           <Button
             onClick={handleApprove}
-            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               !amount ||
               parseFloat(amount) <= 0 ||
@@ -371,7 +373,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
         ) : (
           <Button
             onClick={handleRepay}
-            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               !amount ||
               parseFloat(amount) <= 0 ||

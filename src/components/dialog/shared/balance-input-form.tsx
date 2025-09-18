@@ -107,7 +107,7 @@ export const BalanceInputForm = memo(function BalanceInputForm({
           className={inputStyles.default}
           disabled={disabled}
         />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 sm:gap-2">
           <Button
             type="button"
             onClick={handleSetMax}

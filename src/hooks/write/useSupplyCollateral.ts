@@ -25,7 +25,6 @@ export const useSupplyCollateral = (
   const [showFailedAlert, setShowFailedAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [needsApproval, setNeedsApproval] = useState(true);
-  const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isSupplySuccess, setIsSupplySuccess] = useState(false);
   const [showApproveSuccessAlert, setShowApproveSuccessAlert] = useState(false);
@@ -52,7 +51,6 @@ export const useSupplyCollateral = (
     isConfirming: isApproveConfirming,
     isError: isApproveError,
   } = useApprove(currentChainId, (txHash) => {
-    setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
     setApproveTxHash(txHash);
@@ -95,6 +93,43 @@ export const useSupplyCollateral = (
     }
   }, [writeError]);
 
+  // Handle approval error
+  useEffect(() => {
+    if (isApproveError) {
+      const errorMessage = isApproveError.message || "";
+      
+      // Check if it's a user rejection with more comprehensive patterns
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('user rejected') ||
+                             errorMessage.includes('User rejected the request') ||
+                             errorMessage.includes('User rejected the transaction') ||
+                             errorMessage.includes('User denied transaction') ||
+                             errorMessage.includes('Transaction was rejected') ||
+                             errorMessage.includes('User cancelled') ||
+                             errorMessage.includes('User canceled');
+      
+      if (isUserRejection) {
+        // Automatically revert state for user rejection
+        setIsApproved(false);
+        setNeedsApproval(true);
+        setShowApproveSuccessAlert(false);
+        setApproveTxHash(undefined);
+        setShowApproveSuccess(false);
+        setErrorMessage("");
+        setShowFailedAlert(false);
+      } else {
+        // Show error for non-user-rejection errors
+        setErrorMessage(`Approval failed: ${errorMessage}`);
+        setShowFailedAlert(true);
+        setIsApproved(false);
+        setNeedsApproval(true);
+      }
+    }
+  }, [isApproveError]);
+
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
@@ -136,7 +171,6 @@ export const useSupplyCollateral = (
     const amountWithBuffer = parseFloat(amount) * 1.1;
     const amountString = amountWithBuffer.toString();
 
-    setIsApproving(true);
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
@@ -271,7 +305,7 @@ export const useSupplyCollateral = (
   return {
     handleApproveToken,
     handleSupplyCollateral,
-    isSupplying: isSupplying || isWritePending,
+    isSupplying: isSupplying || (isWritePending && !writeError),
     isConfirming,
     isSuccess: isSupplySuccess,
     isError,
@@ -288,7 +322,7 @@ export const useSupplyCollateral = (
     // Approval states
     needsApproval,
     isApproved,
-    isApproving: isApproving || isApprovePending,
+    isApproving: isApprovePending,
     isApproveConfirming,
     isApproveSuccess: showApproveSuccess,
     isApproveError,

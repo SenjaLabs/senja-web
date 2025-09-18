@@ -46,7 +46,6 @@ export const useRepay = (
   const [showFailedAlert, setShowFailedAlert] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [needsApproval, setNeedsApproval] = useState(true);
-  const [isApproving, setIsApproving] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [isRepaySuccess, setIsRepaySuccess] = useState(false);
   const [showApproveSuccessAlert, setShowApproveSuccessAlert] = useState(false);
@@ -82,7 +81,6 @@ export const useRepay = (
     isConfirming: isApproveConfirming,
     isError: isApproveError,
   } = useApprove(chainId, (txHash) => {
-    setIsApproving(false);
     setIsApproved(true);
     setNeedsApproval(false);
     setApproveTxHash(txHash);
@@ -130,6 +128,40 @@ export const useRepay = (
     }
   }, [writeError]);
 
+  // Handle approval error
+  useEffect(() => {
+    if (isApproveError) {
+      const errorMessage = isApproveError.message || "";
+      
+      // Check if it's a user rejection with more comprehensive patterns
+      const isUserRejection = errorMessage.includes('User rejected') || 
+                             errorMessage.includes('User denied') ||
+                             errorMessage.includes('cancelled') ||
+                             errorMessage.includes('rejected') ||
+                             errorMessage.includes('user rejected') ||
+                             errorMessage.includes('User rejected the request') ||
+                             errorMessage.includes('User rejected the transaction') ||
+                             errorMessage.includes('User denied transaction') ||
+                             errorMessage.includes('Transaction was rejected') ||
+                             errorMessage.includes('User cancelled') ||
+                             errorMessage.includes('User canceled');
+      
+      if (isUserRejection) {
+        // Automatically revert state for user rejection
+        setIsApproved(false);
+        setNeedsApproval(true);
+        setErrorMessage("");
+        setShowFailedAlert(false);
+      } else {
+        // Show error for non-user-rejection errors
+        setErrorMessage(`Approval failed: ${errorMessage}`);
+        setShowFailedAlert(true);
+        setIsApproved(false);
+        setNeedsApproval(true);
+      }
+    }
+  }, [isApproveError]);
+
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
@@ -141,7 +173,10 @@ export const useRepay = (
   }, [isError, confirmError]);
 
   const handleApproveToken = async (tokenAddress: HexAddress, spenderAddress: HexAddress, amount: string, decimals: number) => {
+    console.log("Repay handleApproveToken called with:", { tokenAddress, spenderAddress, amount, decimals, address, chainId });
+    
     if (!address) {
+      console.log("No address in repay handleApproveToken");
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
       return;
@@ -149,12 +184,14 @@ export const useRepay = (
 
     const chain = chains.find((c) => c.id === chainId);
     if (!chain) {
+      console.log("Chain not found in repay handleApproveToken:", chainId);
       setErrorMessage("Unsupported chain");
       setShowFailedAlert(true);
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
+      console.log("Invalid amount in repay handleApproveToken:", amount);
       setErrorMessage("Please enter a valid amount");
       setShowFailedAlert(true);
       return;
@@ -164,7 +201,7 @@ export const useRepay = (
     const amountWithBuffer = parseFloat(amount) * 1.1;
     const amountString = amountWithBuffer.toString();
 
-    setIsApproving(true);
+    console.log("Repay calling handleApprove with buffered amount:", amountString);
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
@@ -336,7 +373,7 @@ export const useRepay = (
   return {
     handleApproveToken,
     handleRepayLoan,
-    isRepaying: isRepaying || isWritePending,
+    isRepaying: isRepaying || (isWritePending && !writeError),
     isConfirming,
     isSuccess: isRepaySuccess,
     isError,
@@ -357,7 +394,7 @@ export const useRepay = (
     // Approval states
     needsApproval,
     isApproved,
-    isApproving: isApproving || isApprovePending,
+    isApproving: isApprovePending,
     isApproveConfirming,
     isApproveSuccess: showApproveSuccess,
     isApproveError,

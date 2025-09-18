@@ -210,7 +210,7 @@ export const TokenSearch = memo(function TokenSearch({
                 type="button"
                 key={token.symbol}
                 onClick={() => handleTokenSelect(token)}
-                className="w-full flex items-center justify-between px-4 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:shadow-md hover:shadow-orange-200/20 hover:scale-[1.02] rounded-lg transition-all duration-300 group border border-transparent hover:border-orange-200/50"
+                className="w-full max-w-xl mx-auto flex items-center justify-between px-4 py-4 hover:bg-gradient-to-r hover:from-orange-50 hover:to-pink-50 hover:shadow-md hover:shadow-orange-200/20 hover:scale-[1.02] rounded-lg transition-all duration-300 group border border-transparent hover:border-orange-200/50"
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full overflow-hidden group-hover:scale-110 transition-transform duration-300">

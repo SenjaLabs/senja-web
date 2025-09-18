@@ -42,7 +42,7 @@ export const TokenSelectorDialog = memo(function TokenSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] p-0 bg-white/95 backdrop-blur-sm border border-orange-200 w-[calc(100vw-2rem)] sm:w-full">
+      <DialogContent className="max-w-xl max-h-[80vh] p-0 bg-white/95 backdrop-blur-sm border border-orange-200 w-[calc(100vw-2rem)] sm:w-full">
         <DialogHeader className="p-6 pb-4 relative">
           <DialogTitle className="text-center">{title}</DialogTitle>
           <Button
