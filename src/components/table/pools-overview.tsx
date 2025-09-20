@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PoolSearchControls } from "./pool-search-controls";
 import { ResponsivePoolsTable } from "./responsive-pools-table";
 import { PoolActionsDialog } from "@/components/dialog/pool-actions";
+import { BearyNotFound } from "@/components/search/beary-not-found";
 import {
   fetchLendingPools,
   pairLendingPoolsWithTokens,
@@ -54,7 +54,6 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
       onPoolClick(pool);
     } else {
       // Fallback to internal dialog - but this should not be used when onPoolClick is provided
-      console.warn('PoolsOverview: onPoolClick not provided, using internal dialog. This may cause conflicts.');
       setSelectedPool(pool);
       setIsPoolDialogOpen(true);
     }
@@ -68,14 +67,6 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
     setSelectedPool(null);
   }, []);
 
-  /**
-   * Handle action selection
-   */
-  const handleActionSelect = useCallback((action: string) => {
-    console.log("Action selected:", action);
-    // For actions that need separate dialogs, handle them here
-    // For now, all actions are handled within PoolActionsDialog
-  }, []);
 
 
   // Fetch pools data
@@ -192,22 +183,15 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
             onPoolCreated={handlePoolCreated}
           />
 
-          <Card className="w-full max-w-sm md:max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500">
-            <div className="p-8 md:p-12">
-              <div className="text-center text-gray-500">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mb-6 mx-auto shadow-inner">
-                  <div className="w-8 h-8 bg-gradient-to-br from-gray-300 to-gray-400 rounded"></div>
-                </div>
-                <div className="text-lg font-medium mb-2">No pools found</div>
-                <div className="text-sm">No pools match &quot;{searchQuery}&quot;</div>
-                <div className="mt-4">
-                  <Button onClick={handleClearSearch} variant="outline" size="sm" className="shadow-md hover:shadow-lg transition-shadow">
-                    Clear search
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <BearyNotFound
+            searchQuery={searchQuery}
+            title="No Pools Found"
+            description={`No lending pools found matching "${searchQuery}". Try searching with different keywords.`}
+            onRetry={() => setSearchQuery("")}
+            onClearSearch={handleClearSearch}
+            showRetry={false}
+            showClearSearch={true}
+          />
         </div>
       </div>
     );
@@ -238,7 +222,6 @@ export const PoolsOverview = memo(function PoolsOverview({ onPoolClick }: PoolsO
           isOpen={isPoolDialogOpen}
           onClose={handlePoolDialogClose}
           pool={selectedPool}
-          onActionSelect={handleActionSelect}
         />
       )}
 

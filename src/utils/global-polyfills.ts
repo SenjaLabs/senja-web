@@ -103,7 +103,6 @@ if (typeof window !== 'undefined') {
           const randomBytes = createRandomBytes(n);
           x.set(randomBytes);
         });
-        console.log('TweetNacl PRNG patched successfully');
       }
       
       // Also patch the global randombytes function that tweetnacl might use
@@ -133,5 +132,4 @@ if (typeof window !== 'undefined') {
 // Export the polyfill function
 export const applyGlobalPolyfills = () => {
   // This function can be called to ensure polyfills are applied
-  console.log('Global polyfills applied');
 };

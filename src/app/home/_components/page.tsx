@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PoolsOverview } from "@/components/table/pools-overview";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
-import { WalletConnectionGuard } from "@/components/wallet/wallet-connection-guard";
+import { BearyWalletConnectionGuard } from "@/components/wallet/beary-wallet-connection-guard";
 import { useWalletConnectionGuard } from "@/hooks/useWalletConnectionGuard";
 
 // Import tab components
@@ -78,9 +78,9 @@ const Page = () => {
   }, [isWalletReady, guardSelectedPool, isDialogOpen, isGuardActive, handleWalletReadyAndOpenDialog]);
 
   return (
-    <div className="min-h-screen w-full pb-20 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex items-center justify-center">
+    <div className="min-h-screen w-full pb-20 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex mt-8">
       {/* Mobile-optimized container */}
-      <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 lg:px-8">
+      <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 lg:px-8 -mt-2">
         {/* Pool Overview */}
         <div className="relative">
           <PoolsOverviewWithCustomHandler onPoolClick={handlePoolClick} />
@@ -152,7 +152,7 @@ const Page = () => {
       </div>
 
       {/* Wallet Connection Guard */}
-      <WalletConnectionGuard
+      <BearyWalletConnectionGuard
         isActive={isGuardActive}
         onReady={handleWalletReady}
         onCancel={handleCancelWallet}

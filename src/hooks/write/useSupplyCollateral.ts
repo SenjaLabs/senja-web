@@ -8,6 +8,7 @@ import {
 import { lendingPoolAbi } from "@/lib/abis/lendingPoolAbi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { useApprove } from "./useApprove";
+import { parseAmountToBigInt } from "@/utils/format";
 import { useCurrentChainId } from "@/lib/chain";
 
 export type HexAddress = `0x${string}`;
@@ -50,6 +51,7 @@ export const useSupplyCollateral = (
     isApproving: isApprovePending,
     isConfirming: isApproveConfirming,
     isError: isApproveError,
+    confirmError: approveConfirmError,
   } = useApprove(currentChainId, (txHash) => {
     setIsApproved(true);
     setNeedsApproval(false);
@@ -73,11 +75,12 @@ export const useSupplyCollateral = (
   useEffect(() => {
     if (writeError) {
       // Check if it's a user rejection
-      const isUserRejection = writeError.message?.includes('User rejected') || 
-                             writeError.message?.includes('User denied') ||
-                             writeError.message?.includes('cancelled') ||
-                             writeError.message?.includes('rejected');
-      
+      const isUserRejection =
+        writeError.message?.includes("User rejected") ||
+        writeError.message?.includes("User denied") ||
+        writeError.message?.includes("cancelled") ||
+        writeError.message?.includes("rejected");
+
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
         setErrorMessage("");
@@ -85,7 +88,11 @@ export const useSupplyCollateral = (
         setIsSupplying(false);
         setTxHash(undefined);
       } else {
-        setErrorMessage(`Supply failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setErrorMessage(
+          `Supply failed: ${
+            writeError.message || "Please check your wallet and try again."
+          }`
+        );
         setShowFailedAlert(true);
         setIsSupplying(false);
         setTxHash(undefined);
@@ -95,22 +102,23 @@ export const useSupplyCollateral = (
 
   // Handle approval error
   useEffect(() => {
-    if (isApproveError) {
-      const errorMessage = isApproveError.message || "";
-      
+    if (isApproveError && approveConfirmError) {
+      const errorMessage = approveConfirmError.message || "";
+
       // Check if it's a user rejection with more comprehensive patterns
-      const isUserRejection = errorMessage.includes('User rejected') || 
-                             errorMessage.includes('User denied') ||
-                             errorMessage.includes('cancelled') ||
-                             errorMessage.includes('rejected') ||
-                             errorMessage.includes('user rejected') ||
-                             errorMessage.includes('User rejected the request') ||
-                             errorMessage.includes('User rejected the transaction') ||
-                             errorMessage.includes('User denied transaction') ||
-                             errorMessage.includes('Transaction was rejected') ||
-                             errorMessage.includes('User cancelled') ||
-                             errorMessage.includes('User canceled');
-      
+      const isUserRejection =
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("cancelled") ||
+        errorMessage.includes("rejected") ||
+        errorMessage.includes("user rejected") ||
+        errorMessage.includes("User rejected the request") ||
+        errorMessage.includes("User rejected the transaction") ||
+        errorMessage.includes("User denied transaction") ||
+        errorMessage.includes("Transaction was rejected") ||
+        errorMessage.includes("User cancelled") ||
+        errorMessage.includes("User canceled");
+
       if (isUserRejection) {
         // Automatically revert state for user rejection
         setIsApproved(false);
@@ -128,7 +136,7 @@ export const useSupplyCollateral = (
         setNeedsApproval(true);
       }
     }
-  }, [isApproveError]);
+  }, [isApproveError, approveConfirmError]);
 
   // Handle transaction confirmation error
   useEffect(() => {
@@ -211,9 +219,7 @@ export const useSupplyCollateral = (
       setShowFailedAlert(false);
 
       // Convert amount to BigInt with proper decimal conversion
-      const amountBigInt = BigInt(
-        Math.floor(parseFloat(amount) * Math.pow(10, decimals))
-      );
+      const amountBigInt = parseAmountToBigInt(amount, decimals);
 
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
@@ -224,17 +230,18 @@ export const useSupplyCollateral = (
 
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Supply error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       // Check if it's a user rejection first
-      const isUserRejection = errorMessage.includes('User rejected') || 
-                             errorMessage.includes('User denied') ||
-                             errorMessage.includes('cancelled') ||
-                             errorMessage.includes('rejected') ||
-                             errorMessage.includes('user rejected') ||
-                             errorMessage.includes('User rejected the request');
-      
+      const isUserRejection =
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("cancelled") ||
+        errorMessage.includes("rejected") ||
+        errorMessage.includes("user rejected") ||
+        errorMessage.includes("User rejected the request");
+
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
         setErrorMessage("");
@@ -244,9 +251,13 @@ export const useSupplyCollateral = (
       } else {
         // Provide more specific error messages for other errors
         if (errorMessage.includes("insufficient")) {
-          setErrorMessage("Insufficient balance. Please check your token balance.");
+          setErrorMessage(
+            "Insufficient balance. Please check your token balance."
+          );
         } else if (errorMessage.includes("allowance")) {
-          setErrorMessage("Insufficient allowance. Please approve more tokens.");
+          setErrorMessage(
+            "Insufficient allowance. Please approve more tokens."
+          );
         } else if (errorMessage.includes("network")) {
           setErrorMessage("Network error. Please check your connection.");
         } else {
@@ -279,7 +290,6 @@ export const useSupplyCollateral = (
   };
 
   const resetApproveStates = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplySuccess(false);
@@ -289,7 +299,6 @@ export const useSupplyCollateral = (
   };
 
   const resetAfterSuccess = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplying(false);
@@ -326,6 +335,7 @@ export const useSupplyCollateral = (
     isApproveConfirming,
     isApproveSuccess: showApproveSuccess,
     isApproveError,
+    approveConfirmError,
     resetApproveStates,
     resetAfterSuccess,
     resetSuccessStates,

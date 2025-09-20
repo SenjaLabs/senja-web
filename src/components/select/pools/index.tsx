@@ -16,6 +16,7 @@ import {
   LendingPoolWithTokens,
 } from "@/lib/graphql/lendingpool-list.fetch";
 // Note: Removed useCurrentChainId import as we now fetch from all chains
+import { BearyNotFound } from "@/components/search/beary-not-found";
 import Image from "next/image";
 
 interface PoolSelectorProps {
@@ -291,21 +292,18 @@ export const PoolSelector = memo(function PoolSelector({
                 </div>
               </div>
             ) : filteredPools.length === 0 ? (
-              <div className="p-6 text-center text-gray-500">
-                <div className="text-4xl mb-2">
-                  {searchQuery ? "🔍" : "🏦"}
-                </div>
-                <div className="text-sm">
-                  {searchQuery
-                    ? "No pools found matching your search"
-                    : "No pools available on this network"}
-                </div>
-                {!searchQuery && (
-                  <div className="text-xs text-gray-400 mt-2">
-                    Switch to a different network to see available pools
-                  </div>
-                )}
-              </div>
+              <BearyNotFound
+                searchQuery={searchQuery}
+                title={searchQuery ? "No Pools Found" : "No Pools Available"}
+                description={searchQuery 
+                  ? `No lending pools found matching "${searchQuery}". Try searching with different keywords.`
+                  : "No lending pools are available on this network. Switch to a different network to see available pools."
+                }
+                onRetry={() => setSearchQuery("")}
+                onClearSearch={handleClearSearch}
+                showRetry={!searchQuery}
+                showClearSearch={!!searchQuery}
+              />
             ) : (
               <div className="space-y-2">
                 {filteredPools.map((pool) => (

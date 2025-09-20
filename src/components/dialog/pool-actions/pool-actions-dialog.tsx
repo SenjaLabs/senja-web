@@ -28,6 +28,8 @@ import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
 import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
+import { BearyWalletConnectionGuard } from "@/components/wallet/beary-wallet-connection-guard";
+import { useAccount } from "wagmi";
 import {
   dialogStyles,
   buttonStyles,
@@ -149,6 +151,7 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
     useState<PoolActionType>("supply-collateral");
   const [amount, setAmount] = useState("");
   const currentChainId = useCurrentChainId();
+  const { isConnected } = useAccount();
 
   // Get APY for the pool
   const { apyFormatted } = useReadApy(pool?.lendingPool as `0x${string}`);
@@ -421,6 +424,19 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
   );
 
   if (!pool) return null;
+
+  // If wallet is not connected, show BearyWalletConnectionGuard
+  if (!isConnected) {
+    return (
+      <BearyWalletConnectionGuard
+        isActive={isOpen}
+        onReady={onClose}
+        onCancel={onClose}
+        pool={pool}
+        targetChainId={8217}
+      />
+    );
+  }
 
   return (
     <>

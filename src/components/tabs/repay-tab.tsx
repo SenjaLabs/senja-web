@@ -11,6 +11,8 @@ import { useRepay } from "@/hooks/write/useRepay";
 import { useCurrentChainId } from "@/lib/chain";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
+import { InlineSpinner } from "@/components/ui/spinner";
+import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import Image from "next/image";
 
 interface RepayTabProps {
@@ -78,8 +80,8 @@ const RepayTab = ({ pool }: RepayTabProps) => {
     isApproveSuccess,
     resetSuccessStates,
     // Data states
-    totalBorrowAssets,
-    totalBorrowShares,
+    // totalBorrowAssets,
+    // totalBorrowShares,
     // Refetch functions
     refetchTotalBorrowAssets,
     refetchTotalBorrowShares,
@@ -122,10 +124,8 @@ const RepayTab = ({ pool }: RepayTabProps) => {
   }, [userBorrowSharesFormatted, borrowSharesParsed]);
 
   const handleApprove = async () => {
-    console.log("Repay tab handleApprove called with:", { pool, amount, currentChainId });
     
     if (!pool || !amount || parseFloat(amount) <= 0) {
-      console.log("Invalid pool, amount in repay tab:", { pool: !!pool, amount });
       return;
     }
 
@@ -134,7 +134,6 @@ const RepayTab = ({ pool }: RepayTabProps) => {
     const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
     const spenderAddress = pool.lendingPool as `0x${string}`;
     
-    console.log("Repay approval params:", { tokenAddress, spenderAddress, amount, decimals });
     await handleApproveToken(tokenAddress, spenderAddress, amount, decimals);
   };
 
@@ -145,17 +144,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
 
     const decimals = pool.borrowTokenInfo?.decimals || 18;
     
-    console.log("Repay data from hooks:", {
-      totalBorrowAssets,
-      totalBorrowShares,
-      totalBorrowAssetsString: totalBorrowAssets?.toString(),
-      totalBorrowSharesString: totalBorrowShares?.toString(),
-      amount,
-      decimals,
-      poolAddress: pool.lendingPool,
-      borrowTokenAddress: pool.borrowTokenInfo?.addresses?.[currentChainId],
-      currentChainId,
-    });
+    // Prepare repay data
 
     await handleRepayLoan(amount, decimals);
   };
@@ -171,7 +160,13 @@ const RepayTab = ({ pool }: RepayTabProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <BearyTabGuard
+      showGuard={true}
+      tabName="Repay"
+      title="Connect Wallet to Repay Loans"
+      message="Connect your wallet to repay your borrowed assets!"
+    >
+      <div className="space-y-6">
       {/* Pool Information Card */}
       <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
         <div className="grid grid-cols-2 gap-4">
@@ -208,7 +203,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
           <div>
             <p className="text-sm text-amber-600 mb-1">Interest Rate:</p>
             <p className="font-semibold text-amber-800">
-              {apyLoading ? "Loading..." : borrowAPY}%
+              {apyLoading ? <InlineSpinner size="sm" /> : `${borrowAPY}%`}
             </p>
           </div>
           <div>
@@ -415,7 +410,8 @@ const RepayTab = ({ pool }: RepayTabProps) => {
           buttonText="Close"
         />
       )}
-    </div>
+      </div>
+    </BearyTabGuard>
   );
 };
 

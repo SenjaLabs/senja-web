@@ -33,14 +33,17 @@ export const useReadExchangeRate = (
       userPosition as `0x${string}`,
     ],
     query: {
-      enabled: !!userPosition && !userPositionLoading && !userPositionError && !!fromTokenAddress && !!toTokenAddress,
+      enabled: !!userPosition && !userPositionLoading && !userPositionError && !!fromTokenAddress && !!toTokenAddress && amountIn > 0,
+      refetchInterval: 30000, // Refetch every 30 seconds to reduce API calls
+      staleTime: 20000, // Consider data fresh for 20 seconds
     },
   });
 
   // Parse exchange rate - the contract returns amount out in token out decimals
   // We need to convert it to human readable format by dividing by toTokenDecimals
-  const parsedExchangeRate = exchangeRate
-    ? Number(exchangeRate) / Math.pow(10, toTokenDecimals)
+  // Also account for the input amount to get the actual rate per unit
+  const parsedExchangeRate = exchangeRate && amountIn > 0
+    ? (Number(exchangeRate) / Math.pow(10, toTokenDecimals)) / (amountIn / Math.pow(10, fromTokenDecimals))
     : 0;
 
   return {

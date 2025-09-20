@@ -41,8 +41,7 @@ export const useReadApy = (lendingPoolAddress?: HexAddress) => {
       // Use supplyAPY and convert from 5 decimal places to percentage
       const apyNumber = Number(supplyAPY) / Math.pow(10, 5);
       return apyNumber.toFixed(5);
-    } catch (error) {
-      console.error("Error formatting APY:", error);
+    } catch {
       return "0.00000";
     }
   };

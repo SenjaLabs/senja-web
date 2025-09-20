@@ -78,9 +78,9 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
         await connect({ connector: connectors[0] });
         // Wait a bit for connection to complete
         await new Promise(resolve => setTimeout(resolve, 1000));
-      } catch (error) {
-        console.error("Wallet connection failed:", error);
+      } catch (connectError) {
         setError("Failed to connect wallet. Please try again.");
+        console.error("Connection error:", connectError);
         return;
       }
     }
@@ -115,16 +115,6 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
         throw new Error("Shares amount too small");
       }
 
-      console.log("Attempting transaction with:", {
-        address: lendingPoolAddress,
-        shares: sharesBigInt.toString(),
-        chainId,
-        userAddress: address,
-        decimalMultiplier,
-        parsedShares,
-        abiFunction: "withdrawLiquidity",
-        abiLength: lendingPoolAbi.length
-      });
 
       // Validate contract address
       if (!lendingPoolAddress || lendingPoolAddress === "0x0000000000000000000000000000000000000000") {
@@ -137,13 +127,6 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
         throw new Error(`Unsupported chain ID: ${chainId}`);
       }
 
-      console.log("Chain validation:", {
-        chainId,
-        chainName: currentChain.name,
-        contractAddress: lendingPoolAddress,
-        isAddressValid: lendingPoolAddress.startsWith("0x") && lendingPoolAddress.length === 42,
-        chainLendingPoolAddress: currentChain.contracts.lendingPool
-      });
 
       // Use chain's lending pool address if available, otherwise use pool address from API
       let finalContractAddress = lendingPoolAddress;
@@ -151,11 +134,9 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
       // First priority: Use chain's lending pool address if available
       if (currentChain.contracts.lendingPool && currentChain.contracts.lendingPool.length > 0) {
         finalContractAddress = currentChain.contracts.lendingPool as HexAddress;
-        console.log("Using chain's lending pool address:", finalContractAddress);
       } else if (lendingPoolAddress && lendingPoolAddress.length > 0 && lendingPoolAddress !== "0x0000000000000000000000000000000000000000") {
         // Second priority: Use pool address from API
         finalContractAddress = lendingPoolAddress;
-        console.log("Using pool address from API:", finalContractAddress);
       } else {
         throw new Error(`No valid lending pool address found for chain ${currentChain.name}`);
       }
@@ -169,15 +150,8 @@ export const useWithdrawLiquidity = (chainId: number, decimals: number, _onSucce
         value: BigInt(0), // Explicitly set value to 0 for payable functions
       });
 
-      console.log("Transaction successful:", {
-        hash: tx,
-        contractAddress: finalContractAddress,
-        functionName: "withdrawLiquidity",
-        shares: sharesBigInt.toString()
-      });
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Transaction failed:", error);
       
       // Check if it's a user rejection
       const errorMessage = error instanceof Error ? error.message : "Please check your wallet and try again.";

@@ -67,17 +67,27 @@ export const ChainSelector = ({
               <SelectItem
                 key={chain.id}
                 value={chain.id.toString()}
-                className="hover:bg-orange-50"
+                className={`hover:bg-orange-50 ${
+                  chain.disabled ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={chain.disabled}
               >
-                <div className="flex items-center space-x-2">
-                  <Image
-                    src={chain.logo}
-                    alt={chain.name}
-                    className="rounded-full"
-                    width={20}
-                    height={20}
-                  />
-                  <span>{chain.name}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={chain.logo}
+                      alt={chain.name}
+                      className="rounded-full"
+                      width={20}
+                      height={20}
+                    />
+                    <span className={chain.disabled ? 'text-gray-400' : ''}>{chain.name}</span>
+                  </div>
+                  {chain.comingSoon && (
+                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full font-medium">
+                      Coming Soon
+                    </span>
+                  )}
                 </div>
               </SelectItem>
             ))}

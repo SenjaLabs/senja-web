@@ -108,17 +108,6 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
       // If destination endpoint is 30150 (Kaia), fee is 0
       const finalGasFee = destinationEndpoint === 30150 ? BigInt(0) : gasFee;
 
-      console.log("Borrow attempt:", {
-        lendingPoolAddress,
-        amount,
-        amountBigInt: amountBigInt.toString(),
-        borrowTokenDecimals,
-        destinationChainId,
-        destinationEndpoint,
-        gasFee: finalGasFee.toString(),
-        isKaiaEndpoint: destinationEndpoint === 30150,
-        address
-      });
 
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
@@ -135,7 +124,6 @@ export const useBorrow = (chainId: number, onSuccess: () => void) => {
 
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Borrow error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       
       // Check if it's a user rejection first

@@ -84,8 +84,7 @@ export const useReadTotalSupplyAssets = (lendingPoolAddress?: HexAddress, tokenA
   const formatTotalSupplyAssets = (rawData: bigint) => {
     try {
       return formatUnits(rawData, decimals);
-    } catch (error) {
-      console.error("Error formatting total supply assets:", error);
+    } catch {
       return "0";
     }
   };

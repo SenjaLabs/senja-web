@@ -5,6 +5,7 @@ import { TransactionTable } from "./TransactionTable";
 import { TransactionFilter } from "./TransactionFilter";
 import { useTransactions } from "./api";
 import { useWagmiWallet } from "@/hooks/useWagmiWallet";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 
 const PAGE_SIZE = 8;
@@ -37,7 +38,7 @@ const HistoryClient = memo(function HistoryClient() {
   const hasPrev = page > 0;
 
   return (
-    <div className="min-h-screen w-full pb-20 pt-4 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex items-center justify-center">
+    <div className="min-h-screen w-full pb-20 pt-4 relative overflow-hidden bg-gradient-to-br from-senja-background via-senja-cream/30 to-senja-cream-light/40 flex  justify-center">
       {/* Mobile-optimized container - same width as navbar */}
       <div className="w-full max-w-xl mx-auto px-3 sm:px-0">
         <div className="relative">
@@ -82,14 +83,14 @@ const HistoryClient = memo(function HistoryClient() {
                   onClick={() => setPage((p) => Math.max(0, p - 1))}
                   disabled={loading || !hasPrev}
                 >
-                  Previous
+                  <ChevronLeft />
                 </button>
                 <button
                   className="px-6 py-2 rounded-lg bg-gradient-to-r from-orange-100 to-pink-100 text-gray-700 hover:from-orange-200 hover:to-pink-200 disabled:opacity-50 transition-all duration-300 font-semibold"
                   onClick={() => setPage((p) => p + 1)}
                   disabled={loading || !hasNext}
                 >
-                  Next
+                  <ChevronRight />
                 </button>
               </div>
             </>

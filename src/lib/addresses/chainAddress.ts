@@ -31,11 +31,27 @@ export const chains: Chain[] = [
     destinationEndpoint: 30111,
     name: "Optimism",
     logo: "/chain/optimism-logo.svg",
+    disabled: true,
+    comingSoon: true,
     contracts: {
       lendingPool: "",
       factory: "",
       position: "",
       blockExplorer: "https://optimism.etherscan.io",
+    },
+  },
+  {
+    id: 999,
+    destinationEndpoint: 30111,
+    name: "Hyperliquid EVM",
+    logo: "/chain/hyper-evm.png",
+    disabled: true,
+    comingSoon: true,
+    contracts: {
+      lendingPool: "",
+      factory: "",
+      position: "",
+      blockExplorer: "https://hyperevmscan.io",
     },
   },
 ];

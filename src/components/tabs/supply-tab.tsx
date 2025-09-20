@@ -13,6 +13,8 @@ import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useRefetch } from "@/hooks/useRefetch";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
+import { InlineSpinner } from "@/components/ui/spinner";
+import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import Image from "next/image";
 
 // Utility function to format large numbers
@@ -182,30 +184,24 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
    * Handle approve token
    */
   const handleApprove = useCallback(async () => {
-    console.log("Supply tab handleApprove called with:", { pool, amount, supplyType, currentChainId });
     
     if (!pool || !amount || parseFloat(amount) <= 0) {
-      console.log("Invalid pool, amount, or supplyType:", { pool: !!pool, amount, supplyType });
       return;
     }
 
     if (supplyType === "liquidity") {
-      console.log("Approving liquidity token");
       resetSuccessStatesLiquidity();
       const decimals = pool.borrowTokenInfo?.decimals || 18;
       const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
       const spenderAddress = pool.lendingPool as `0x${string}`;
       
-      console.log("Liquidity approval params:", { tokenAddress, spenderAddress, amount, decimals });
       await handleApproveTokenLiquidity(tokenAddress, spenderAddress, amount, decimals);
     } else if (supplyType === "collateral") {
-      console.log("Approving collateral token");
       resetSuccessStatesCollateral();
       const decimals = pool.collateralTokenInfo?.decimals || 18;
       const tokenAddress = pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`;
       const spenderAddress = pool.lendingPool as `0x${string}`;
       
-      console.log("Collateral approval params:", { tokenAddress, spenderAddress, amount, decimals });
       await handleApproveTokenCollateral(tokenAddress, spenderAddress, amount, decimals);
     }
   }, [amount, pool, supplyType, handleApproveTokenLiquidity, handleApproveTokenCollateral, currentChainId, resetSuccessStatesLiquidity, resetSuccessStatesCollateral]);
@@ -240,7 +236,13 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <BearyTabGuard
+      showGuard={true}
+      tabName="Supply"
+      title="Connect Wallet to Supply Assets"
+      message="Connect your wallet to supply liquidity or collateral to this lending pool!"
+    >
+      <div className="space-y-6">
       <Tabs value={supplyType} onValueChange={setSupplyType} className="w-full">
         <TabsList className="grid h-12 w-full grid-cols-2 bg-orange-50 border-2 border-orange-200 rounded-lg p-1 shadow-lg">
           <TabsTrigger 
@@ -290,7 +292,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">APY:</p>
-                  <p className="font-semibold text-amber-800">{apyLoading ? "Loading..." : supplyAPY}%</p>
+                  <p className="font-semibold text-amber-800">{apyLoading ? <InlineSpinner size="sm" /> : `${supplyAPY}%`}</p>
                 </div>
                 <div>
                   <p className="text-sm text-amber-600 mb-1">LTV:</p>
@@ -308,7 +310,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
                     <span className="text-sm text-gray-700">Balance:</span>
                     <span className="text-md font-bold text-orange-700">
                       {walletBalanceLoading ? (
-                        "Loading..."
+                        <InlineSpinner size="sm" />
                       ) : (
                         `${formatLargeNumber(userWalletBalanceFormatted || "0.00")} ${pool.borrowTokenInfo?.symbol}`
                       )}
@@ -396,7 +398,7 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
                     <span className="text-sm text-gray-700">Balance:</span>
                     <span className="text-md font-bold text-orange-700">
                       {walletBalanceLoading ? (
-                        "Loading..."
+                        <InlineSpinner size="sm" />
                       ) : (
                         `${formatLargeNumber(userWalletBalanceFormatted || "0.00")} ${pool.collateralTokenInfo?.symbol}`
                       )}
@@ -594,7 +596,8 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
           buttonText="Close"
         />
       )}
-    </div>
+      </div>
+    </BearyTabGuard>
   );
 };
 

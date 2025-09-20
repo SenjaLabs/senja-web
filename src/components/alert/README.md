@@ -26,7 +26,7 @@ import { SuccessAlert } from '@/components/alert'
   title="Transaksi Berhasil! 🎉"
   description="Transaksi Anda telah berhasil diproses."
   buttonText="Oke, Terima Kasih!"
-  onButtonClick={() => console.log('Success!')}
+  onButtonClick={() => alert('Success!')}
 />
 ```
 
@@ -71,7 +71,7 @@ import { BearyAlert } from '@/components/alert'
   description="Custom description" // Optional
   buttonText="Custom Button" // Optional
   showSparkles={true} // Hanya untuk type="success"
-  onButtonClick={() => console.log('Clicked!')}
+  onButtonClick={() => alert('Clicked!')}
 />
 ```
 

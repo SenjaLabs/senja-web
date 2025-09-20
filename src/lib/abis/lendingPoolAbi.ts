@@ -20,6 +20,19 @@ export const lendingPoolAbi = [
   },
   {
     type: "function",
+    name: "VERSION",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "borrowDebt",
     inputs: [
       {
@@ -145,6 +158,11 @@ export const lendingPoolAbi = [
         name: "_user",
         type: "address",
         internalType: "address",
+      },
+      {
+        name: "_slippageTolerance",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [],
@@ -386,7 +404,7 @@ export const lendingPoolAbi = [
         internalType: "uint256",
       },
       {
-      name: "shares",
+        name: "shares",
         type: "uint256",
         indexed: false,
         internalType: "uint256",

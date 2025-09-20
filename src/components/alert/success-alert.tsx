@@ -54,17 +54,13 @@ export function SuccessAlert({
   const getBlockExplorerUrl = (hash: string, chainId?: number) => {
     if (!chainId) return ""
     
-    const blockExplorers: Record<number, string> = {
-      84532: "https://sepolia.basescan.org/tx/", // Base Sepolia
-      8217: "https://kaiascan.io/tx/", // Kaia
-      10: "https://optimism.etherscan.io/tx/", // Optimism
-      1: "https://etherscan.io/tx/", // Ethereum
-      137: "https://polygonscan.com/tx/", // Polygon
-      42161: "https://arbiscan.io/tx/", // Arbitrum
+    // For Kaia chain (8217), use kaiascan.io
+    if (chainId === 8217) {
+      return `https://kaiascan.io/tx/${hash}`
     }
     
-    const baseUrl = blockExplorers[chainId]
-    return baseUrl ? `${baseUrl}${hash}` : ""
+    // For all other chains, use LayerZero Scan
+    return `https://layerzeroscan.com/tx/${hash}`
   }
 
   const blockExplorerUrl = txHash && chainId ? getBlockExplorerUrl(txHash, chainId) : ""

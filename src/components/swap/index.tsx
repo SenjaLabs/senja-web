@@ -6,7 +6,6 @@ import { memo, useCallback } from "react";
 import { Token } from "@/types";
 import { useSwapCollateral } from "@/hooks/write/useSwapCollateral";
 import { useCurrentChainId } from "@/lib/chain";
-//import { useReadUserPosition } from "@/hooks/read/readUserPosition";
 
 export default memo(function SwapPage() {
   const { liff, liffError } = useLiff();
@@ -14,11 +13,7 @@ export default memo(function SwapPage() {
 
   const {
     handleSwapCollateral,
-    handleApproveToken,
     isSwapping,
-    isApproved,
-    needsApproval,
-    isApproving,
     showSuccessAlert,
     showFailedAlert,
     errorMessage,
@@ -38,30 +33,19 @@ export default memo(function SwapPage() {
   ) => {
     if (liff && selectedPoolAddress && userPositionAddress) {
       try {
-        if (needsApproval) {
-          // Approve the token first
-          await handleApproveToken(
-            fromToken.addresses[currentChainId] as `0x${string}`,
-            userPositionAddress as `0x${string}`,
-            amount,
-            fromToken.decimals
-          );
-        } else {
-          // Execute the swap directly
-          await handleSwapCollateral(
-            userPositionAddress as `0x${string}`,
-            fromToken.addresses[currentChainId] as `0x${string}`,
-            toToken.addresses[currentChainId] as `0x${string}`,
-            amount,
-            fromToken.decimals,
-            300 // 3% slippage tolerance
-          );
-        }
+        // Execute the swap directly
+        await handleSwapCollateral(
+          userPositionAddress as `0x${string}`,
+          fromToken.addresses[currentChainId] as `0x${string}`,
+          toToken.addresses[currentChainId] as `0x${string}`,
+          amount,
+          fromToken.decimals || 18
+        );
       } catch (error) {
         console.error("Swap failed:", error);
       }
     }
-  }, [liff, handleSwapCollateral, handleApproveToken, needsApproval, currentChainId]);
+  }, [liff, handleSwapCollateral, currentChainId]);
 
   if (liffError) {
     return (
@@ -94,9 +78,6 @@ export default memo(function SwapPage() {
           <SwapInterface 
             onSwap={handleSwap}
             isSwapping={isSwapping}
-            isApproved={isApproved}
-            needsApproval={needsApproval}
-            isApproving={isApproving}
             showSuccessAlert={showSuccessAlert}
             showFailedAlert={showFailedAlert}
             errorMessage={errorMessage}

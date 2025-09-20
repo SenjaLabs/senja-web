@@ -86,8 +86,7 @@ export async function fetchUserTransactions(
     );
 
     return transformGraphQLResponse(data);
-  } catch (error) {
-    console.error('Error fetching user transactions:', error);
+  } catch {
     throw new Error('Failed to fetch transaction history');
   }
 }
@@ -106,8 +105,7 @@ export async function fetchAllTransactions(
     );
 
     return transformGraphQLResponse(data);
-  } catch (error) {
-    console.error('Error fetching all transactions:', error);
+  } catch {
     throw new Error('Failed to fetch transaction history');
   }
 }

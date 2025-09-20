@@ -13,37 +13,22 @@ export const useWagmiWallet = () => {
   });
 
   const connectWallet = async () => {
-    try {
-      await connect({ connector: connectors[0] });
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      throw error;
-    }
+    await connect({ connector: connectors[0] });
   };
 
   const disconnectWallet = async () => {
-    try {
-      await disconnect();
-    } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
-      throw error;
-    }
+    await disconnect();
   };
 
   const switchNetwork = async (targetChainId: number) => {
-    try {
-      // Check if the chain is supported
-      const supportedChains = [base, kaia, optimism];
-      const targetChain = supportedChains.find(chain => chain.id === targetChainId);
-      if (!targetChain) {
-        throw new Error(`Chain with ID ${targetChainId} is not supported`);
-      }
-
-      await switchChain({ chainId: targetChainId });
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-      throw error;
+    // Check if the chain is supported
+    const supportedChains = [base, kaia, optimism];
+    const targetChain = supportedChains.find(chain => chain.id === targetChainId);
+    if (!targetChain) {
+      throw new Error(`Chain with ID ${targetChainId} is not supported`);
     }
+
+    await switchChain({ chainId: targetChainId });
   };
 
   const getCurrentChain = () => {

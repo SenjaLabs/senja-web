@@ -4,6 +4,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { isUserRejection } from "@/utils/error-handling";
+import { parseAmountToBigInt } from "@/utils/format";
 
 export type HexAddress = `0x${string}`;
 
@@ -60,40 +61,25 @@ export const useApprove = (chainId: number, onSuccess?: (txHash?: HexAddress) =>
   }, [isError, confirmError]);
 
   const handleApprove = async (tokenAddress: HexAddress, spenderAddress: HexAddress, amount: string, decimals: number) => {
-    console.log("handleApprove called with:", { tokenAddress, spenderAddress, amount, decimals, address, chainId });
-    
     if (!address) {
-      console.log("No address found");
       return;
     }
 
     const chain = chains.find((c) => c.id === chainId);
     if (!chain) {
-      console.log("Chain not found for chainId:", chainId);
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      console.log("Invalid amount:", amount);
       return;
     }
 
     try {
-      console.log("Setting isApproving to true");
       setIsApproving(true);
       setTxHash(undefined);
 
       // Convert amount to BigInt with proper decimal conversion
-      const amountBigInt = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)));
-
-      console.log("Approve attempt:", {
-        tokenAddress,
-        spenderAddress,
-        amount,
-        amountBigInt: amountBigInt.toString(),
-        decimals,
-        chainId
-      });
+      const amountBigInt = parseAmountToBigInt(amount, decimals);
 
       const tx = await writeContractAsync({
         address: tokenAddress,
@@ -102,20 +88,16 @@ export const useApprove = (chainId: number, onSuccess?: (txHash?: HexAddress) =>
         args: [spenderAddress, amountBigInt],
       });
 
-      console.log("Approve transaction sent:", tx);
       setTxHash(tx as HexAddress);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.log("Approve error caught:", errorMessage);
       
       if (isUserRejection(errorMessage)) {
         // Don't log error for user rejection, just reset state
-        console.log("User rejection detected, resetting state");
         setIsApproving(false);
         setTxHash(undefined);
       } else {
         // Only log non-user-rejection errors
-        console.error("Approve error:", error);
         setIsApproving(false);
         setTxHash(undefined);
       }

@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Crosschain Lending Protocol",
-  description: "lp",
+  title: "Senja Labs",
+  description: "Cross Chain Lending and Borrowing",
 };
 
 export default function RootLayout({

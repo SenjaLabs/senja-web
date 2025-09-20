@@ -109,15 +109,6 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
         throw new Error("Amount too small");
       }
 
-      console.log("Attempting withdraw collateral transaction with:", {
-        address: lendingPoolAddress,
-        amount: amountBigInt.toString(),
-        chainId,
-        userAddress: address,
-        decimalMultiplier,
-        parsedAmount,
-        abiFunction: "withdrawCollateral"
-      });
 
       // Validate contract address
       if (!lendingPoolAddress || lendingPoolAddress === "0x0000000000000000000000000000000000000000") {
@@ -132,15 +123,8 @@ export const useWithdrawCollateral = (chainId: number, decimals: number, onSucce
         chainId: chainId,
       });
 
-      console.log("Transaction successful:", {
-        hash: tx,
-        contractAddress: lendingPoolAddress,
-        functionName: "withdrawCollateral",
-        amount: amountBigInt.toString()
-      });
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Transaction failed:", error);
       
       // Check if it's a user rejection
       const errorMessage = error instanceof Error ? error.message : "Please check your wallet and try again.";

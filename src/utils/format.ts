@@ -70,17 +70,39 @@ export const parseAmountToBigInt = (amount: string, decimals: number): bigint =>
     }
 
     const cleanAmount = amount.trim();
+    
+    if (!/^[0-9]*\.?[0-9]*$/.test(cleanAmount)) {
+        throw new Error(`Invalid amount format: ${amount}`);
+    }
+    
     const numAmount = parseFloat(cleanAmount);
     
     if (isNaN(numAmount) || numAmount < 0) {
         throw new Error(`Invalid amount: ${amount}`);
     }
 
-    // Convert to BigInt with proper decimal conversion
-    const decimalMultiplier = Math.pow(10, decimals);
-    const amountBigInt = BigInt(Math.floor(numAmount * decimalMultiplier));
+    // Use BigInt arithmetic to avoid floating-point precision issues
+    const decimalMultiplier = BigInt(10) ** BigInt(decimals);
     
-    return amountBigInt;
+    // Split the amount into integer and fractional parts
+    const parts = cleanAmount.split('.');
+    const integerPart = parts[0] || '0';
+    const fractionalPart = parts[1] || '';
+    
+    // Convert integer part to BigInt
+    const integerBigInt = BigInt(integerPart) * decimalMultiplier;
+    
+    // Convert fractional part to BigInt (pad or truncate to match decimals)
+    let fractionalBigInt = BigInt(0);
+    if (fractionalPart.length > 0) {
+        const paddedFractional = fractionalPart.padEnd(decimals, '0').slice(0, decimals);
+        if (paddedFractional.length > 0 && paddedFractional !== '0'.repeat(paddedFractional.length)) {
+            const fractionalMultiplier = BigInt(10) ** BigInt(decimals - paddedFractional.length);
+            fractionalBigInt = BigInt(paddedFractional) * fractionalMultiplier;
+        }
+    }
+    
+    return integerBigInt + fractionalBigInt;
 };
 
 /**
@@ -92,8 +114,36 @@ export const parseAmountToBigInt = (amount: string, decimals: number): bigint =>
 export const parseAmountToBigIntSafe = (amount: string, decimals: number): bigint => {
     try {
         return parseAmountToBigInt(amount, decimals);
-    } catch (error) {
-        console.warn('Failed to parse amount:', amount, error);
+    } catch {
         return BigInt(0);
+    }
+};
+
+/**
+ * Format large numbers with appropriate suffixes (K, M, B, T)
+ * @param value - Number as string or number
+ * @returns Formatted number string with suffix
+ */
+export const formatLargeNumber = (value: string | number): string => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    
+    if (isNaN(num) || num === 0) {
+        return '0';
+    }
+    
+    const absNum = Math.abs(num);
+    
+    if (absNum >= 1e12) {
+        return (num / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
+    } else if (absNum >= 1e9) {
+        return (num / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+    } else if (absNum >= 1e6) {
+        return (num / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+    } else if (absNum >= 1e3) {
+        return (num / 1e3).toFixed(2).replace(/\.?0+$/, '') + 'K';
+    } else if (absNum >= 1) {
+        return num.toFixed(6).replace(/\.?0+$/, '');
+    } else {
+        return num.toFixed(8).replace(/\.?0+$/, '');
     }
 };

@@ -38,8 +38,7 @@ export const useReadUserCollateral = (
       // Use dynamic decimal places based on token decimals
       const decimalPlaces = Math.min(decimal, 6); // Cap at 6 decimal places for display
       return userCollateralNumber.toFixed(decimalPlaces);
-    } catch (error) {
-      console.error("Error formatting user collateral:", error);
+    } catch {
       return "0.00000";
     }
   };

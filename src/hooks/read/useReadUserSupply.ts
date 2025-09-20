@@ -44,8 +44,7 @@ const { routerAddress } = useReadRouterAddress(lendingPoolAddress);
       const result = userSupplySharesNumber.toFixed(decimalPlaces);
       
       return result;
-    } catch (error) {
-      console.error("Error formatting user supply shares:", error);
+    } catch {
       return "0.00000";
     }
   };

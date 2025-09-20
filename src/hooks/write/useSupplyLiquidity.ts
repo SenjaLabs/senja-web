@@ -6,6 +6,7 @@ import { chains } from "@/lib/addresses/chainAddress";
 import { useApprove } from "./useApprove";
 import { useCurrentChainId } from "@/lib/chain";
 import { isUserRejection } from "@/utils/error-handling";
+import { parseAmountToBigInt } from "@/utils/format";
 
 export type HexAddress = `0x${string}`;
 
@@ -82,7 +83,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   // Handle approval error
   useEffect(() => {
     if (isApproveError) {
-      const errorMessage = isApproveError.message || "";
+      const errorMessage = (isApproveError as unknown as Error)?.message || "";
       
       if (isUserRejection(errorMessage)) {
         // Automatically revert state for user rejection
@@ -114,10 +115,8 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   }, [isError, confirmError]);
 
   const handleApproveToken = async (tokenAddress: HexAddress, spenderAddress: HexAddress, amount: string, decimals: number) => {
-    console.log("handleApproveToken called with:", { tokenAddress, spenderAddress, amount, decimals, address, chainId });
     
     if (!address) {
-      console.log("No address in handleApproveToken");
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
       return;
@@ -125,14 +124,12 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
 
     const chain = chains.find((c) => c.id === chainId);
     if (!chain) {
-      console.log("Chain not found in handleApproveToken:", chainId);
       setErrorMessage("Unsupported chain");
       setShowFailedAlert(true);
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      console.log("Invalid amount in handleApproveToken:", amount);
       setErrorMessage("Please enter a valid amount");
       setShowFailedAlert(true);
       return;
@@ -142,7 +139,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     const amountWithBuffer = parseFloat(amount) * 1.1;
     const amountString = amountWithBuffer.toString();
 
-    console.log("Calling handleApprove with buffered amount:", amountString);
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
@@ -177,16 +173,8 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       setTxHash(undefined);
 
       // Convert amount to BigInt with proper decimal conversion
-      const amountBigInt = BigInt(Math.floor(parseFloat(amount) * Math.pow(10, decimals)));
+      const amountBigInt = parseAmountToBigInt(amount, decimals);
 
-      console.log("Supply attempt:", {
-        lendingPoolAddress,
-        amount,
-        amountBigInt: amountBigInt.toString(),
-        decimals,
-        isApproved,
-        address
-      });
 
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
@@ -197,7 +185,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
 
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Supply error:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       
       // Check if it's a user rejection first
@@ -252,7 +239,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   };
 
   const resetApproveStates = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplySuccess(false);
@@ -262,7 +248,6 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
   };
 
   const resetAfterSuccess = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsSupplying(false);

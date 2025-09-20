@@ -16,6 +16,7 @@ import { SuccessAlert, FailedAlert } from "@/components/alert";
 import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
 import { useCurrentChainId } from "@/lib/chain";
 import { useReadExchangeRate } from "@/hooks/read/useReadExchangeRate";
+import { TokenBalanceTable } from "./token-balance-table";
 
 /**
  * Props for the SwapInterface component
@@ -227,7 +228,7 @@ export const SwapInterface = memo(function SwapInterface({
                 <span className="text-sm font-medium text-gray-700">Sell</span>
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-500">
-                    Balance: {fromTokenBalance || "0.00000"}
+                    Balance: {fromTokenBalance || "0.000000"}
                   </span>
                   {fromTokenBalance &&
                     parseFloat(fromTokenBalance.toString()) > 0 && (
@@ -362,7 +363,7 @@ export const SwapInterface = memo(function SwapInterface({
               >
                 {!fromTokenBalance ||
                 parseFloat(fromTokenBalance.toString()) === 0
-                  ? "Insufficient balance"
+                  ? "Enter Amount"
                   : "Enter amount"}
               </Button>
             ) : fromAmount &&
@@ -500,6 +501,13 @@ export const SwapInterface = memo(function SwapInterface({
           title="Swap Failed"
           description={errorMessage}
         />
+      )}
+      
+      {/* Token Balance Table - only show if user has position */}
+      {userPosition && userPosition !== "0x0000000000000000000000000000000000000000" && (
+        <div className="mt-6">
+          <TokenBalanceTable selectedPool={selectedPool} />
+        </div>
       )}
     </div>
   );

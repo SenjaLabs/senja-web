@@ -30,6 +30,10 @@ export interface Chain {
   name: string;
   /** URL or path to the chain logo image */
   logo: string;
+  /** Whether this chain is disabled for selection */
+  disabled?: boolean;
+  /** Whether to show "Coming Soon" label */
+  comingSoon?: boolean;
   /** Smart contract addresses for this chain */
   contracts: {
     lendingPool: string;

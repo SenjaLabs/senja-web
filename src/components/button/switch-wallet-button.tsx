@@ -104,14 +104,16 @@ export default function SwitchChainButton({
               {allChains.map((chain) => (
                 <button
                   key={chain.id}
-                  onClick={() => handleSwitchChain(chain.id)}
-                  disabled={isPending}
-                  className={`group w-full flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] ${
+                  onClick={() => !chain.disabled && handleSwitchChain(chain.id)}
+                  disabled={isPending || chain.disabled}
+                  className={`group w-full flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 transition-all duration-300 transform ${
+                    !chain.disabled ? 'hover:scale-[1.02]' : ''
+                  } ${
                     chainId === chain.id
                       ? "border-orange-400 bg-gradient-to-r from-orange-50 to-pink-50 shadow-lg shadow-orange-200/50"
                       : "border-orange-200 hover:border-orange-300 hover:bg-gradient-to-r hover:from-orange-50/50 hover:to-pink-50/50 hover:shadow-md"
                   } ${
-                    isPending
+                    isPending || chain.disabled
                       ? "opacity-50 cursor-not-allowed scale-95"
                       : "cursor-pointer"
                   }`}
@@ -139,19 +141,24 @@ export default function SwitchChainButton({
                         {chain.name}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full flex-shrink-0"></span>
+                        <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${chain.disabled ? 'bg-gray-400' : 'bg-green-400'} rounded-full flex-shrink-0`}></span>
                         <span className="truncate">Chain ID: {chain.id}</span>
                       </div>
                     </div>
                   </div>
 
-                  {chainId === chain.id && (
-                    <div className="flex items-center space-x-2 flex-shrink-0">
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    {chainId === chain.id && !chain.disabled && (
                       <Badge className="bg-gradient-to-r from-orange-500 to-pink-500 text-white border-0 shadow-md text-xs sm:text-sm">
                         Active
                       </Badge>
-                    </div>
-                  )}
+                    )}
+                    {chain.comingSoon && (
+                      <Badge className="bg-orange-100 text-orange-600 border border-orange-200 text-xs sm:text-sm">
+                        Coming Soon
+                      </Badge>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>

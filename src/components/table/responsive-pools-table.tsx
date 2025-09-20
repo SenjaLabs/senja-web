@@ -4,6 +4,7 @@ import React, { memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { MobilePoolCard } from './mobile-pool-card';
 import { LendingPoolWithTokens } from '@/lib/graphql/lendingpool-list.fetch';
+import { Spinner } from '@/components/ui/spinner';
 
 /**
  * Props for the ResponsivePoolsTable component
@@ -35,7 +36,7 @@ export const ResponsivePoolsTable = memo(function ResponsivePoolsTable({
       <Card className="w-full max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500">
         <div className="p-8 md:p-12">
           <div className="flex flex-col items-center justify-center">
-            <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <Spinner size="lg" className="mb-4" />
             <h4 className="text-lg font-semibold text-gray-800 mb-2">Loading Pools</h4>
             <p className="text-gray-600 text-center">Fetching the latest lending pool data...</p>
           </div>
@@ -67,7 +68,7 @@ export const ResponsivePoolsTable = memo(function ResponsivePoolsTable({
   return (
     <>
       {/* Card View - Show on all screen sizes */}
-      <div className="space-y-3 sm:space-y-4">
+      <div className="space-y-3 sm:space-y-4 mt-2">
         {pools.map((pool) => (
           <MobilePoolCard
             key={pool.id}

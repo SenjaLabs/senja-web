@@ -90,10 +90,8 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
     e.preventDefault();
     e.stopPropagation();
 
-    console.log("Form submitted", { isValid, collateralToken, borrowToken, ltv });
 
     if (!isValid) {
-      console.log("Form is not valid, preventing submission");
       return;
     }
 
@@ -101,11 +99,9 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
     const borrowAddress = borrowToken!.addresses[currentChainId];
 
     if (!collateralAddress || !borrowAddress) {
-      console.log("Missing token addresses", { collateralAddress, borrowAddress, currentChainId });
       return;
     }
 
-    console.log("Creating pool with:", { collateralAddress, borrowAddress, ltv });
     await handleCreate(collateralAddress, borrowAddress, ltv);
   }, [collateralToken, borrowToken, ltv, handleCreate, isValid, currentChainId]);
 

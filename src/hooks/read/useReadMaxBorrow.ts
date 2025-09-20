@@ -21,41 +21,58 @@ export const useReadMaxBorrow = (
     abi: helperAbi,
     functionName: "getMaxBorrowAmount",
     args: [lendingPoolAddress, address as HexAddress],
+    query: {
+      enabled: !!address && !!lendingPoolAddress && lendingPoolAddress !== "0x0000000000000000000000000000000000000000",
+      retry: 2,
+      retryDelay: 1000,
+    },
   });
 
   // Format max borrow with dynamic decimal places
-  const formatMaxBorrow = (rawMaxBorrowData: unknown): string => {
-    if (!rawMaxBorrowData || rawMaxBorrowData === undefined)
-      return "0.00000";
+  const formatMaxBorrow = (rawMaxBorrowData: unknown, hasError: boolean): string => {
+    // If there's an error, return 0 instead of showing error
+    if (hasError || !rawMaxBorrowData || rawMaxBorrowData === undefined)
+      return "0.000000";
 
     try {
       // getMaxBorrowAmount returns bigint
       const maxBorrowBigInt = rawMaxBorrowData as bigint;
 
+      // Handle zero or negative values
+      if (maxBorrowBigInt <= BigInt(0)) {
+        return "0.000000";
+      }
 
-      // Convert from raw bigint to decimal number
-      const maxBorrowNumber =
-        Number(maxBorrowBigInt) / Math.pow(10, decimal);
+      // Convert from raw bigint to decimal number with better precision handling
+      // Use string manipulation to avoid precision loss with large numbers
+      const divisor = BigInt(Math.pow(10, decimal));
+      const quotient = maxBorrowBigInt / divisor;
+      const remainder = maxBorrowBigInt % divisor;
       
+      // Convert to string for precise decimal handling
+      const quotientStr = quotient.toString();
+      const remainderStr = remainder.toString().padStart(decimal, '0');
       
-      // Use dynamic decimal places based on token decimals
-      const decimalPlaces = Math.min(decimal, 6); // Cap at 6 decimal places for display
-      const result = maxBorrowNumber.toFixed(decimalPlaces);
+      // Combine quotient and remainder with decimal point
+      const result = quotientStr + '.' + remainderStr;
       
-      return result;
-    } catch (error) {
-      console.error("Error formatting max borrow:", error);
-      return "0.00000";
+      // Use dynamic decimal places based on token decimals, but cap at 6 for display
+      const decimalPlaces = Math.min(decimal, 6);
+      const formattedResult = parseFloat(result).toFixed(decimalPlaces);
+      
+      return formattedResult;
+    } catch {
+      return "0.000000";
     }
   };
 
-  const maxBorrowFormatted = formatMaxBorrow(maxBorrow);
+  const maxBorrowFormatted = formatMaxBorrow(maxBorrow, !!maxBorrowError);
 
   return {
-    maxBorrow: maxBorrow as bigint | undefined,
+    maxBorrow: maxBorrowError ? BigInt(0) : (maxBorrow as bigint | undefined),
     maxBorrowFormatted,
     maxBorrowLoading: maxBorrowLoading,
-    maxBorrowError: maxBorrowError,
+    maxBorrowError: null, // Always return null for error to prevent error UI
     refetchMaxBorrow,
   };
 };

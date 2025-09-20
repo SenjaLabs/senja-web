@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
+import { BearyNotFound } from "./beary-not-found";
 import Image from "next/image";
 
 interface PoolSearchProps {
@@ -151,23 +152,22 @@ export const PoolSearch = memo(function PoolSearch({
           <div className="p-6 text-center">
             <div className="inline-flex items-center gap-2 text-gray-500">
               <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
-              Loading pools...
+
             </div>
           </div>
         ) : filteredPools.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <div className="text-4xl mb-2">{searchQuery ? "🔍" : "🏦"}</div>
-            <div className="text-sm">
-              {searchQuery
-                ? "No pools found matching your search"
-                : "No pools available on this network"}
-            </div>
-            {!searchQuery && (
-              <div className="text-xs text-gray-400 mt-2">
-                Switch to a different network to see available pools
-              </div>
-            )}
-          </div>
+          <BearyNotFound
+            searchQuery={searchQuery}
+            title={searchQuery ? "No Pools Found" : "No Pools Available"}
+            description={searchQuery 
+              ? `No lending pools found matching "${searchQuery}". Try searching with different keywords.`
+              : "No lending pools are available on this network. Switch to a different network to see available pools."
+            }
+            onRetry={() => onSearchChange("")}
+            onClearSearch={onClearSearch}
+            showRetry={!searchQuery}
+            showClearSearch={!!searchQuery}
+          />
         ) : (
           <div className="space-y-4 sm:space-y-6">
             {filteredPools.map((pool) => (

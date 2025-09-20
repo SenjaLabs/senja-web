@@ -61,7 +61,6 @@ export const useWallet = (): WalletState & WalletActions => {
         // Validate environment variables
         const clientId = process.env.NEXT_PUBLIC_CLIENT_ID;
         if (!clientId) {
-          console.warn('NEXT_PUBLIC_CLIENT_ID not set, falling back to wagmi');
           setUseDappPortal(false);
           setState(prev => ({ 
             ...prev, 
@@ -86,9 +85,7 @@ export const useWallet = (): WalletState & WalletActions => {
           walletType: 'dapp-portal',
           error: null
         }));
-      } catch (error) {
-        console.error('Failed to initialize DApp Portal SDK, falling back to wagmi:', error);
-        
+      } catch {
         // Fallback to wagmi
         setUseDappPortal(false);
         setState(prev => ({ 
@@ -193,13 +190,11 @@ export const useWallet = (): WalletState & WalletActions => {
           }));
         }
       }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+    } catch {
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: errorMessage,
+        error: 'Failed to connect wallet',
       }));
     }
   }, [sdk, useDappPortal, wagmiConnect, connectors]);
@@ -221,8 +216,7 @@ export const useWallet = (): WalletState & WalletActions => {
         account: null,
         error: null,
       }));
-    } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
+    } catch {
       setState(prev => ({ ...prev, error: 'Failed to disconnect wallet' }));
     }
   }, [sdk, useDappPortal, wagmiDisconnect]);
@@ -248,8 +242,7 @@ export const useWallet = (): WalletState & WalletActions => {
         }
         return '0';
       }
-    } catch (error) {
-      console.error('Failed to get balance:', error);
+    } catch {
       throw new Error('Failed to get balance');
     }
   }, [sdk, state.account, useDappPortal, wagmiBalance]);
@@ -273,13 +266,11 @@ export const useWallet = (): WalletState & WalletActions => {
         currentChainId: chainId,
         isLoading: false,
       }));
-    } catch (error) {
-      console.error('Failed to switch network:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to switch network';
+    } catch {
       setState(prev => ({
         ...prev,
         isLoading: false,
-        error: errorMessage,
+        error: 'Failed to switch network',
       }));
     }
   }, [wagmiSwitchChain]);

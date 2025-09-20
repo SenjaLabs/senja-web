@@ -66,7 +66,6 @@ export const useReadPoolApy = (lendingPoolAddress?: string): UseReadPoolApyRetur
         setSupplyAPY("0.00");
       }
     } catch (err) {
-      console.error("Error fetching pool APY:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch APY data");
       setBorrowAPY("0.00");
       setSupplyAPY("0.00");

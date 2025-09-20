@@ -15,6 +15,7 @@ import {
   Clock,
 } from "lucide-react";
 import SwitchWalletButton from "./button/switch-wallet-button";
+import { UserPortfolio } from "./profile/user-portfolio";
 
 const ProfileClient = memo(function ProfileClient() {
   const {
@@ -177,7 +178,7 @@ const ProfileClient = memo(function ProfileClient() {
                         {loadingBalance ? (
                           <div className="flex items-center gap-2">
                             <Clock className="w-3 h-3 animate-spin" />
-                            <span className="hidden sm:inline">Loading...</span>
+                            <span className="hidden sm:inline">Loading</span>
                             <span className="sm:hidden">Loading</span>
                           </div>
                         ) : (
@@ -214,6 +215,9 @@ const ProfileClient = memo(function ProfileClient() {
             )}
           </CardContent>
         </Card>
+
+        {/* User Portfolio Section */}
+        <UserPortfolio className="mb-4 sm:mb-6" />
       </div>
     </div>
   );

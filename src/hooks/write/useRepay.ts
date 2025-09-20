@@ -30,7 +30,6 @@ const calculateUserShares = (
   return BigInt(Math.round(shares));
 };
 
-
 export const useRepay = (
   chainId: number,
   lendingPoolAddress: HexAddress,
@@ -52,7 +51,11 @@ export const useRepay = (
   const [approveTxHash, setApproveTxHash] = useState<HexAddress | undefined>();
   const [showApproveSuccess, setShowApproveSuccess] = useState(false);
 
-  const { writeContractAsync, isPending: isWritePending, error: writeError } = useWriteContract();
+  const {
+    writeContractAsync,
+    isPending: isWritePending,
+    error: writeError,
+  } = useWriteContract();
 
   const {
     isLoading: isConfirming,
@@ -96,7 +99,7 @@ export const useRepay = (
       setTxHash(undefined);
       setShowSuccessAlert(true);
       onSuccess();
-      
+
       // Refetch user borrow shares after successful repay
       if (refetchUserBorrowShares) {
         refetchUserBorrowShares();
@@ -108,11 +111,12 @@ export const useRepay = (
   useEffect(() => {
     if (writeError) {
       // Check if it's a user rejection
-      const isUserRejection = writeError.message?.includes('User rejected') || 
-                             writeError.message?.includes('User denied') ||
-                             writeError.message?.includes('cancelled') ||
-                             writeError.message?.includes('rejected');
-      
+      const isUserRejection =
+        writeError.message?.includes("User rejected") ||
+        writeError.message?.includes("User denied") ||
+        writeError.message?.includes("cancelled") ||
+        writeError.message?.includes("rejected");
+
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
         setErrorMessage("");
@@ -120,7 +124,11 @@ export const useRepay = (
         setIsRepaying(false);
         setTxHash(undefined);
       } else {
-        setErrorMessage(`Repay failed: ${writeError.message || "Please check your wallet and try again."}`);
+        setErrorMessage(
+          `Repay failed: ${
+            writeError.message || "Please check your wallet and try again."
+          }`
+        );
         setShowFailedAlert(true);
         setIsRepaying(false);
         setTxHash(undefined);
@@ -131,21 +139,22 @@ export const useRepay = (
   // Handle approval error
   useEffect(() => {
     if (isApproveError) {
-      const errorMessage = isApproveError.message || "";
-      
+      const errorMessage = "Approval failed";
+
       // Check if it's a user rejection with more comprehensive patterns
-      const isUserRejection = errorMessage.includes('User rejected') || 
-                             errorMessage.includes('User denied') ||
-                             errorMessage.includes('cancelled') ||
-                             errorMessage.includes('rejected') ||
-                             errorMessage.includes('user rejected') ||
-                             errorMessage.includes('User rejected the request') ||
-                             errorMessage.includes('User rejected the transaction') ||
-                             errorMessage.includes('User denied transaction') ||
-                             errorMessage.includes('Transaction was rejected') ||
-                             errorMessage.includes('User cancelled') ||
-                             errorMessage.includes('User canceled');
-      
+      const isUserRejection =
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("cancelled") ||
+        errorMessage.includes("rejected") ||
+        errorMessage.includes("user rejected") ||
+        errorMessage.includes("User rejected the request") ||
+        errorMessage.includes("User rejected the transaction") ||
+        errorMessage.includes("User denied transaction") ||
+        errorMessage.includes("Transaction was rejected") ||
+        errorMessage.includes("User cancelled") ||
+        errorMessage.includes("User canceled");
+
       if (isUserRejection) {
         // Automatically revert state for user rejection
         setIsApproved(false);
@@ -165,18 +174,22 @@ export const useRepay = (
   // Handle transaction confirmation error
   useEffect(() => {
     if (isError && confirmError) {
-      setErrorMessage(confirmError.message || "Repay failed to confirm. Please try again.");
+      setErrorMessage(
+        confirmError.message || "Repay failed to confirm. Please try again."
+      );
       setShowFailedAlert(true);
       setIsRepaying(false);
       setTxHash(undefined);
     }
   }, [isError, confirmError]);
 
-  const handleApproveToken = async (tokenAddress: HexAddress, spenderAddress: HexAddress, amount: string, decimals: number) => {
-    console.log("Repay handleApproveToken called with:", { tokenAddress, spenderAddress, amount, decimals, address, chainId });
-    
+  const handleApproveToken = async (
+    tokenAddress: HexAddress,
+    spenderAddress: HexAddress,
+    amount: string,
+    decimals: number
+  ) => {
     if (!address) {
-      console.log("No address in repay handleApproveToken");
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
       return;
@@ -184,14 +197,12 @@ export const useRepay = (
 
     const chain = chains.find((c) => c.id === chainId);
     if (!chain) {
-      console.log("Chain not found in repay handleApproveToken:", chainId);
       setErrorMessage("Unsupported chain");
       setShowFailedAlert(true);
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      console.log("Invalid amount in repay handleApproveToken:", amount);
       setErrorMessage("Please enter a valid amount");
       setShowFailedAlert(true);
       return;
@@ -201,14 +212,10 @@ export const useRepay = (
     const amountWithBuffer = parseFloat(amount) * 1.1;
     const amountString = amountWithBuffer.toString();
 
-    console.log("Repay calling handleApprove with buffered amount:", amountString);
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
-  const handleRepayLoan = async (
-    amount: string, 
-    decimals: number
-  ) => {
+  const handleRepayLoan = async (amount: string, decimals: number) => {
     if (!address) {
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
@@ -242,20 +249,8 @@ export const useRepay = (
       const userAmount = Number(amount) * Math.pow(10, decimals);
 
       // Use data from hooks or fallback to 0 if borrow amount is not found
-      const effectiveTotalAssets = totalBorrowAssets?.toString() || "0"; // Return 0 if not found
-      const effectiveTotalShares = totalBorrowShares?.toString() || "0"; // Return 0 if not found
-
-      console.log("Shares calculation data:", {
-        userAmount,
-        effectiveTotalAssets,
-        effectiveTotalShares,
-        totalBorrowAssets,
-        totalBorrowShares,
-        totalBorrowAssetsLoading,
-        totalBorrowSharesLoading,
-        usingFallbackAssets: !totalBorrowAssets,
-        usingFallbackShares: !totalBorrowShares,
-      });
+      const effectiveTotalAssets = totalBorrowAssets?.toString() || "0";
+      const effectiveTotalShares = totalBorrowShares?.toString() || "0";
 
       const userShares = calculateUserShares(
         userAmount,
@@ -270,39 +265,27 @@ export const useRepay = (
         return;
       }
 
-      console.log("Repay attempt:", {
-        lendingPoolAddress,
-        borrowTokenAddress,
-        amount,
-        userAmount,
-        userShares: userShares.toString(),
-        effectiveTotalAssets,
-        effectiveTotalShares,
-        decimals,
-        isApproved,
-        address
-      });
-
       const tx = await writeContractAsync({
         address: lendingPoolAddress,
         abi: lendingPoolAbi,
         functionName: "repayWithSelectedToken",
-        args: [userShares, borrowTokenAddress, false, address],
+        args: [userShares, borrowTokenAddress, false, address, BigInt(10000)],
       });
 
       setTxHash(tx as HexAddress);
     } catch (error) {
-      console.error("Repay error:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
       // Check if it's a user rejection first
-      const isUserRejection = errorMessage.includes('User rejected') || 
-                             errorMessage.includes('User denied') ||
-                             errorMessage.includes('cancelled') ||
-                             errorMessage.includes('rejected') ||
-                             errorMessage.includes('user rejected') ||
-                             errorMessage.includes('User rejected the request');
-      
+      const isUserRejection =
+        errorMessage.includes("User rejected") ||
+        errorMessage.includes("User denied") ||
+        errorMessage.includes("cancelled") ||
+        errorMessage.includes("rejected") ||
+        errorMessage.includes("user rejected") ||
+        errorMessage.includes("User rejected the request");
+
       if (isUserRejection) {
         // Don't show error for user rejection, just reset state
         setErrorMessage("");
@@ -312,9 +295,13 @@ export const useRepay = (
       } else {
         // Provide more specific error messages for other errors
         if (errorMessage.includes("insufficient")) {
-          setErrorMessage("Insufficient balance. Please check your token balance.");
+          setErrorMessage(
+            "Insufficient balance. Please check your token balance."
+          );
         } else if (errorMessage.includes("allowance")) {
-          setErrorMessage("Insufficient allowance. Please approve more tokens.");
+          setErrorMessage(
+            "Insufficient allowance. Please approve more tokens."
+          );
         } else if (errorMessage.includes("network")) {
           setErrorMessage("Network error. Please check your connection.");
         } else {
@@ -347,7 +334,6 @@ export const useRepay = (
   };
 
   const resetApproveStates = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsRepaySuccess(false);
@@ -357,7 +343,6 @@ export const useRepay = (
   };
 
   const resetAfterSuccess = () => {
-    setIsApproving(false);
     setIsApproved(false);
     setNeedsApproval(true);
     setIsRepaying(false);
@@ -412,4 +397,3 @@ export const useRepay = (
     refetchTotalBorrowShares,
   };
 };
-

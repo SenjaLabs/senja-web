@@ -7,6 +7,7 @@ import { Token } from "@/types";
 import Image from "next/image";
 import { useReadUserCollateralBalance } from "@/hooks/read/useReadUserCollateralBalance";
 import { useCurrentChainId } from "@/lib/chain";
+import { BearyNotFound } from "@/components/search/beary-not-found";
 
 // Component to display token balance
 const TokenBalance = memo(function TokenBalance({ 
@@ -30,12 +31,20 @@ const TokenBalance = memo(function TokenBalance({
   const isLoading = userCollateralBalanceLoading;
 
   if (isLoading) {
-    return <div className="text-sm text-gray-400">Loading...</div>;
+    return (
+      <div className="text-right">
+        <div className="flex items-center justify-end gap-2">
+          <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-xs text-gray-500">Loading...</span>
+        </div>
+        <div className="text-xs text-gray-500">{token.symbol}</div>
+      </div>
+    );
   }
 
   return (
     <div className="text-right">
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900">
         {balance?.toFixed(5) || "0.00000"}
       </div>
       <div className="text-xs text-gray-500">{token.symbol}</div>
@@ -200,10 +209,18 @@ export const TokenSearch = memo(function TokenSearch({
       <div className="flex-1 overflow-y-auto max-h-96">
         <div className="space-y-1">
           {availableTokens.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No tokens found</p>
-              <p className="text-sm">Try searching for a different token</p>
-            </div>
+            <BearyNotFound
+              searchQuery={searchQuery}
+              title="No Tokens Found"
+              description={searchQuery 
+                ? `No tokens found matching "${searchQuery}". Try searching with different keywords.`
+                : "No tokens are available. Try refreshing or switching networks."
+              }
+              onRetry={() => setSearchQuery("")}
+              onClearSearch={handleClearSearch}
+              showRetry={!searchQuery}
+              showClearSearch={!!searchQuery}
+            />
           ) : (
             availableTokens.map((token) => (
               <button

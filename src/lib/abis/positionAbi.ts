@@ -38,6 +38,19 @@ export const positionAbi = [
   },
   {
     type: "function",
+    name: "VERSION",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint8",
+        internalType: "uint8",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "_calculateExpectedAmountWithPriceFeeds",
     inputs: [
       {
@@ -117,6 +130,11 @@ export const positionAbi = [
         name: "_token",
         type: "address",
         internalType: "address",
+      },
+      {
+        name: "slippageTolerance",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [],
@@ -387,6 +405,11 @@ export const positionAbi = [
   {
     type: "error",
     name: "NotForWithdraw",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "OracleOnTokenNotSet",
     inputs: [],
   },
   {

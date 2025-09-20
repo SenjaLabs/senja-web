@@ -4,7 +4,7 @@ interface LoadingStateProps {
   message?: string;
 }
 
-export function LoadingState({ message = "Loading transactions..." }: LoadingStateProps) {
+export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center border border-white/20">
       <div className="flex items-center justify-center mb-4">

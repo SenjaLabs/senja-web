@@ -72,7 +72,6 @@ export const initTweetNacl = () => {
         const randomBytes = createRandomBytes(n);
         x.set(randomBytes);
       });
-      console.log('TweetNacl PRNG initialized successfully');
     }
   } catch (error) {
     console.warn('Failed to initialize tweetnacl PRNG:', error);

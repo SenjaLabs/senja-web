@@ -15,6 +15,8 @@ import { useAccount } from "wagmi";
 import { useWithdrawLiquidity } from "@/hooks/write/useWithdrawLiquidity";
 import { useWithdrawCollateral } from "@/hooks/write/useWithdrawCollateral";
 import { SuccessAlert, FailedAlert } from "@/components/alert";
+import { InlineSpinner } from "@/components/ui/spinner";
+import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
 interface WithdrawTabProps {
@@ -190,7 +192,13 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <BearyTabGuard
+      showGuard={true}
+      tabName="Withdraw"
+      title="Connect Wallet to Withdraw Assets"
+      message="Connect your wallet to withdraw your supplied liquidity or collateral!"
+    >
+      <div className="space-y-6">
       <Tabs
         value={withdrawType}
         onValueChange={setWithdrawType}
@@ -235,10 +243,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                   <span className="text-sm text-gray-700">Your Liquidity:</span>
                   <span className="text-md font-bold text-orange-700">
                     {liquidityBalanceLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-xs text-gray-500">Loading...</span>
-                      </div>
+                      <InlineSpinner size="sm" />
                     ) : liquidityBalanceError ? (
                       <span className="text-red-500 text-xs">Error loading balance</span>
                     ) : (
@@ -274,10 +279,7 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
                   </span>
                   <span className="font-bold text-md text-orange-700">
                     {collateralBalanceLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-xs text-gray-500">Loading...</span>
-                      </div>
+                      <InlineSpinner size="sm" />
                     ) : collateralBalanceError ? (
                       <span className="text-red-500 text-xs">Error loading balance</span>
                     ) : (
@@ -444,7 +446,8 @@ const WithdrawTab = ({ pool }: WithdrawTabProps) => {
           buttonText="Close"
         />
       )}
-    </div>
+      </div>
+    </BearyTabGuard>
   );
 };
 

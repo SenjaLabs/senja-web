@@ -52,7 +52,10 @@ export function TransactionTable({ transactions, loading = false, chainId = 8217
               <div className="flex justify-between items-start mb-2">
                 <TransactionTypeBadge type={transaction.type} />
                 <a
-                  href={`https://klaytnscope.com/tx/${transaction.transactionHash}`}
+                  href={chainId === 8217 
+                    ? `https://kaiascan.io/tx/${transaction.transactionHash}`
+                    : `https://layerzeroscan.com/tx/${transaction.transactionHash}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-gray-800 hover:underline"

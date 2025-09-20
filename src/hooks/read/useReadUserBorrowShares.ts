@@ -49,8 +49,7 @@ export const useReadUserBorrowShares = (
       const result = userBorrowSharesNumber.toFixed(decimalPlaces);
 
       return result;
-    } catch (error) {
-      console.error("Error formatting user borrow shares:", error);
+    } catch {
       return "0.00000";
     }
   };

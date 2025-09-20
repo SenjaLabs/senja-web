@@ -5,9 +5,11 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useReadTotalSupplyAssets } from "@/hooks/read/useReadTotalSupplyAssets";
+import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { formatUnits } from "viem";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 import { ArrowRight } from "lucide-react";
+import { formatLargeNumber } from "@/utils/format";
 
 /**
  * Props for the MobilePoolCard component
@@ -38,6 +40,10 @@ export const MobilePoolCard = memo(function MobilePoolCard({
       pool.borrowToken as `0x${string}`
     );
 
+  const { supplyAPY, loading: apyLoading } = useReadPoolApy(
+    pool.lendingPool as `0x${string}`
+  );
+
   const formattedLTV = useMemo(() => {
     if (!pool.ltv) return "0%";
     const ltvNumber = Number(pool.ltv) / 1e18;
@@ -46,24 +52,26 @@ export const MobilePoolCard = memo(function MobilePoolCard({
 
   const formattedLiquidity = useMemo(() => {
     if (totalSupplyAssetsLoading || !pool.borrowTokenInfo) {
-      return "Loading...";
+      return { amount: "Loading...", symbol: "" };
     }
 
     // If totalSupplyAssets is undefined, show 0
     if (totalSupplyAssets === undefined) {
-      return "0.00";
+      return { amount: "0", symbol: pool.borrowTokenInfo.symbol };
     }
 
     const liquidity = formatUnits(
       totalSupplyAssets,
       pool.borrowTokenInfo.decimals
     );
-    const formatted = Number(liquidity).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    
+    // Use formatLargeNumber for better display
+    const formattedAmount = formatLargeNumber(liquidity);
 
-    return `${formatted} ${pool.borrowTokenInfo.symbol}`;
+    return { 
+      amount: formattedAmount, 
+      symbol: pool.borrowTokenInfo.symbol 
+    };
   }, [totalSupplyAssets, totalSupplyAssetsLoading, pool.borrowTokenInfo]);
 
   const handleClick = () => {
@@ -122,11 +130,21 @@ export const MobilePoolCard = memo(function MobilePoolCard({
           {clickable && <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 group-hover:text-orange-500 group-hover:translate-x-1 transition-all duration-300" />}
         </div>
 
-        {/* Stats row - LTV and Liquidity side by side */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-orange-100/60 via-pink-50/70 to-orange-50/60 rounded-xl p-2.5 sm:p-3 border border-orange-200/40 shadow-inner hover:shadow-md transition-all duration-300">
-          {/* LTV */}
-          <div className="flex items-center space-x-1.5">
-            <div>
+        {/* Stats row - APY, LTV and Liquidity in three columns */}
+        <div className="bg-gradient-to-r from-orange-100/60 via-pink-50/70 to-orange-50/60 rounded-xl p-2.5 sm:p-3 border border-orange-200/40 shadow-inner hover:shadow-md transition-all duration-300">
+          <div className="grid grid-cols-3 gap-3">
+            {/* APY */}
+            <div className="text-center">
+              <div className="text-xs font-medium text-orange-600 uppercase tracking-wide mb-1">
+                APY
+              </div>
+              <div className="text-sm sm:text-base font-semibold text-orange-700">
+                {apyLoading ? "..." : `${supplyAPY}%`}
+              </div>
+            </div>
+
+            {/* LTV */}
+            <div className="text-center">
               <div className="text-xs font-medium text-blue-600 uppercase tracking-wide mb-1">
                 LTV
               </div>
@@ -137,16 +155,17 @@ export const MobilePoolCard = memo(function MobilePoolCard({
                 {formattedLTV}
               </Badge>
             </div>
-          </div>
 
-          {/* Liquidity */}
-          <div className="flex items-center space-x-1.5">
-            <div className="text-right min-w-0">
+            {/* Liquidity */}
+            <div className="text-center">
               <div className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1">
                 Liquidity
               </div>
-              <div className="text-xs sm:text-sm font-semibold text-green-800 truncate">
-                {formattedLiquidity}
+              <div className="text-xs sm:text-sm font-semibold text-green-700 truncate">
+                {formattedLiquidity.amount}
+              </div>
+              <div className="text-xs text-green-600">
+                {formattedLiquidity.symbol}
               </div>
               {totalSupplyAssetsLoading && (
                 <div className="text-xs text-green-600 mt-0.5">Updating...</div>

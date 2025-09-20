@@ -4,7 +4,6 @@ import React, { useCallback, memo, useState } from "react";
 import { Search, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { CreatePoolDialog } from "@/components/dialog/create-pool";
 import { BaseComponentProps } from "@/types";
 
@@ -84,8 +83,11 @@ export const PoolSearchControls = memo(function PoolSearchControls({
 
   return (
     <>
-      <div className={`py-4 ${className || ''}`}>
-        <Card className="w-full max-w-xl mx-auto overflow-hidden border-0 bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group">
+      <div className={`py-2 mt-2 ${className || ''}`}>
+        <div 
+          className="w-full max-w-xl mx-auto bg-gradient-to-br from-orange-50/80 via-orange-100/60 to-pink-50/70 backdrop-blur-sm ring-1 ring-white/30 hover:shadow-2xl hover:ring-orange-200/50 transition-all duration-500 group relative z-10"
+          style={{ borderRadius: '0.75rem', overflow: 'hidden' }}
+        >
           <div className="relative z-10 p-3 sm:p-4">
             {/* Mobile Layout */}
             <div className="lg:hidden space-y-3">
@@ -158,7 +160,7 @@ export const PoolSearchControls = memo(function PoolSearchControls({
                     variant="ghost"
                     aria-label="Clear search"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </Button>
                 )}
               </div>
@@ -184,7 +186,7 @@ export const PoolSearchControls = memo(function PoolSearchControls({
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Create Pool Dialog */}

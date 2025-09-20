@@ -67,8 +67,3 @@ export function getTransactionTypeLabel(type: string): string {
       return 'Unknown';
   }
 }
-
-// Removed color mapping per request; keep function stub if needed elsewhere
-export function getTransactionTypeColor(_type: string): string {
-  return 'text-gray-800';
-}

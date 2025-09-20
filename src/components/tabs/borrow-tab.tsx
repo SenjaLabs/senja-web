@@ -9,6 +9,7 @@ import { ChainSelector } from "./shared/chain-selector";
 import { AmountInput } from "./shared/amount-input";
 import { SuccessAlert } from "@/components/alert/success-alert";
 import { FailedAlert } from "@/components/alert/failed-alert";
+import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import { useRefetch } from "@/hooks/useRefetch";
 import { useReadPoolApy } from "@/hooks/read/useReadPoolApy";
 import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
@@ -76,7 +77,6 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
   const {
     maxBorrowFormatted,
     maxBorrowLoading,
-    maxBorrowError,
     refetchMaxBorrow,
   } = useReadMaxBorrow(
     (pool?.lendingPool as `0x${string}`) ||
@@ -135,14 +135,17 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
   ]);
 
   const handleSetMax = useCallback(() => {
+    if (maxBorrowLoading) {
+      return;
+    }
+    
     if (maxBorrowFormatted && parseFloat(maxBorrowFormatted) > 0) {
       setAmount(maxBorrowFormatted);
     }
-  }, [maxBorrowFormatted]);
+  }, [maxBorrowFormatted, maxBorrowLoading]);
 
   const handleBorrow = useCallback(async () => {
     if (!pool?.lendingPool || !amount || fee === undefined) {
-      console.error("Missing required data for borrow");
       return;
     }
 
@@ -155,8 +158,8 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
         destinationEndpoint,
         fee
       );
-    } catch (error) {
-      console.error("Borrow failed:", error);
+    } catch {
+      // Handle error silently
     }
   }, [pool, amount, fee, chainTo, destinationEndpoint, executeBorrow]);
 
@@ -171,7 +174,13 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <BearyTabGuard
+      showGuard={true}
+      tabName="Borrow"
+      title="Connect Wallet to Borrow Assets"
+      message="Connect your wallet to borrow assets from this lending pool!"
+    >
+      <div className="space-y-6">
       {/* Pool Information Card */}
       <PoolInfoCard
         collateralToken={{
@@ -203,8 +212,6 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
               <span className="text-md font-bold text-orange-700">
                 {maxBorrowLoading ? (
                   "Loading..."
-                ) : maxBorrowError ? (
-                  <span className="text-red-500 text-xs">Error</span>
                 ) : (
                   `${formatLargeNumber(maxBorrowFormatted || "0.00")} ${pool.borrowTokenInfo?.symbol || "Token"}`
                 )}
@@ -221,7 +228,9 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
             onMaxClick={handleSetMax}
             tokenSymbol={pool.borrowTokenInfo?.symbol || "Token"}
             maxDisabled={
-              !maxBorrowFormatted || parseFloat(maxBorrowFormatted) <= 0
+              maxBorrowLoading || 
+              !maxBorrowFormatted || 
+              parseFloat(maxBorrowFormatted) <= 0
             }
           />
 
@@ -339,7 +348,7 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
           txHash={successTxHash}
           title="Borrow Successful!"
           description="Your borrow transaction has been completed successfully."
-          chainId={currentChainId}
+          chainId={parseInt(chainTo)}
         />
       )}
 
@@ -353,7 +362,8 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
           }
         />
       )}
-    </div>
+      </div>
+    </BearyTabGuard>
   );
 };
 

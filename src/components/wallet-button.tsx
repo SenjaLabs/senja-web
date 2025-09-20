@@ -40,8 +40,7 @@ export const WalletButton = ({
           // Convert from wei to KAIA (divide by 1e18)
           const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
           setBalance(balanceInKAIA);
-        } catch (error) {
-          console.error('Failed to fetch balance:', error);
+        } catch {
           setBalance(null);
         } finally {
           setIsLoadingBalance(false);
@@ -271,8 +270,8 @@ export const WalletButton = ({
                       // Convert from wei to KAIA (divide by 1e18)
                       const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
                       setBalance(balanceInKAIA);
-                    } catch (error) {
-                      console.error('Failed to refresh balance:', error);
+                    } catch {
+                      // Handle error silently
                     } finally {
                       setIsLoadingBalance(false);
                     }
