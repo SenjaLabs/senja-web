@@ -10,6 +10,7 @@ import { chains } from "@/lib/addresses/chainAddress";
 import { useApprove } from "./useApprove";
 import { parseAmountToBigInt } from "@/utils/format";
 import { useCurrentChainId } from "@/lib/chain";
+import { isNativeToken } from "@/lib/utils";
 
 export type HexAddress = `0x${string}`;
 
@@ -185,7 +186,8 @@ export const useSupplyCollateral = (
   const handleSupplyCollateral = async (
     lendingPoolAddress: HexAddress,
     amount: string,
-    decimals: number
+    decimals: number,
+    tokenAddress?: HexAddress
   ) => {
     if (!address) {
       setErrorMessage("Please connect your wallet");
@@ -206,7 +208,10 @@ export const useSupplyCollateral = (
       return;
     }
 
-    if (!isApproved) {
+    // Skip approval check for native tokens
+    if (tokenAddress && isNativeToken(tokenAddress)) {
+      // For native tokens, we don't need approval, so we can proceed directly
+    } else if (!isApproved) {
       setErrorMessage("Please approve token first");
       setShowFailedAlert(true);
       return;

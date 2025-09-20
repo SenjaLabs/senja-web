@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, memo, useCallback, FormEvent, ChangeEvent } from "react";
+import React, {
+  useState,
+  memo,
+  useCallback,
+  FormEvent,
+  ChangeEvent,
+} from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +22,20 @@ import { useCreatePool } from "@/hooks/write/useCreatePool";
 import { SuccessAlert } from "@/components/alert";
 import { useCurrentChainId } from "@/lib/chain";
 import { Token, BaseComponentProps } from "@/types";
-import { dialogStyles, buttonStyles, inputStyles, spacing, textStyles } from "@/lib/styles/common";
-import { PLACEHOLDERS, BUTTON_TEXTS, LOADING_MESSAGES, SUCCESS_MESSAGES, ERROR_MESSAGES, VALIDATION } from "@/lib/constants";
+import {
+  dialogStyles,
+  buttonStyles,
+  spacing,
+  textStyles,
+} from "@/lib/styles/common";
+import {
+  PLACEHOLDERS,
+  BUTTON_TEXTS,
+  LOADING_MESSAGES,
+  SUCCESS_MESSAGES,
+  ERROR_MESSAGES,
+  VALIDATION,
+} from "@/lib/constants";
 
 /**
  * Props for the CreatePoolDialog component
@@ -33,7 +51,7 @@ interface CreatePoolDialogProps extends BaseComponentProps {
 
 /**
  * CreatePoolDialog component for creating new lending pools
- * 
+ *
  * @param props - Component props
  * @returns JSX element
  */
@@ -65,18 +83,18 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
     parseFloat(ltv) >= VALIDATION.LTV_MIN &&
     parseFloat(ltv) <= VALIDATION.LTV_MAX;
 
-  const { 
-    handleCreate, 
-    isCreating, 
-    isConfirming, 
-    isSuccess, 
-    isError, 
-    txHash, 
-    showSuccessAlert, 
-    successTxHash, 
+  const {
+    handleCreate,
+    isCreating,
+    isConfirming,
+    isSuccess,
+    isError,
+    txHash,
+    showSuccessAlert,
+    successTxHash,
     handleCloseSuccessAlert,
     isUserRejection,
-    resetUserRejection
+    resetUserRejection,
   } = useCreatePool(() => {
     onSuccess?.();
     onClose();
@@ -86,24 +104,26 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
   /**
    * Handle form submission
    */
-  const handleSubmit = useCallback(async (e: FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
+      if (!isValid) {
+        return;
+      }
 
-    if (!isValid) {
-      return;
-    }
+      const collateralAddress = collateralToken!.addresses[currentChainId];
+      const borrowAddress = borrowToken!.addresses[currentChainId];
 
-    const collateralAddress = collateralToken!.addresses[currentChainId];
-    const borrowAddress = borrowToken!.addresses[currentChainId];
+      if (!collateralAddress || !borrowAddress) {
+        return;
+      }
 
-    if (!collateralAddress || !borrowAddress) {
-      return;
-    }
-
-    await handleCreate(collateralAddress, borrowAddress, ltv);
-  }, [collateralToken, borrowToken, ltv, handleCreate, isValid, currentChainId]);
+      await handleCreate(collateralAddress, borrowAddress, ltv);
+    },
+    [collateralToken, borrowToken, ltv, handleCreate, isValid, currentChainId]
+  );
 
   /**
    * Handle dialog close
@@ -127,7 +147,7 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className={`${dialogStyles.content} ${className || ''}`}>
+        <DialogContent className={`${dialogStyles.content} ${className || ""}`}>
           <DialogHeader className={dialogStyles.header}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -149,160 +169,162 @@ export const CreatePoolDialog = memo(function CreatePoolDialog({
             </div>
           </DialogHeader>
 
-        <div className="px-6 py-6">
-          <form onSubmit={handleSubmit} className={spacing.form} noValidate>
-            <div className="flex justify-between  mx-auto">
-              <div className="space-y-3 flex w-[45%] flex-col text-left">
-                <label className={textStyles.label}>
-                  Collateral Token
-                </label>
-                <TokenSelector
-                  selectedToken={collateralToken}
-                  onTokenSelect={setCollateralToken}
-                  otherToken={borrowToken}
-                  label="Select collateral token"
-                />
-              </div>
-
-              {/* Borrow Token */}
-              <div className="space-y-3 flex w-[45%] flex-col text-right">
-                <label className={textStyles.label}>
-                  Borrow Token
-                </label>
-                <TokenSelector
-                  selectedToken={borrowToken}
-                  onTokenSelect={setBorrowToken}
-                  otherToken={collateralToken}
-                  label="Select borrow token"
-                />
-              </div>
-            </div>
-
-            {/* LTV */}
-            <div className="space-y-3">
-              <label className={`${textStyles.label} flex items-center gap-2`}>
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                Loan-to-Value (LTV) %
-              </label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  placeholder={PLACEHOLDERS.LTV_INPUT}
-                  value={ltv}
-                  onChange={handleLtvChange}
-                  min={VALIDATION.LTV_MIN.toString()}
-                  max={VALIDATION.LTV_MAX.toString()}
-                  step="0.1"
-                  className={inputStyles.default}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Transaction Status */}
-            {(isCreating || isConfirming || isSuccess || isError || isUserRejection) && (
-              <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
-                <div className="space-y-3">
-                  {isCreating && (
-                    <div className="flex items-center gap-3 text-blue-600">
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                       <span className="text-sm font-semibold">
-                         {LOADING_MESSAGES.CREATING_POOL}
-                       </span>
-                    </div>
-                  )}
-
-                  {isConfirming && (
-                    <div className="flex items-center gap-3 text-orange-600">
-                      <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                       <span className="text-sm font-semibold">
-                         {LOADING_MESSAGES.CONFIRMING_TRANSACTION}
-                       </span>
-                    </div>
-                  )}
-
-                  {isSuccess && (
-                    <div className="flex items-center gap-3 text-green-600">
-                      <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                       <span className="text-sm font-semibold">
-                         {SUCCESS_MESSAGES.POOL_CREATED}
-                       </span>
-                    </div>
-                  )}
-
-                  {isError && (
-                    <div className="flex items-center gap-3 text-red-600">
-                      <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                       <span className="text-sm font-semibold">
-                         {ERROR_MESSAGES.TRANSACTION_FAILED}
-                       </span>
-                    </div>
-                  )}
-
-                  {isUserRejection && (
-                    <div className="flex items-center gap-3 text-gray-600">
-                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                       <span className="text-sm font-semibold">
-                         Transaction cancelled
-                       </span>
-                    </div>
-                  )}
-
-                  {txHash && (
-                    <div className="text-xs text-gray-500 break-all bg-white p-2 rounded border">
-                      <span className="font-medium">Transaction Hash:</span>
-                      <br />
-                      {txHash}
-                    </div>
-                  )}
+          <div className="px-6 py-6">
+            <form onSubmit={handleSubmit} className={spacing.form} noValidate>
+              <div className="flex justify-between  mx-auto">
+                <div className="space-y-3 flex w-[45%] flex-col text-left">
+                  <label className={textStyles.label}>Collateral Token</label>
+                  <TokenSelector
+                    selectedToken={collateralToken}
+                    onTokenSelect={setCollateralToken}
+                    otherToken={borrowToken}
+                    label="Select collateral token"
+                  />
                 </div>
-              </Card>
-            )}
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={!isValid || isCreating || isConfirming}
-              className={`w-full h-14 text-lg font-bold ${buttonStyles.primary} disabled:opacity-50 disabled:cursor-not-allowed rounded-xl`}
-              onClick={() => {
-                // Reset user rejection state when user tries to submit again
-                if (isUserRejection) {
-                  resetUserRejection();
-                }
-              }}
-            >
-              {isCreating
-                ? LOADING_MESSAGES.CREATING_POOL
-                : isConfirming
-                ? LOADING_MESSAGES.CONFIRMING_TRANSACTION
-                : BUTTON_TEXTS.CREATE_POOL}
-            </Button>
-          </form>
-        </div>
-      </DialogContent>
-    </Dialog>
-    
-    {/* Success Alert */}
-    <SuccessAlert
-      isOpen={showSuccessAlert}
-      onClose={handleCloseSuccessAlert}
-      title="Transaction success"
-      description="tx hash:"
-      buttonText="Close"
-      txHash={successTxHash}
-      chainId={currentChainId}
-    />
-  </>
+                {/* Borrow Token */}
+                <div className="space-y-3 flex w-[45%] flex-col text-right">
+                  <label className={textStyles.label}>Borrow Token</label>
+                  <TokenSelector
+                    selectedToken={borrowToken}
+                    onTokenSelect={setBorrowToken}
+                    otherToken={collateralToken}
+                    label="Select borrow token"
+                  />
+                </div>
+              </div>
+
+              {/* LTV */}
+              <div className="space-y-3">
+                <label
+                  className={`${textStyles.label} flex items-center gap-2`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  Loan-to-Value (LTV) %
+                </label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder={PLACEHOLDERS.LTV_INPUT}
+                    value={ltv}
+                    onChange={handleLtvChange}
+                    min={VALIDATION.LTV_MIN.toString()}
+                    max={VALIDATION.LTV_MAX.toString()}
+                    step="0.1"
+                    className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Transaction Status */}
+              {(isCreating ||
+                isConfirming ||
+                isSuccess ||
+                isError ||
+                isUserRejection) && (
+                <Card className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl">
+                  <div className="space-y-3">
+                    {isCreating && (
+                      <div className="flex items-center gap-3 text-blue-600">
+                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-semibold">
+                          {LOADING_MESSAGES.CREATING_POOL}
+                        </span>
+                      </div>
+                    )}
+
+                    {isConfirming && (
+                      <div className="flex items-center gap-3 text-orange-600">
+                        <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-semibold">
+                          {LOADING_MESSAGES.CONFIRMING_TRANSACTION}
+                        </span>
+                      </div>
+                    )}
+
+                    {isSuccess && (
+                      <div className="flex items-center gap-3 text-green-600">
+                        <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span className="text-sm font-semibold">
+                          {SUCCESS_MESSAGES.POOL_CREATED}
+                        </span>
+                      </div>
+                    )}
+
+                    {isError && (
+                      <div className="flex items-center gap-3 text-red-600">
+                        <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span className="text-sm font-semibold">
+                          {ERROR_MESSAGES.TRANSACTION_FAILED}
+                        </span>
+                      </div>
+                    )}
+
+                    {isUserRejection && (
+                      <div className="flex items-center gap-3 text-gray-600">
+                        <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                        <span className="text-sm font-semibold">
+                          Transaction cancelled
+                        </span>
+                      </div>
+                    )}
+
+                    {txHash && (
+                      <div className="text-xs text-gray-500 break-all bg-white p-2 rounded border">
+                        <span className="font-medium">Transaction Hash:</span>
+                        <br />
+                        {txHash}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={!isValid || isCreating || isConfirming}
+                className={`w-full h-14 text-lg font-bold ${buttonStyles.primary} disabled:opacity-50 disabled:cursor-not-allowed rounded-xl`}
+                onClick={() => {
+                  // Reset user rejection state when user tries to submit again
+                  if (isUserRejection) {
+                    resetUserRejection();
+                  }
+                }}
+              >
+                {isCreating
+                  ? LOADING_MESSAGES.CREATING_POOL
+                  : isConfirming
+                  ? LOADING_MESSAGES.CONFIRMING_TRANSACTION
+                  : BUTTON_TEXTS.CREATE_POOL}
+              </Button>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Success Alert */}
+      <SuccessAlert
+        isOpen={showSuccessAlert}
+        onClose={handleCloseSuccessAlert}
+        title="Transaction success"
+        description="tx hash:"
+        buttonText="Close"
+        txHash={successTxHash}
+        chainId={currentChainId}
+      />
+    </>
   );
 });

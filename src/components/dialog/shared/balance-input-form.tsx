@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useUserWalletBalance } from "@/hooks/read/useReadUserBalance";
 import { useCurrentChainId } from "@/lib/chain";
 import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
-import { textStyles, inputStyles } from "@/lib/styles/common";
+import { textStyles } from "@/lib/styles/common";
 import { PLACEHOLDERS } from "@/lib/constants";
 
 interface BalanceInputFormProps {
@@ -41,9 +41,10 @@ export const BalanceInputForm = memo(function BalanceInputForm({
   const currentChainId = useCurrentChainId();
 
   // Get token info based on type
-  const tokenInfo = tokenType === "collateral" 
-    ? pool?.collateralTokenInfo 
-    : pool?.borrowTokenInfo;
+  const tokenInfo =
+    tokenType === "collateral"
+      ? pool?.collateralTokenInfo
+      : pool?.borrowTokenInfo;
 
   const tokenAddress = tokenInfo?.addresses[currentChainId] as `0x${string}`;
   const tokenDecimals = tokenInfo?.decimals || 18;
@@ -62,7 +63,11 @@ export const BalanceInputForm = memo(function BalanceInputForm({
    */
   const handleAmountChange = useCallback(
     (e: { target: { value: string } }) => {
-      onAmountChange(e.target.value);
+      const value = e.target.value;
+      // Prevent negative values
+      if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
+        onAmountChange(value);
+      }
     },
     [onAmountChange]
   );
@@ -104,7 +109,7 @@ export const BalanceInputForm = memo(function BalanceInputForm({
           onChange={handleAmountChange}
           min="0"
           step="0.000001"
-          className={inputStyles.default}
+          className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-20"
           disabled={disabled}
         />
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 sm:gap-2">

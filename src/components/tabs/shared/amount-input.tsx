@@ -46,7 +46,15 @@ export const AmountInput = ({
           type="number"
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            // Prevent negative values
+            if (inputValue === '' || (parseFloat(inputValue) >= 0 && !isNaN(parseFloat(inputValue)))) {
+              onChange(inputValue);
+            }
+          }}
+          min="0"
+          step="0.000001"
           disabled={disabled}
           className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-24 sm:pr-28"
         />

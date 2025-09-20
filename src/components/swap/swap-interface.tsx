@@ -129,12 +129,15 @@ export const SwapInterface = memo(function SwapInterface({
 
   const handleFromAmountChange = useCallback(
     (value: string) => {
-      setFromAmount(value);
-      if (value && fromToken && toToken) {
-        const converted = parseFloat(value) * exchangeRate;
-        setToAmount(converted.toFixed(6));
-      } else {
-        setToAmount("");
+      // Prevent negative values
+      if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
+        setFromAmount(value);
+        if (value && fromToken && toToken) {
+          const converted = parseFloat(value) * exchangeRate;
+          setToAmount(converted.toFixed(6));
+        } else {
+          setToAmount("");
+        }
       }
     },
     [fromToken, toToken, exchangeRate]
@@ -142,12 +145,15 @@ export const SwapInterface = memo(function SwapInterface({
 
   const handleToAmountChange = useCallback(
     (value: string) => {
-      setToAmount(value);
-      if (value && fromToken && toToken) {
-        const converted = parseFloat(value) / exchangeRate;
-        setFromAmount(converted.toFixed(6));
-      } else {
-        setFromAmount("");
+      // Prevent negative values
+      if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
+        setToAmount(value);
+        if (value && fromToken && toToken) {
+          const converted = parseFloat(value) / exchangeRate;
+          setFromAmount(converted.toFixed(6));
+        } else {
+          setFromAmount("");
+        }
       }
     },
     [fromToken, toToken, exchangeRate]
@@ -227,8 +233,8 @@ export const SwapInterface = memo(function SwapInterface({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">Sell</span>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">
-                    Balance: {fromTokenBalance || "0.000000"}
+                  <span className="text-md text-gray-900">
+                    Balance: {fromTokenBalance ? fromTokenBalance.toFixed(5) : "0.000"}
                   </span>
                   {fromTokenBalance &&
                     parseFloat(fromTokenBalance.toString()) > 0 && (
@@ -339,7 +345,8 @@ export const SwapInterface = memo(function SwapInterface({
           {/* Connect Wallet Button */}
           <div className="mt-6">
             {needsWalletConnection ? (
-              <Button className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-lg">
+              <Button className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-lg"
+              onClick={() => window.location.href = '/profile'}>
                 Connect wallet
               </Button>
             ) : !fromToken || !toToken ? (

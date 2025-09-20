@@ -673,7 +673,7 @@ export const SwapTokenBalanceTable = React.memo(function SwapTokenBalanceTable({
             </div>
 
             {/* Show empty state if no balances found and not loading */}
-            {!isAnyLoading && !hasAnyBalance && (
+            {!isAnyLoading && !hasAnyBalance && totalUsdtValue === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                   <svg

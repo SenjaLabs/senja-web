@@ -154,7 +154,7 @@ export default function SwitchChainButton({
                       </Badge>
                     )}
                     {chain.comingSoon && (
-                      <Badge className="bg-orange-100 text-orange-600 border border-orange-200 text-xs sm:text-sm">
+                      <Badge className="bg-orange-100 text-orange-600 border border-orange-200 text-xs sm:text-sm text-right">
                         Coming Soon
                       </Badge>
                     )}

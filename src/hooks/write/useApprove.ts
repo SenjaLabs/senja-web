@@ -5,6 +5,7 @@ import { mockErc20Abi } from "@/lib/abis/mockErc20Abi";
 import { chains } from "@/lib/addresses/chainAddress";
 import { isUserRejection } from "@/utils/error-handling";
 import { parseAmountToBigInt } from "@/utils/format";
+import { isNativeToken } from "@/lib/utils";
 
 export type HexAddress = `0x${string}`;
 
@@ -71,6 +72,15 @@ export const useApprove = (chainId: number, onSuccess?: (txHash?: HexAddress) =>
     }
 
     if (!amount || parseFloat(amount) <= 0) {
+      return;
+    }
+
+    // Skip approval for native tokens
+    if (isNativeToken(tokenAddress)) {
+      // For native tokens, immediately call onSuccess without any transaction
+      if (onSuccess) {
+        onSuccess();
+      }
       return;
     }
 

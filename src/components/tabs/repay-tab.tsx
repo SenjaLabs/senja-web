@@ -14,6 +14,7 @@ import { SuccessAlert, FailedAlert } from "@/components/alert";
 import { InlineSpinner } from "@/components/ui/spinner";
 import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import Image from "next/image";
+import { isNativeToken } from "@/lib/utils";
 
 interface RepayTabProps {
   pool?: LendingPoolWithTokens;
@@ -24,6 +25,9 @@ const RepayTab = ({ pool }: RepayTabProps) => {
   const [repayType] = useState("partial");
 
   const currentChainId = useCurrentChainId();
+  
+  // Get token address for native token check
+  const tokenAddress = pool?.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
 
   // Refetch functionality
   const { addRefetchFunction, removeRefetchFunction } = useRefetch({
@@ -143,10 +147,11 @@ const RepayTab = ({ pool }: RepayTabProps) => {
     }
 
     const decimals = pool.borrowTokenInfo?.decimals || 18;
+    const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
     
     // Prepare repay data
 
-    await handleRepayLoan(amount, decimals);
+    await handleRepayLoan(amount, decimals, tokenAddress);
   };
 
   if (!pool) {
@@ -347,7 +352,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
 
       {/* Action Buttons */}
       <div className="space-y-3">
-        {needsApproval && !isApproved ? (
+        {needsApproval && !isApproved && !isNativeToken(tokenAddress || "") ? (
           <Button
             onClick={handleApprove}
             className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -375,7 +380,7 @@ const RepayTab = ({ pool }: RepayTabProps) => {
               borrowSharesParsed <= 0 ||
               isRepaying ||
               isConfirming ||
-              !isApproved
+              (!isApproved && !isNativeToken(tokenAddress || ""))
             }
           >
             {isRepaying

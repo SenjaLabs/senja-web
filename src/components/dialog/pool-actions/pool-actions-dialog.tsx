@@ -36,6 +36,7 @@ import {
   textStyles,
 } from "@/lib/styles/common";
 import Image from "next/image";
+import { isNativeToken } from "@/lib/utils";
 
 // Utility function to format LTV percentage
 const formatLTV = (ltv: bigint | number | string): string => {
@@ -367,12 +368,14 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
 
     if (selectedAction === "supply-liquidity") {
       const decimals = pool.borrowTokenInfo?.decimals || 18;
-      await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, decimals);
+      const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, decimals, tokenAddress);
     } else if (selectedAction === "supply-collateral") {
       const decimals = pool.collateralTokenInfo?.decimals || 18;
-      await handleSupplyCollateral(pool.lendingPool as `0x${string}`, amount, decimals);
+      const tokenAddress = pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      await handleSupplyCollateral(pool.lendingPool as `0x${string}`, amount, decimals, tokenAddress);
     }
-  }, [amount, pool, selectedAction, handleSupplyLiquidity, handleSupplyCollateral]);
+  }, [amount, pool, selectedAction, handleSupplyLiquidity, handleSupplyCollateral, currentChainId]);
 
   /**
    * Handle withdraw actions
@@ -606,10 +609,14 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
                       }
                       value={selectedAction === "withdraw-liquidity" ? withdrawShares : amount}
                       onChange={(e) => {
-                        if (selectedAction === "withdraw-liquidity") {
-                          setWithdrawShares(e.target.value);
-                        } else {
-                          setAmount(e.target.value);
+                        const value = e.target.value;
+                        // Prevent negative values
+                        if (value === '' || (parseFloat(value) >= 0 && !isNaN(parseFloat(value)))) {
+                          if (selectedAction === "withdraw-liquidity") {
+                            setWithdrawShares(value);
+                          } else {
+                            setAmount(value);
+                          }
                         }
                       }}
                       min="0"
@@ -761,8 +768,8 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
               {(selectedAction === "supply-collateral" || selectedAction === "supply-liquidity") ? (
                 <div className="space-y-3">
                   {/* Approve Button */}
-                  {((selectedAction === "supply-collateral" && !isApprovedCollateral) || 
-                    (selectedAction === "supply-liquidity" && !isApprovedLiquidity)) && (
+                  {((selectedAction === "supply-collateral" && !isApprovedCollateral && !isNativeToken(pool.collateralTokenInfo?.addresses[currentChainId] || "")) || 
+                    (selectedAction === "supply-liquidity" && !isApprovedLiquidity && !isNativeToken(pool.borrowTokenInfo?.addresses[currentChainId] || ""))) && (
                     <Button
                       type="button"
                       onClick={handleApprove}
@@ -780,8 +787,8 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
                   )}
 
                   {/* Supply Button */}
-                  {((selectedAction === "supply-collateral" && isApprovedCollateral) || 
-                    (selectedAction === "supply-liquidity" && isApprovedLiquidity)) && (
+                  {((selectedAction === "supply-collateral" && (isApprovedCollateral || isNativeToken(pool.collateralTokenInfo?.addresses[currentChainId] || ""))) || 
+                    (selectedAction === "supply-liquidity" && (isApprovedLiquidity || isNativeToken(pool.borrowTokenInfo?.addresses[currentChainId] || "")))) && (
                     <Button
                       type="button"
                       onClick={handleSupply}

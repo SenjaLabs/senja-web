@@ -7,7 +7,7 @@ import { BearyNotFound } from '@/components/search/beary-not-found';
 import { Home, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
-  const handleGoHome = () => {
+  const handleGoProfile = () => {
     window.location.href = '/';
   };
 
@@ -29,7 +29,7 @@ export default function NotFound() {
         {/* Custom Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-6">
           <Button
-            onClick={handleGoHome}
+            onClick={handleGoProfile}
             className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
             <div className="flex items-center gap-2">

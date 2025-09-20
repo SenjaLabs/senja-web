@@ -8,6 +8,7 @@ import { useApprove } from "./useApprove";
 import { chains } from "@/lib/addresses/chainAddress";
 import { useReadTotalBorrowAssets } from "@/hooks/read/useReadTotalBorrowAssets";
 import { useReadTotalBorrowShares } from "@/hooks/read/useReadTotalBorrowShares";
+import { isNativeToken } from "@/lib/utils";
 
 export type HexAddress = `0x${string}`;
 
@@ -215,7 +216,7 @@ export const useRepay = (
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
-  const handleRepayLoan = async (amount: string, decimals: number) => {
+  const handleRepayLoan = async (amount: string, decimals: number, tokenAddress?: HexAddress) => {
     if (!address) {
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
@@ -235,7 +236,10 @@ export const useRepay = (
       return;
     }
 
-    if (!isApproved) {
+    // Skip approval check for native tokens
+    if (tokenAddress && isNativeToken(tokenAddress)) {
+      // For native tokens, we don't need approval, so we can proceed directly
+    } else if (!isApproved) {
       setErrorMessage("Please approve token first");
       setShowFailedAlert(true);
       return;

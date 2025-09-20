@@ -16,6 +16,7 @@ import { SuccessAlert, FailedAlert } from "@/components/alert";
 import { InlineSpinner } from "@/components/ui/spinner";
 import { BearyTabGuard } from "@/components/wallet/beary-tab-guard";
 import Image from "next/image";
+import { isNativeToken } from "@/lib/utils";
 
 // Utility function to format large numbers
 const formatLargeNumber = (value: string | number): string => {
@@ -216,12 +217,14 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
 
     if (supplyType === "liquidity") {
       const decimals = pool.borrowTokenInfo?.decimals || 18;
-      await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, decimals);
+      const tokenAddress = pool.borrowTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      await handleSupplyLiquidity(pool.lendingPool as `0x${string}`, amount, decimals, tokenAddress);
     } else if (supplyType === "collateral") {
       const decimals = pool.collateralTokenInfo?.decimals || 18;
-      await handleSupplyCollateral(pool.lendingPool as `0x${string}`, amount, decimals);
+      const tokenAddress = pool.collateralTokenInfo?.addresses[currentChainId] as `0x${string}`;
+      await handleSupplyCollateral(pool.lendingPool as `0x${string}`, amount, decimals, tokenAddress);
     }
-  }, [amount, pool, supplyType, handleSupplyLiquidity, handleSupplyCollateral]);
+  }, [amount, pool, supplyType, handleSupplyLiquidity, handleSupplyCollateral, currentChainId]);
 
   // Early return if no pool is provided
   if (!pool) {
@@ -517,8 +520,8 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
       {/* Action Buttons */}
       <div className="space-y-3">
         {/* Approve Button */}
-        {((supplyType === "collateral" && !isApprovedCollateral) || 
-          (supplyType === "liquidity" && !isApprovedLiquidity)) && (
+        {((supplyType === "collateral" && !isApprovedCollateral && !isNativeToken(tokenAddress || "")) || 
+          (supplyType === "liquidity" && !isApprovedLiquidity && !isNativeToken(tokenAddress || ""))) && (
           <Button
             type="button"
             onClick={handleApprove}
@@ -536,8 +539,8 @@ const SupplyTab = ({ pool }: SupplyTabProps) => {
         )}
 
         {/* Supply Button */}
-        {((supplyType === "collateral" && isApprovedCollateral) || 
-          (supplyType === "liquidity" && isApprovedLiquidity)) && (
+        {((supplyType === "collateral" && (isApprovedCollateral || isNativeToken(tokenAddress || ""))) || 
+          (supplyType === "liquidity" && (isApprovedLiquidity || isNativeToken(tokenAddress || "")))) && (
           <Button
             type="button"
             onClick={handleSupply}

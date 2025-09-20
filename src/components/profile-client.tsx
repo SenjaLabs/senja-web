@@ -10,7 +10,6 @@ import {
   CreditCard,
   Copy,
   AlertTriangle,
-  Link2,
   RefreshCw,
   Clock,
 } from "lucide-react";
@@ -26,9 +25,11 @@ const ProfileClient = memo(function ProfileClient() {
     connect,
     disconnect,
     getBalance,
+    refreshConnection,
   } = useWallet();
   const [balance, setBalance] = useState<string | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
+  const [refreshingConnection, setRefreshingConnection] = useState(false);
 
   const handleGetBalance = useCallback(async () => {
     if (!isConnected) return;
@@ -37,7 +38,7 @@ const ProfileClient = memo(function ProfileClient() {
       setLoadingBalance(true);
       const walletBalance = await getBalance();
       setBalance((parseInt(walletBalance) / 1e18).toFixed(4));
-    } catch  {
+    } catch {
       // Silent error handling for production
     } finally {
       setLoadingBalance(false);
@@ -53,6 +54,15 @@ const ProfileClient = memo(function ProfileClient() {
     // eslint-disable-next-line no-undef
     navigator.clipboard.writeText(text);
   }, []);
+
+  const handleRefreshConnection = useCallback(async () => {
+    try {
+      setRefreshingConnection(true);
+      await refreshConnection();
+    } finally {
+      setRefreshingConnection(false);
+    }
+  }, [refreshConnection]);
 
   return (
     <div className="min-h-screen">
@@ -96,7 +106,9 @@ const ProfileClient = memo(function ProfileClient() {
             {isLoading ? (
               <div className="flex items-center justify-center py-6 sm:py-8">
                 <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-500"></div>
-                <span className="ml-3 text-sm sm:text-base text-gray-600">Connecting...</span>
+                <span className="ml-3 text-sm sm:text-base text-gray-600">
+                  Connecting...
+                </span>
               </div>
             ) : error ? (
               <div className="bg-gradient-orange-red-soft border border-sunset-red/20 rounded-lg p-3 sm:p-4 mb-4">
@@ -106,7 +118,9 @@ const ProfileClient = memo(function ProfileClient() {
                     Connection Error
                   </p>
                 </div>
-                <p className="text-sunset-red/80 text-xs sm:text-sm mt-1">{error}</p>
+                <p className="text-sunset-red/80 text-xs sm:text-sm mt-1">
+                  {error}
+                </p>
                 <Button
                   onClick={connect}
                   className="mt-3 bg-gradient-red-orange hover:bg-gradient-sunset text-white text-sm"
@@ -123,6 +137,15 @@ const ProfileClient = memo(function ProfileClient() {
                       Connected Wallet
                     </h3>
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <Button
+                        onClick={handleRefreshConnection}
+                        disabled={refreshingConnection}
+                        variant="outline"
+                        className="rounded-lg text-blue-600 border-blue-200 hover:bg-blue-50 text-sm disabled:opacity-50"
+                      >
+                        <RefreshCw className={`w-3 h-3 mr-1 ${refreshingConnection ? 'animate-spin' : ''}`} />
+                        {refreshingConnection ? 'Refreshing...' : 'Refresh'}
+                      </Button>
                       <SwitchWalletButton />
                       <Button
                         onClick={disconnect}
@@ -139,7 +162,9 @@ const ProfileClient = memo(function ProfileClient() {
                       <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs sm:text-sm text-gray-600">Address</p>
+                      <p className="font-mono text-xs sm:text-sm text-gray-600">
+                        Address
+                      </p>
                       <div className="flex items-center gap-2">
                         <p className="font-mono text-xs sm:text-sm font-medium truncate">
                           {formatAddress(account)}
@@ -160,13 +185,17 @@ const ProfileClient = memo(function ProfileClient() {
                   <div className="border-t border-orange-200 pt-3">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600">Balance</p>
+                        <p className="text-xs sm:text-sm text-gray-600">
+                          Balance
+                        </p>
                         {balance ? (
                           <p className="text-base sm:text-lg font-semibold text-gray-900">
                             {balance} KAIA
                           </p>
                         ) : (
-                          <p className="text-xs sm:text-sm text-gray-500">Not loaded</p>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            Not loaded
+                          </p>
                         )}
                       </div>
                       <Button
@@ -184,7 +213,9 @@ const ProfileClient = memo(function ProfileClient() {
                         ) : (
                           <div className="flex items-center gap-2">
                             <RefreshCw className="w-3 h-3" />
-                            <span className="hidden sm:inline">Refresh Balance</span>
+                            <span className="hidden sm:inline">
+                              Refresh Balance
+                            </span>
                             <span className="sm:hidden">Refresh</span>
                           </div>
                         )}
@@ -195,8 +226,13 @@ const ProfileClient = memo(function ProfileClient() {
               </div>
             ) : (
               <div className="text-center py-6 sm:py-8 px-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-sunset-orange-light rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <Link2 className="w-6 h-6 sm:w-8 sm:h-8 text-sunset-orange" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Image
+                    src="/beary/beary-wallet.png"
+                    alt="Beary with wallet"
+                    width={80}
+                    height={80}
+                  />
                 </div>
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                   Connect Your Wallet
@@ -205,12 +241,32 @@ const ProfileClient = memo(function ProfileClient() {
                   Connect your wallet to access your profile and manage your
                   assets
                 </p>
-                <Button
-                  onClick={connect}
-                  className="bg-gradient-orange-pink hover:bg-gradient-sunset text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium w-full sm:w-auto"
-                >
-                  Connect Wallet
-                </Button>
+                
+                {/* Debug info for mobile */}
+                {typeof window !== 'undefined' && window.navigator && (
+                  <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
+                    <div>User Agent: {window.navigator.userAgent.includes('Mobile') ? 'Mobile' : 'Desktop'}</div>
+                    <div>Environment: {process.env.NODE_ENV}</div>
+                    <div>Timestamp: {new Date().toLocaleTimeString()}</div>
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <Button
+                    onClick={connect}
+                    className="bg-gradient-orange-pink hover:bg-gradient-sunset text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium flex-1 sm:flex-none"
+                  >
+                    Connect Wallet
+                  </Button>
+                  <Button
+                    onClick={handleRefreshConnection}
+                    disabled={refreshingConnection}
+                    variant="outline"
+                    className="border-blue-200 text-blue-600 hover:bg-blue-50 px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium flex-1 sm:flex-none disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${refreshingConnection ? 'animate-spin' : ''}`} />
+                    {refreshingConnection ? 'Refreshing...' : 'Refresh Connection'}
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>

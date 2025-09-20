@@ -7,6 +7,7 @@ import { useApprove } from "./useApprove";
 import { useCurrentChainId } from "@/lib/chain";
 import { isUserRejection } from "@/utils/error-handling";
 import { parseAmountToBigInt } from "@/utils/format";
+import { isNativeToken } from "@/lib/utils";
 
 export type HexAddress = `0x${string}`;
 
@@ -142,7 +143,7 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
     await handleApprove(tokenAddress, spenderAddress, amountString, decimals);
   };
 
-  const handleSupplyLiquidity = async (lendingPoolAddress: HexAddress, amount: string, decimals: number) => {
+  const handleSupplyLiquidity = async (lendingPoolAddress: HexAddress, amount: string, decimals: number, tokenAddress?: HexAddress) => {
     if (!address) {
       setErrorMessage("Please connect your wallet");
       setShowFailedAlert(true);
@@ -162,7 +163,10 @@ export const useSupplyLiquidity = (chainId: number, onSuccess: () => void) => {
       return;
     }
 
-    if (!isApproved) {
+    // Skip approval check for native tokens
+    if (tokenAddress && isNativeToken(tokenAddress)) {
+      // For native tokens, we don't need approval, so we can proceed directly
+    } else if (!isApproved) {
       setErrorMessage("Please approve token first");
       setShowFailedAlert(true);
       return;

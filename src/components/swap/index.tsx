@@ -78,6 +78,9 @@ export default memo(function SwapPage() {
           <SwapInterface 
             onSwap={handleSwap}
             isSwapping={isSwapping}
+            isApproved={true}
+            needsApproval={false}
+            isApproving={false}
             showSuccessAlert={showSuccessAlert}
             showFailedAlert={showFailedAlert}
             errorMessage={errorMessage}
