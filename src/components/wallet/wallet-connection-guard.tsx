@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, memo } from "react";
-import { useAccount, useSwitchChain } from "wagmi";
+import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
+import { useSwitchChain } from "wagmi";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,10 +39,10 @@ export const WalletConnectionGuard = memo(function WalletConnectionGuard({
 }: WalletConnectionGuardProps) {
   const router = useRouter();
 
-  const { isConnected, chainId } = useAccount();
+  const { isConnected, currentChainId } = useUnifiedWallet();
   const { switchChain } = useSwitchChain();
 
-  const isOnTargetChain = chainId === targetChainId;
+  const isOnTargetChain = currentChainId === targetChainId;
   const needsConnection = !isConnected;
   const needsChainSwitch = isConnected && !isOnTargetChain;
 

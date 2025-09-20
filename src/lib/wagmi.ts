@@ -1,4 +1,4 @@
-import { createConfig, http } from "wagmi";
+import { createConfig, http, createStorage, cookieStorage } from "wagmi";
 import { baseSepolia, kaia, optimism } from "viem/chains";
 
 export const config = createConfig({
@@ -8,4 +8,11 @@ export const config = createConfig({
     [baseSepolia.id]: http(),
     [optimism.id]: http(),
   },
+  // Enable session persistence
+  storage: createStorage({
+    storage: typeof window !== 'undefined' ? window.localStorage : cookieStorage,
+    key: 'wagmi.store',
+  }),
+  // Allow reconnection on page reload
+  ssr: true,
 });

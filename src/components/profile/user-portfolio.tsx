@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { InlineSpinner } from "@/components/ui/spinner";
 import { PoolSelector } from "@/components/select/pools";
 import { TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
+import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
 import {
   fetchLendingPools,
   pairLendingPoolsWithTokens,
@@ -111,7 +111,7 @@ const PortfolioCollateralEquivalent = React.memo(
 export const UserPortfolio = memo(function UserPortfolio({
   className = "",
 }: UserPortfolioProps) {
-  const { isConnected } = useWallet();
+  const { isConnected } = useUnifiedWallet();
   const [pools, setPools] = useState<LendingPoolWithTokens[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

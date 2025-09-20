@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useWallet } from "@/hooks/useWallet";
+import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
 import {
   Lock,
   CreditCard,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import SwitchWalletButton from "./button/switch-wallet-button";
 import { UserPortfolio } from "./profile/user-portfolio";
+import { WalletSessionIndicator } from "./wallet-session-indicator";
 
 const ProfileClient = memo(function ProfileClient() {
   const {
@@ -26,7 +27,7 @@ const ProfileClient = memo(function ProfileClient() {
     disconnect,
     getBalance,
     refreshConnection,
-  } = useWallet();
+  } = useUnifiedWallet();
   const [balance, setBalance] = useState<string | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [refreshingConnection, setRefreshingConnection] = useState(false);
@@ -66,6 +67,17 @@ const ProfileClient = memo(function ProfileClient() {
 
   return (
     <div className="min-h-screen">
+      {/* Development Session Indicator - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+          <div className="max-w-4xl mx-auto">
+            <h3 className="text-sm font-medium text-yellow-800 mb-2">
+              🔧 Development Mode - OKX Session Debug
+            </h3>
+            <WalletSessionIndicator />
+          </div>
+        </div>
+      )}
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         {/* Header Section - Icon close to hero header */}
         <div className="text-center mb-4 sm:mb-6">

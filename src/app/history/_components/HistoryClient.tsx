@@ -4,7 +4,7 @@ import { memo, useMemo, useState, useEffect } from "react";
 import { TransactionTable } from "./TransactionTable";
 import { TransactionFilter } from "./TransactionFilter";
 import { useTransactions } from "./api";
-import { useWagmiWallet } from "@/hooks/useWagmiWallet";
+import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
@@ -14,7 +14,7 @@ const HistoryClient = memo(function HistoryClient() {
   const [selectedType, setSelectedType] = useState("all");
   const [page, setPage] = useState(0);
 
-  const { isConnected, account } = useWagmiWallet();
+  const { isConnected, account } = useUnifiedWallet();
   const { transactions, loading, error } = useTransactions(
     isConnected && account ? account : undefined
   );
