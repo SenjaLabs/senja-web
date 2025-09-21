@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, memo, useEffect } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { ArrowUpDown, Info, ChevronDown } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -138,7 +138,7 @@ export const SwapInterface = memo(function SwapInterface({
     return 0;
   };
 
-  const { parsedExchangeRate: exchangeRate, refetchExchangeRate } = useReadExchangeRate(
+  const { parsedExchangeRate: exchangeRate } = useReadExchangeRate(
     (selectedPool?.lendingPool as `0x${string}`) ||
       "0x0000000000000000000000000000000000000000",
     (fromToken?.addresses[currentChainId] as `0x${string}`) ||

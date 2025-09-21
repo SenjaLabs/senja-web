@@ -65,7 +65,7 @@ export const useWallet = (): WalletState & WalletActions => {
           setState(prev => ({ 
             ...prev, 
             isLoading: false, 
-            walletType: 'wagmi',
+            walletType: 'dapp-portal',
             error: null
           }));
           return;
@@ -91,7 +91,7 @@ export const useWallet = (): WalletState & WalletActions => {
         setState(prev => ({ 
           ...prev, 
           isLoading: false, 
-          walletType: 'wagmi',
+          walletType: 'dapp-portal',
           error: null
         }));
       }

@@ -10,7 +10,6 @@ import {
   CreditCard,
   Copy,
   AlertTriangle,
-  Link2,
   RefreshCw,
   Clock,
 } from "lucide-react";
@@ -195,22 +194,40 @@ const ProfileClient = memo(function ProfileClient() {
               </div>
             ) : (
               <div className="text-center py-6 sm:py-8 px-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-sunset-orange-light rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <Link2 className="w-6 h-6 sm:w-8 sm:h-8 text-sunset-orange" />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <Image
+                    src="/dapps-logo.svg"
+                    alt="DApps Logo"
+                    width={80}
+                    height={80}
+                    className="w-full h-full object-contain drop-shadow-lg"
+                    priority
+                  />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
                   Connect Your Wallet
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                  Connect your wallet to access your profile and manage your
-                  assets
+                <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+                  Connect your wallet to access your profile and manage your assets
                 </p>
-                <Button
-                  onClick={connect}
-                  className="bg-gradient-orange-pink hover:bg-gradient-sunset text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium w-full sm:w-auto"
-                >
-                  Connect Wallet
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    onClick={connect}
+                    className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white px-8 sm:px-10 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full sm:w-auto"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+                        </svg>
+                      </div>
+                      Connect Wallet
+                    </div>
+                  </Button>
+                  <p className="text-xs text-gray-500">
+                    Secure connection powered by DApps Portal
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>

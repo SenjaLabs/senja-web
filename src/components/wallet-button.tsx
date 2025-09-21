@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useWallet } from "@/hooks/useWallet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -315,9 +316,18 @@ export const WalletButton = ({
     return (
       <Button
         onClick={handleConnect}
-        className={`bg-gradient-sunset hover:bg-gradient-twilight text-white ${className}`}
+        className={`bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ${className}`}
       >
-        Connect Wallet
+        <div className="flex items-center gap-2">
+          <Image
+            src="/dapps-logo.svg"
+            alt="DApps"
+            width={16}
+            height={16}
+            className="w-4 h-4 object-contain"
+          />
+          Connect Wallet
+        </div>
       </Button>
     );
   }
@@ -325,33 +335,40 @@ export const WalletButton = ({
   // Default variant
   return (
     <div className={`text-center p-6 ${className}`}>
-      <div className="w-16 h-16 bg-sunset-orange-light rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg
-          className="w-8 h-8 text-orange-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-          />
-        </svg>
+      <div className="w-20 h-20 flex items-center justify-center mx-auto mb-6">
+        <Image
+          src="/dapps-logo.svg"
+          alt="DApps Logo"
+          width={80}
+          height={80}
+          className="w-full h-full object-contain drop-shadow-lg"
+          priority
+        />
       </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+      <h3 className="text-xl font-bold text-gray-900 mb-3">
         Connect Your Wallet
       </h3>
-      <p className="text-gray-600 mb-6">
-        Connect your wallet to access all features
+      <p className="text-gray-600 mb-8 text-base">
+        Connect your wallet to access all features and manage your assets
       </p>
-      <Button
-        onClick={handleConnect}
-        className="bg-gradient-sunset hover:bg-gradient-twilight text-white px-8 py-3 text-lg font-medium"
-      >
-        Connect Wallet
-      </Button>
+      <div className="space-y-3">
+        <Button
+          onClick={handleConnect}
+          className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 w-full max-w-xs"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"/>
+              </svg>
+            </div>
+            Connect Wallet
+          </div>
+        </Button>
+        <p className="text-xs text-gray-500">
+          Secure connection powered by DApps Portal
+        </p>
+      </div>
     </div>
   );
 };
