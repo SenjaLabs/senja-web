@@ -20,6 +20,7 @@ interface WalletActions {
   getBalance: () => Promise<string>;
   switchNetwork: (chainId: number) => Promise<void>;
   getCurrentChain: () => { id: number; name: string; logo: string } | null;
+  switchWalletType: (type: 'dapp-portal' | 'wagmi') => void;
 }
 
 export const useWallet = (): WalletState & WalletActions => {
@@ -33,7 +34,8 @@ export const useWallet = (): WalletState & WalletActions => {
   });
 
   const [sdk, setSdk] = useState<DappPortalSDK | null>(null);
-  const [useDappPortal, setUseDappPortal] = useState<boolean>(true);
+  const [useDappPortal, setUseDappPortal] = useState<boolean>(false); // RainbowKit as primary
+  const [manualWalletType, setManualWalletType] = useState<'dapp-portal' | 'wagmi' | null>(null);
 
   // Wagmi hooks as fallback
   const { address: wagmiAddress, isConnected: wagmiConnected, chainId: wagmiChainId } = useAccount();
@@ -65,7 +67,7 @@ export const useWallet = (): WalletState & WalletActions => {
           setState(prev => ({ 
             ...prev, 
             isLoading: false, 
-            walletType: 'dapp-portal',
+            walletType: 'wagmi',
             error: null
           }));
           return;
@@ -78,11 +80,11 @@ export const useWallet = (): WalletState & WalletActions => {
         });
 
         setSdk(dappPortalSDK);
-        setUseDappPortal(true);
+        setUseDappPortal(false); // Keep RainbowKit as primary even when DApps SDK is available
         setState(prev => ({ 
           ...prev, 
           isLoading: false, 
-          walletType: 'dapp-portal',
+          walletType: 'wagmi',
           error: null
         }));
       } catch {
@@ -91,7 +93,7 @@ export const useWallet = (): WalletState & WalletActions => {
         setState(prev => ({ 
           ...prev, 
           isLoading: false, 
-          walletType: 'dapp-portal',
+          walletType: 'wagmi',
           error: null
         }));
       }
@@ -105,7 +107,9 @@ export const useWallet = (): WalletState & WalletActions => {
 
   // Check if wallet is already connected
   useEffect(() => {
-    if (useDappPortal && sdk) {
+    const shouldUseDappPortal = manualWalletType ? manualWalletType === 'dapp-portal' : useDappPortal;
+    
+    if (shouldUseDappPortal && sdk) {
       const checkConnection = async () => {
         try {
           const walletProvider = sdk.getWalletProvider();
@@ -124,6 +128,7 @@ export const useWallet = (): WalletState & WalletActions => {
               isConnected: true,
               account: accounts[0],
               currentChainId: parseInt(chainId, 16),
+              walletType: 'dapp-portal',
             }));
           }
         } catch  {
@@ -132,22 +137,25 @@ export const useWallet = (): WalletState & WalletActions => {
       };
 
       checkConnection();
-    } else if (!useDappPortal) {
+    } else if (!shouldUseDappPortal) {
       // Use wagmi state
       setState(prev => ({
         ...prev,
         isConnected: wagmiConnected,
         account: wagmiAddress || null,
         currentChainId: wagmiChainId || null,
+        walletType: 'wagmi',
       }));
     }
-  }, [sdk, useDappPortal, wagmiConnected, wagmiAddress, wagmiChainId]);
+  }, [sdk, useDappPortal, manualWalletType, wagmiConnected, wagmiAddress, wagmiChainId]);
 
   const connect = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      if (useDappPortal && sdk) {
+      const shouldUseDappPortal = manualWalletType ? manualWalletType === 'dapp-portal' : useDappPortal;
+      
+      if (shouldUseDappPortal && sdk) {
         // Use DApp Portal SDK for connection
         const walletProvider = sdk.getWalletProvider();
         const accounts = await walletProvider.request({ 
@@ -165,6 +173,7 @@ export const useWallet = (): WalletState & WalletActions => {
             isConnected: true,
             account: accounts[0],
             currentChainId: parseInt(chainId, 16),
+            walletType: 'dapp-portal',
             isLoading: false,
           }));
         } else {
@@ -180,6 +189,7 @@ export const useWallet = (): WalletState & WalletActions => {
           await wagmiConnect({ connector: connectors[0] });
           setState(prev => ({
             ...prev,
+            walletType: 'wagmi',
             isLoading: false,
           }));
         } else {
@@ -197,11 +207,13 @@ export const useWallet = (): WalletState & WalletActions => {
         error: 'Failed to connect wallet',
       }));
     }
-  }, [sdk, useDappPortal, wagmiConnect, connectors]);
+  }, [sdk, useDappPortal, manualWalletType, wagmiConnect, connectors]);
 
   const disconnect = useCallback(async () => {
     try {
-      if (useDappPortal && sdk) {
+      const shouldUseDappPortal = manualWalletType ? manualWalletType === 'dapp-portal' : useDappPortal;
+      
+      if (shouldUseDappPortal && sdk) {
         // Use DApp Portal SDK for disconnection
         const walletProvider = sdk.getWalletProvider();
         await walletProvider.disconnectWallet();
@@ -219,7 +231,7 @@ export const useWallet = (): WalletState & WalletActions => {
     } catch {
       setState(prev => ({ ...prev, error: 'Failed to disconnect wallet' }));
     }
-  }, [sdk, useDappPortal, wagmiDisconnect]);
+  }, [sdk, useDappPortal, manualWalletType, wagmiDisconnect]);
 
   const getBalance = useCallback(async (): Promise<string> => {
     if (!state.account) {
@@ -227,7 +239,9 @@ export const useWallet = (): WalletState & WalletActions => {
     }
 
     try {
-      if (useDappPortal && sdk) {
+      const shouldUseDappPortal = manualWalletType ? manualWalletType === 'dapp-portal' : useDappPortal;
+      
+      if (shouldUseDappPortal && sdk) {
         // Use DApp Portal SDK for balance
         const walletProvider = sdk.getWalletProvider();
         const balance = await walletProvider.request({
@@ -245,7 +259,7 @@ export const useWallet = (): WalletState & WalletActions => {
     } catch {
       throw new Error('Failed to get balance');
     }
-  }, [sdk, state.account, useDappPortal, wagmiBalance]);
+  }, [sdk, state.account, useDappPortal, manualWalletType, wagmiBalance]);
 
 
   const switchNetwork = useCallback(async (chainId: number) => {
@@ -288,6 +302,30 @@ export const useWallet = (): WalletState & WalletActions => {
     } : null;
   }, [state.currentChainId]);
 
+  const switchWalletType = useCallback((type: 'dapp-portal' | 'wagmi') => {
+    setManualWalletType(type);
+    
+    if (type === 'dapp-portal') {
+      setUseDappPortal(true);
+      setState(prev => ({
+        ...prev,
+        walletType: 'dapp-portal',
+        isConnected: false,
+        account: null,
+        error: null,
+      }));
+    } else {
+      setUseDappPortal(false);
+      setState(prev => ({
+        ...prev,
+        walletType: 'wagmi',
+        isConnected: false,
+        account: null,
+        error: null,
+      }));
+    }
+  }, []);
+
   return {
     ...state,
     connect,
@@ -295,5 +333,6 @@ export const useWallet = (): WalletState & WalletActions => {
     getBalance,
     switchNetwork,
     getCurrentChain,
+    switchWalletType,
   };
 };

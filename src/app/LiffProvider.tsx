@@ -11,6 +11,7 @@ import {
 } from "react";
 import { WagmiProvider } from "wagmi";
 import { config } from "@/lib/wagmi";
+import { lightTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 interface LiffContextType {
   liff: Liff | null;
@@ -52,11 +53,24 @@ export default function LiffProvider({ children }: LiffProviderProps) {
     liffError: liffError,
   };
   const queryClient = new QueryClient();
+
   return (
     <WagmiProvider config={config}>
       <LiffContext.Provider value={value}>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <RainbowKitProvider
+            modalSize="compact"
+            initialChain={8217}
+            theme={lightTheme({
+              accentColor: '#f97316',
+              accentColorForeground: 'white',
+              borderRadius: 'large',
+              fontStack: 'system',
+              overlayBlur: 'small',
+            })}
+          >
+            {children}
+          </RainbowKitProvider>
         </QueryClientProvider>
       </LiffContext.Provider>
     </WagmiProvider>

@@ -57,7 +57,6 @@ const PortfolioCollateralEquivalent = React.memo(
         collateralToken?.addresses[currentChainId]
     );
 
-
     // Get exchange rate for USDT to collateral token conversion
     const { parsedExchangeRate: usdtToCollateralRate, exchangeRateLoading } =
       useOptimizedExchangeRate(
@@ -155,7 +154,8 @@ export const UserPortfolio = memo(function UserPortfolio({
 
   // Check if user has position first
   const { userPosition } = useReadUserPosition(
-    (selectedPool?.lendingPool as `0x${string}`) || "0x0000000000000000000000000000000000000000"
+    (selectedPool?.lendingPool as `0x${string}`) ||
+      "0x0000000000000000000000000000000000000000"
   );
 
   // Get user collateral data for selected pool only (simplified approach)
@@ -280,21 +280,26 @@ export const UserPortfolio = memo(function UserPortfolio({
 
   if (!isConnected) {
     return (
-      <div className={`w-full max-w-xl mx-auto ${className}`}>
-        <Card className="shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-orange-pink rounded-full flex items-center justify-center">
-                <TrendingUp className="w-3 h-3 text-white" />
+      <div className={`w-full max-w-xl mx-auto pb-12 ${className}`}>
+        <Card className="shadow-2xl border border-orange-200 bg-gradient-to-br from-white via-orange-50/30 to-pink-50/30 backdrop-blur-sm relative overflow-hidden">
+          {/* Senja decorative elements */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-300/20 to-pink-300/20 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-pink-300/20 to-red-300/20 rounded-full translate-y-8 -translate-x-8"></div>
+          <CardHeader className="px-3 sm:px-6 relative z-10">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              User Portfolio
+              <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                User Portfolio
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <CardContent className="px-3 sm:px-6 text-center py-8 relative z-10">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
               Connect Wallet to View Portfolio
             </h3>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm sm:text-base">
               Connect your wallet to see your lending pool positions and health
               factor.
             </p>
@@ -306,19 +311,26 @@ export const UserPortfolio = memo(function UserPortfolio({
 
   if (loading || collateralLoading) {
     return (
-      <div className={`w-full max-w-xl mx-auto ${className}`}>
-        <Card className="shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-orange-pink rounded-full flex items-center justify-center">
-                <TrendingUp className="w-3 h-3 text-white" />
+      <div className={`w-full max-w-xl mx-auto pb-12 ${className}`}>
+        <Card className="shadow-2xl border border-orange-200 bg-gradient-to-br from-white via-orange-50/30 to-pink-50/30 backdrop-blur-sm relative overflow-hidden">
+          {/* Senja decorative elements */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-300/20 to-pink-300/20 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-pink-300/20 to-red-300/20 rounded-full translate-y-8 -translate-x-8"></div>
+          <CardHeader className="px-3 sm:px-6 relative z-10">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              User Portfolio
+              <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                User Portfolio
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-8">
+          <CardContent className="px-3 sm:px-6 text-center py-8 relative z-10">
             <InlineSpinner size="lg" className="mb-4" />
-            <p className="text-gray-600">Loading portfolio data...</p>
+            <p className="text-gray-600 text-sm sm:text-base">
+              Loading portfolio data...
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -326,31 +338,38 @@ export const UserPortfolio = memo(function UserPortfolio({
   }
 
   // Check if user has position for showing content
-  const hasValidPosition = userPosition && userPosition !== "0x0000000000000000000000000000000000000000";
+  const hasValidPosition =
+    userPosition &&
+    userPosition !== "0x0000000000000000000000000000000000000000";
 
   if (error || collateralError) {
     return (
-      <div className={`w-full max-w-xl mx-auto ${className}`}>
-        <Card className="shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-orange-pink rounded-full flex items-center justify-center">
-                <TrendingUp className="w-3 h-3 text-white" />
+      <div className={`w-full max-w-xl mx-auto pb-12 ${className}`}>
+        <Card className="shadow-2xl border border-orange-200 bg-gradient-to-br from-white via-orange-50/30 to-pink-50/30 backdrop-blur-sm relative overflow-hidden">
+          {/* Senja decorative elements */}
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-300/20 to-pink-300/20 rounded-full -translate-y-10 translate-x-10"></div>
+          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-pink-300/20 to-red-300/20 rounded-full translate-y-8 -translate-x-8"></div>
+          <CardHeader className="px-3 sm:px-6 relative z-10">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              User Portfolio
+              <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                User Portfolio
+              </span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-8">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CardContent className="px-3 sm:px-6 text-center py-8 relative z-10">
+            <div className="w-16 h-16 bg-gradient-to-r from-red-100 to-red-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <AlertTriangle className="w-8 h-8 text-red-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
               Error Loading Portfolio
             </h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
             <Button
               onClick={() => window.location.reload()}
-              className="bg-gradient-orange-pink hover:bg-gradient-sunset text-white"
+              className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white shadow-lg"
             >
               Try Again
             </Button>
@@ -361,15 +380,20 @@ export const UserPortfolio = memo(function UserPortfolio({
   }
 
   return (
-    <div className={`w-full max-w-xl mx-auto ${className}`}>
-      <Card className="shadow-lg border border-orange-100 bg-white/80 backdrop-blur-sm">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-orange-pink rounded-full flex items-center justify-center">
-                <TrendingUp className="w-3 h-3 text-white" />
+    <div className={`w-full max-w-xl mx-auto pb-12 ${className}`}>
+      <Card className="shadow-2xl border border-orange-200 bg-gradient-to-br from-white via-orange-50/30 to-pink-50/30 backdrop-blur-sm relative overflow-hidden">
+        {/* Senja decorative elements */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-orange-300/20 to-pink-300/20 rounded-full -translate-y-10 translate-x-10"></div>
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-pink-300/20 to-red-300/20 rounded-full translate-y-8 -translate-x-8"></div>
+        <CardHeader className="px-3 sm:px-6 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              User Portfolio
+              <span className="bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                User Portfolio
+              </span>
             </CardTitle>
 
             {/* Pool Selector */}
@@ -383,7 +407,7 @@ export const UserPortfolio = memo(function UserPortfolio({
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="px-3 sm:px-6 space-y-6 relative z-10">
           {!hasValidPosition ? (
             /* No Position State */
             <div className="text-center py-8">
@@ -397,100 +421,112 @@ export const UserPortfolio = memo(function UserPortfolio({
                 You don&apos;t have a position in the selected pool yet.
               </p>
               <p className="text-sm text-gray-500">
-                Try selecting a different pool or use the Supply/Borrow tabs to create a position.
+                Try selecting a different pool or use the Supply/Borrow tabs to
+                create a position.
               </p>
             </div>
           ) : (
             <>
               {/* Health Factor & User Borrow Section */}
-              <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-lg p-4 border border-orange-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Health Factor */}
-              <div className="text-left">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
-                    Health Factor
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className={
-                      healthFactorStatus.status === "infinity"
-                        ? "border-purple-200 text-purple-700 bg-purple-50"
-                        : healthFactorStatus.status === "healthy"
-                        ? "border-green-200 text-green-700 bg-green-50"
-                        : healthFactorStatus.status === "warning"
-                        ? "border-yellow-200 text-yellow-700 bg-yellow-50"
-                        : healthFactorStatus.status === "danger"
-                        ? "border-red-200 text-red-700 bg-red-50"
-                        : "border-gray-200 text-gray-700 bg-gray-50"
-                    }
-                  >
-                    <healthFactorStatus.icon className="w-3 h-3 mr-1" />
-                    {healthFactorStatus.status === "infinity"
-                      ? "INFINITY"
-                      : healthFactorStatus.status.toUpperCase()}
-                  </Badge>
-                </div>
-                <div className="text-left">
-                  <p className="text-lg font-bold text-gray-900">
-                    {healthFactorLoading ? (
-                      <InlineSpinner size="sm" />
-                    ) : (
-                      healthFactorDisplay
-                    )}
-                  </p>
+              <div className="bg-gradient-to-r from-orange-50 via-pink-50 to-red-50 rounded-xl p-4 sm:p-6 border border-orange-200 shadow-lg">
+                <div className="space-y-6 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-8">
+                  {/* Health Factor */}
+                  <div className="text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2 sm:gap-0">
+                      <span className="font-semibold text-sm sm:text-base text-gray-800 flex items-center justify-center sm:justify-start gap-2">
+                        <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"></div>
+                        Health Factor
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={
+                          healthFactorStatus.status === "infinity"
+                            ? "border-purple-300 text-purple-800 bg-gradient-to-r from-purple-100 to-purple-200 shadow-sm self-center sm:self-auto"
+                            : healthFactorStatus.status === "healthy"
+                            ? "border-green-300 text-green-800 bg-gradient-to-r from-green-100 to-green-200 shadow-sm self-center sm:self-auto"
+                            : healthFactorStatus.status === "warning"
+                            ? "border-yellow-300 text-yellow-800 bg-gradient-to-r from-yellow-100 to-yellow-200 shadow-sm self-center sm:self-auto"
+                            : healthFactorStatus.status === "danger"
+                            ? "border-red-300 text-red-800 bg-gradient-to-r from-red-100 to-red-200 shadow-sm self-center sm:self-auto"
+                            : "border-gray-300 text-gray-800 bg-gradient-to-r from-gray-100 to-gray-200 shadow-sm self-center sm:self-auto"
+                        }
+                      >
+                        <healthFactorStatus.icon className="w-3 h-3 mr-1" />
+                        {healthFactorStatus.status === "infinity"
+                          ? "INFINITY"
+                          : healthFactorStatus.status.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-md sm:text-xl font-semibold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                        {healthFactorLoading ? (
+                          <InlineSpinner size="sm" />
+                        ) : (
+                          healthFactorDisplay
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* User Borrow */}
+                  <div className="text-center sm:text-right">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end mb-4 gap-2 sm:gap-0">
+                      <span className="font-semibold text-sm sm:text-base text-gray-800 flex items-center justify-center sm:justify-end gap-2">
+                        Total Borrowed
+                        <div className="w-2 h-2 bg-gradient-to-r from-pink-500 to-red-500 rounded-full"></div>
+                      </span>
+                    </div>
+                    <div className="text-center sm:text-right">
+                      <p className="text-md sm:text-xl font-semibold bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent">
+                        {userBorrowSharesLoading ? (
+                          <InlineSpinner size="sm" />
+                        ) : (
+                          formatLargeNumber(userBorrowSharesFormatted || "0")
+                        )}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* User Borrow */}
-              <div className="text-right">
-                <div className="flex items-center justify-end mb-3">
-                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
-                    Total Borrowed
-                  </span>
+              {/* Total Balance Section */}
+              {totalUsdtFromTokens > 0 && (
+                <div className="bg-gradient-to-r from-orange-50 via-pink-50 to-red-50 rounded-xl p-4 sm:p-6 border border-orange-200 shadow-lg">
+                  <div className="space-y-4">
+                    <div className="text-center mb-4">
+                      <h3 className="text-md sm:text-xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+                        <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"></div>
+                        Total Collateral
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="text-center sm:text-left">
+                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                          USD Value
+                        </p>
+                        <p className="text-md sm:text-2xl font-semibold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
+                          {formatLargeNumber(totalUsdtFromTokens.toFixed(2))}{" "}
+                          USDT
+                        </p>
+                      </div>
+                      <div className="text-center sm:text-right">
+                        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1">
+                          {selectedPool?.collateralTokenInfo?.symbol || "Token"}{" "}
+                          Collateral
+                        </p>
+                        <p className="text-md sm:text-xl font-semibold bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent">
+                          <PortfolioCollateralEquivalent
+                            usdtValue={totalUsdtFromTokens}
+                            selectedPool={selectedPool}
+                            isLoading={false}
+                            currentChainId={currentChainId}
+                          />
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">
-                    {userBorrowSharesLoading ? (
-                      <InlineSpinner size="sm" />
-                    ) : (
-                      formatLargeNumber(userBorrowSharesFormatted || "0")
-                    )}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Balance Section */}
-          {totalUsdtFromTokens > 0 && (
-            <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-lg p-4 border border-orange-200">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">
-                    Total Collateral
-                  </span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {selectedPool?.collateralTokenInfo?.symbol || "Token"}{" "}
-                    Collateral
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold text-gray-900">
-                    {formatLargeNumber(totalUsdtFromTokens.toFixed(2))} USDT
-                  </span>
-                  <span className="text-lg font-bold text-gray-900">
-                    <PortfolioCollateralEquivalent
-                      usdtValue={totalUsdtFromTokens}
-                      selectedPool={selectedPool}
-                      isLoading={false}
-                      currentChainId={currentChainId}
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+              )}
 
               {/* No Positions Message */}
               {allCollateralData.length === 0 && !collateralLoading && (
@@ -502,8 +538,8 @@ export const UserPortfolio = memo(function UserPortfolio({
                     No Active Positions
                   </h3>
                   <p className="text-gray-600">
-                    You don&apos;t have any collateral positions in lending pools
-                    yet.
+                    You don&apos;t have any collateral positions in lending
+                    pools yet.
                   </p>
                 </div>
               )}

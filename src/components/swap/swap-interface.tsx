@@ -309,7 +309,7 @@ export const SwapInterface = memo(function SwapInterface({
                       onChange={(e) => handleFromAmountChange(e.target.value)}
                       min="0"
                       step="0.000001"
-                      className="border-0 bg-transparent text-3xl font-semibold placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
+                      className="border-0 bg-transparent text-md sm:text-xl md:text-xl font-medium placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
                     />
                     {fromToken && fromAmount ? (
                       <div className="text-sm text-gray-500 mt-1">
@@ -372,7 +372,7 @@ export const SwapInterface = memo(function SwapInterface({
                       onChange={(e) => handleToAmountChange(e.target.value)}
                       min="0"
                       step="0.000001"
-                      className="border-0 bg-transparent text-3xl font-semibold placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
+                      className="border-0 bg-transparent text-md sm:text-xl md:text-xl font-medium placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
                     />
                     {toToken && toAmount ? (
                       <div className="text-sm text-gray-500 mt-1">
@@ -399,27 +399,27 @@ export const SwapInterface = memo(function SwapInterface({
           {/* Connect Wallet Button */}
           <div className="mt-6">
             {needsWalletConnection ? (
-              <Button className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-lg">
+              <Button className="w-full h-10 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl shadow-lg">
                 Connect wallet
               </Button>
             ) : !fromToken || !toToken ? (
               <Button
                 disabled
-                className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
+                className="w-full h-10 text-sm font-medium bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
               >
                 Select tokens
               </Button>
             ) : !selectedPool ? (
               <Button
                 disabled
-                className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
+                className="w-full h-10 text-sm font-medium bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
               >
                 Select pool
               </Button>
             ) : !fromAmount || parseFloat(fromAmount) <= 0 ? (
               <Button
                 disabled
-                className="w-full h-14 text-lg font-semibold bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
+                className="w-full h-10 text-sm font-medium bg-orange-100 text-orange-600 rounded-xl border border-orange-200"
               >
                 {!fromTokenBalance ||
                 parseFloat(fromTokenBalance.toString()) === 0
@@ -432,7 +432,7 @@ export const SwapInterface = memo(function SwapInterface({
                 parseFloat(fromTokenBalance.toString()) ? (
               <Button
                 disabled
-                className="w-full h-14 text-lg font-semibold bg-red-100 text-red-600 rounded-xl border border-red-200"
+                className="w-full h-10 text-sm font-medium bg-red-100 text-red-600 rounded-xl border border-red-200"
               >
                 Insufficient balance
               </Button>
@@ -440,15 +440,15 @@ export const SwapInterface = memo(function SwapInterface({
               <Button
                 onClick={handleSwap}
                 disabled={isApproving}
-                className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
+                className="w-full h-10 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
               >
-                {isApproving ? "Approving..." : `Approve ${fromToken.symbol}`}
+                {isApproving ? "Swapping..." : `Swap ${fromToken.symbol}`}
               </Button>
             ) : (
               <Button
                 onClick={handleSwap}
                 disabled={!canSwap || isSwapping}
-                className="w-full h-14 text-lg font-semibold bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
+                className="w-full h-10 text-sm font-medium bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50 rounded-xl shadow-lg"
               >
                 {isSwapping
                   ? "Swapping..."

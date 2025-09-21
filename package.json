@@ -36,7 +36,7 @@
     "tailwind-merge": "^3.3.1",
     "tweetnacl": "^1.0.3",
     "util": "^0.12.5",
-    "viem": "~2.37.4",
+    "viem": "2.x",
     "wagmi": "^2.16.9",
     "zustand": "^5.0.8"
   },

@@ -519,7 +519,7 @@ export const TokenBalanceTable = ({ selectedPool, onTotalUsdtUpdate }: TokenBala
 
   return (
     <>
-      <Card className="bg-white/80 backdrop-blur-sm border border-sunset-orange shadow-xl">
+      <Card className="bg-white/80 backdrop-blur-sm border border-sunset-orange mb-10 shadow-xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg font-semibold text-gray-900">
             Token Balances
