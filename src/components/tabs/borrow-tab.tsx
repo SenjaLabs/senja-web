@@ -22,9 +22,9 @@ import { LendingPoolWithTokens } from "@/lib/graphql/lendingpool-list.fetch";
 
 // Utility function to format large numbers
 const formatLargeNumber = (value: string | number): string => {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
+  const num = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(num) || num === 0) return "0.00";
-  
+
   if (num >= 1000000) {
     return (num / 1000000).toFixed(2) + "M";
   } else if (num >= 1000) {
@@ -74,21 +74,25 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
   );
 
   // Get max borrow amount
-  const {
-    maxBorrowFormatted,
-    maxBorrowLoading,
-    refetchMaxBorrow,
-  } = useReadMaxBorrow(
-    (pool?.lendingPool as `0x${string}`) ||
-      "0x0000000000000000000000000000000000000000",
-    pool?.borrowTokenInfo?.decimals || 18
-  );
+  const { maxBorrowFormatted, maxBorrowLoading, refetchMaxBorrow } =
+    useReadMaxBorrow(
+      (pool?.lendingPool as `0x${string}`) ||
+        "0x0000000000000000000000000000000000000000",
+      pool?.borrowTokenInfo?.decimals || 18
+    );
 
   // Get fee for cross-chain borrowing (using amount to borrow)
   const { fee, feeLoading, feeError, refetchFee, parsedAmount } = useReadFee(
     destinationEndpoint,
     amount || "0",
-    pool?.borrowTokenInfo?.decimals || 18
+    pool?.borrowTokenInfo?.decimals || 18,
+    pool?.borrowTokenInfo || {
+      name: "Unknown",
+      symbol: "UNKNOWN",
+      logo: "/token/kaia-logo.svg",
+      decimals: 18,
+      addresses: {}
+    }
   );
 
   // Borrow hook
@@ -138,7 +142,7 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
     if (maxBorrowLoading) {
       return;
     }
-    
+
     if (maxBorrowFormatted && parseFloat(maxBorrowFormatted) > 0) {
       setAmount(maxBorrowFormatted);
     }
@@ -181,187 +185,188 @@ const BorrowTab = ({ pool }: BorrowTabProps) => {
       message="Connect your wallet to borrow assets from this lending pool!"
     >
       <div className="space-y-6">
-      {/* Pool Information Card */}
-      <PoolInfoCard
-        collateralToken={{
-          symbol: pool.collateralTokenInfo?.symbol || "Token",
-          logo: pool.collateralTokenInfo?.logo || "/token/kaia-logo.svg",
-        }}
-        borrowToken={{
-          symbol: pool.borrowTokenInfo?.symbol || "Token",
-          logo: pool.borrowTokenInfo?.logo || "/token/usdt.png",
-        }}
-        apy={apyLoading ? "Loading..." : borrowAPY}
-        ltv={(Number(pool.ltv) / 1e16).toFixed(1)}
-        apyLabel="Interest Rate"
-      />
+        {/* Pool Information Card */}
+        <PoolInfoCard
+          collateralToken={{
+            symbol: pool.collateralTokenInfo?.symbol || "Token",
+            logo: pool.collateralTokenInfo?.logo || "/token/kaia-logo.svg",
+          }}
+          borrowToken={{
+            symbol: pool.borrowTokenInfo?.symbol || "Token",
+            logo: pool.borrowTokenInfo?.logo || "/token/usdt.png",
+          }}
+          apy={apyLoading ? "Loading..." : borrowAPY}
+          ltv={(Number(pool.ltv) / 1e16).toFixed(1)}
+          apyLabel="Interest Rate"
+        />
 
-      <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
-        <div className="space-y-4">
-          {/* Chain Selection */}
-          <ChainSelector
-            chainFrom={chainFrom}
-            chainTo={chainTo}
-            onChainToChange={setChainTo}
-          />
+        <Card className="p-4 bg-gradient-to-br from-orange-50 to-pink-50 border-2 border-orange-200 rounded-lg shadow-lg">
+          <div className="space-y-4">
+            {/* Chain Selection */}
+            <ChainSelector
+              chainFrom={chainFrom}
+              chainTo={chainTo}
+              onChainToChange={setChainTo}
+            />
 
-          {/* Max Borrow Amount Card */}
-          <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-700">Max Borrow:</span>
-              <span className="text-md font-bold text-orange-700">
-                {maxBorrowLoading ? (
-                  "Loading..."
-                ) : (
-                  `${formatLargeNumber(maxBorrowFormatted || "0.00")} ${pool.borrowTokenInfo?.symbol || "Token"}`
-                )}
-              </span>
+            {/* Max Borrow Amount Card */}
+            <div className="p-3 bg-white/50 rounded-lg border border-orange-200">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700">Max Borrow:</span>
+                <span className="text-md font-bold text-orange-700">
+                  {maxBorrowLoading
+                    ? "Loading..."
+                    : `${formatLargeNumber(maxBorrowFormatted || "0.00")} ${
+                        pool.borrowTokenInfo?.symbol || "Token"
+                      }`}
+                </span>
+              </div>
+            </div>
+
+            {/* Amount Input */}
+            <AmountInput
+              label="Borrow Amount"
+              placeholder="Enter amount to borrow"
+              value={amount}
+              onChange={setAmount}
+              onMaxClick={handleSetMax}
+              tokenSymbol={pool.borrowTokenInfo?.symbol || "Token"}
+              maxDisabled={
+                maxBorrowLoading ||
+                !maxBorrowFormatted ||
+                parseFloat(maxBorrowFormatted) <= 0
+              }
+            />
+
+            {/* Fee Information */}
+            {amount && parsedAmount > BigInt(0) && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-orange-800">
+                    Cross-chain Fee:
+                  </span>
+                  <span className="text-sm text-orange-600">
+                    {feeLoading ? (
+                      "Loading..."
+                    ) : feeError ? (
+                      <span className="text-red-500">Error loading fee</span>
+                    ) : destinationEndpoint === 30150 ? (
+                      "0"
+                    ) : fee ? (
+                      `${Number(
+                        formatUnits(fee, 18) // Convert fee with 18 decimals
+                      ).toFixed(6)} KAIA`
+                    ) : (
+                      "No fee data"
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Transaction Status */}
+            <div className="space-y-2">
+              {/* Loading Status */}
+              {isBorrowing && (
+                <div className="flex items-center gap-3 text-orange-600">
+                  <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm font-semibold">
+                    Processing borrow request...
+                  </span>
+                </div>
+              )}
+
+              {/* Confirming Status */}
+              {isConfirming && (
+                <div className="flex items-center gap-3 text-orange-600">
+                  <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm font-semibold">
+                    Confirming transaction...
+                  </span>
+                </div>
+              )}
+
+              {/* Success Status */}
+              {isBorrowSuccess && (
+                <div className="flex items-center gap-3 text-green-600">
+                  <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <span className="text-sm font-semibold">
+                    Borrow successful!
+                  </span>
+                </div>
+              )}
+
+              {/* Error Status */}
+              {isBorrowError && (
+                <div className="flex items-center gap-3 text-red-600">
+                  <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  <span className="text-sm font-semibold">
+                    Transaction failed
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+        </Card>
 
-          {/* Amount Input */}
-          <AmountInput
-            label="Borrow Amount"
-            placeholder="Enter amount to borrow"
-            value={amount}
-            onChange={setAmount}
-            onMaxClick={handleSetMax}
-            tokenSymbol={pool.borrowTokenInfo?.symbol || "Token"}
-            maxDisabled={
-              maxBorrowLoading || 
-              !maxBorrowFormatted || 
-              parseFloat(maxBorrowFormatted) <= 0
+        <Button
+          onClick={handleBorrow}
+          className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg"
+          disabled={
+            !amount ||
+            !chainTo ||
+            isBorrowing ||
+            isConfirming ||
+            maxBorrowLoading ||
+            feeLoading
+          }
+        >
+          {isBorrowing
+            ? "Borrowing..."
+            : isConfirming
+            ? "Confirming..."
+            : `Borrow ${pool.borrowTokenInfo?.symbol || "Token"}`}
+        </Button>
+
+        {/* Alert Components */}
+        {showSuccessAlert && (
+          <SuccessAlert
+            isOpen={showSuccessAlert}
+            onClose={handleCloseSuccessAlert}
+            txHash={successTxHash}
+            title="Borrow Successful!"
+            description="Your borrow transaction has been completed successfully."
+            chainId={parseInt(chainTo)}
+          />
+        )}
+
+        {showFailedAlert && (
+          <FailedAlert
+            isOpen={showFailedAlert}
+            onClose={handleCloseFailedAlert}
+            title="Borrow Failed"
+            description={
+              errorMessage ||
+              "Your borrow transaction failed. Please try again."
             }
           />
-
-          {/* Fee Information */}
-          {amount && parsedAmount > BigInt(0) && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-orange-800">
-                  Cross-chain Fee:
-                </span>
-                <span className="text-sm text-orange-600">
-                  {feeLoading ? (
-                    "Loading..."
-                  ) : feeError ? (
-                    <span className="text-red-500">Error loading fee</span>
-                  ) : destinationEndpoint === 30150 ? (
-                    "0"
-                  ) : fee ? (
-                    `${Number(
-                      formatUnits(fee, 18) // Convert fee with 18 decimals
-                    ).toFixed(6)} KAIA`
-                  ) : (
-                    "No fee data"
-                  )}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Transaction Status */}
-          <div className="space-y-2">
-            {/* Loading Status */}
-            {isBorrowing && (
-              <div className="flex items-center gap-3 text-orange-600">
-                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm font-semibold">
-                  Processing borrow request...
-                </span>
-              </div>
-            )}
-
-            {/* Confirming Status */}
-            {isConfirming && (
-              <div className="flex items-center gap-3 text-orange-600">
-                <div className="w-5 h-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm font-semibold">
-                  Confirming transaction...
-                </span>
-              </div>
-            )}
-
-            {/* Success Status */}
-            {isBorrowSuccess && (
-              <div className="flex items-center gap-3 text-green-600">
-                <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-3 h-3 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <span className="text-sm font-semibold">
-                  Borrow successful!
-                </span>
-              </div>
-            )}
-
-            {/* Error Status */}
-            {isBorrowError && (
-              <div className="flex items-center gap-3 text-red-600">
-                <div className="w-5 h-5 bg-red-600 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-semibold">
-                  Transaction failed
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Button
-        onClick={handleBorrow}
-        className="w-full bg-gradient-to-r from-orange-400 to-pink-400 hover:from-orange-500 hover:to-pink-500 text-white py-3 rounded-lg font-semibold transition-all duration-300 shadow-lg"
-        disabled={
-          !amount ||
-          !chainTo ||
-          isBorrowing ||
-          isConfirming ||
-          maxBorrowLoading ||
-          feeLoading
-        }
-      >
-        {isBorrowing
-          ? "Borrowing..."
-          : isConfirming
-          ? "Confirming..."
-          : `Borrow ${pool.borrowTokenInfo?.symbol || "Token"}`}
-      </Button>
-
-      {/* Alert Components */}
-      {showSuccessAlert && (
-        <SuccessAlert
-          isOpen={showSuccessAlert}
-          onClose={handleCloseSuccessAlert}
-          txHash={successTxHash}
-          title="Borrow Successful!"
-          description="Your borrow transaction has been completed successfully."
-          chainId={parseInt(chainTo)}
-        />
-      )}
-
-      {showFailedAlert && (
-        <FailedAlert
-          isOpen={showFailedAlert}
-          onClose={handleCloseFailedAlert}
-          title="Borrow Failed"
-          description={
-            errorMessage || "Your borrow transaction failed. Please try again."
-          }
-        />
-      )}
+        )}
       </div>
     </BearyTabGuard>
   );

@@ -4,16 +4,23 @@ import { useMemo } from "react";
 import { helperAbi } from "@/lib/abis/helperAbi";
 import { helperAddress } from "@/lib/addresses/tokenAddress";
 import { parseAmountToBigIntSafe } from "@/utils/format";
+import { Token } from "@/types";
 
 export type HexAddress = `0x${string}`;
 
 export const useReadFee = (
   destinationEndpoint: number,
   amount: string | bigint,
-  decimal: number
+  decimal: number,
+  token: Token
 ) => {
   const { address } = useAccount();
-  const oftAddress = "0x5e6671ef689B2B2D4391a766B0486E5054136546";
+  const oftAddress = token.oftAddress;
+  
+  // Validate that token has oftAddress
+  if (!oftAddress) {
+    throw new Error(`Token ${token.symbol} does not have an OFT address configured`);
+  }
   
   // Parse amount to bigint with proper decimal handling
   const parsedAmount = useMemo(() => {
@@ -36,7 +43,7 @@ export const useReadFee = (
     abi: helperAbi,
     functionName: "getFee",
     args: [
-      oftAddress,
+      oftAddress as HexAddress,
       destinationEndpoint,
       address as HexAddress,
       parsedAmount,

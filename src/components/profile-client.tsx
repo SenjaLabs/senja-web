@@ -395,22 +395,16 @@ const ProfileClient = memo(function ProfileClient() {
                   >
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 sm:w-4 sm:h-4 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                          />
-                        </svg>
+                        <Image
+                          src="/dapps-logo.svg"
+                          alt="DApps Logo"
+                          width={16}
+                          height={16}
+                          className="w-3 h-3 sm:w-4 sm:h-4 object-contain filter brightness-0 invert"
+                        />
                       </div>
                       <span className="truncate text-xs sm:text-sm">
-                        Connect Other Wallet
+                        Connect Wallet
                       </span>
                     </div>
                   </Button>
@@ -421,7 +415,7 @@ const ProfileClient = memo(function ProfileClient() {
                       switchWalletType("dapp-portal");
                       connect();
                     }}
-                    className="w-full sm:flex-1 bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 hover:from-orange-600 hover:via-pink-600 hover:to-red-600 text-white px-4 py-3 sm:py-4 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="w-full hidden sm:flex-1 bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 hover:from-orange-600 hover:via-pink-600 hover:to-red-600 text-white px-4 py-3 sm:py-4 text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">

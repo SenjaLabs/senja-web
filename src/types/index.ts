@@ -12,6 +12,8 @@ export interface Token {
   logo: string;
   /** Number of decimal places for the token */
   decimals: number;
+  /** Optional OFT (Omnichain Fungible Token) address */
+  oftAddress?: string;
   /** Contract addresses for different chains */
   addresses: {
     [chainId: number]: Address;

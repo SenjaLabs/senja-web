@@ -15,8 +15,10 @@ export const tokens: Token[] = [
     symbol: "WKAIA",
     logo: "/token/kaia-logo.svg",
     decimals: 18,
+    oftAddress:"0x15858A57854BBf0DF60A737811d50e1Ee785f9bc",
     addresses: {
       8217: "0x684a2aAF3d98bC8eD2c07988E8da9023026aD511",
+      8453: "0x3703a1DA99a2BDf2d8ce57802aaCb20fb546Ff12",
     },
   },
   {
@@ -24,10 +26,10 @@ export const tokens: Token[] = [
     symbol: "WETH",
     logo: "/token/weth.png",
     decimals: 18,
+    oftAddress:"0x007F735Fd070DeD4B0B58D430c392Ff0190eC20F",
     addresses: {
-      84532: "0xB5155367af0Fab41d1279B059571715068dE263C",
-      8217: "0x649eF2a788732900B82237C126a121be3282997c", //0x98A8345bB9D3DDa9D808Ca1c9142a28F6b0430E1
-      10: "0x487b1e0177B3ac1ACA7e8c353ed0Df133593a8EB",
+      8217: "0x98A8345bB9D3DDa9D808Ca1c9142a28F6b0430E1",
+      8453: "0xec32CC0267002618c339274C18AD48D2Bf2A9c7e",
     },
   },
   {
@@ -35,10 +37,10 @@ export const tokens: Token[] = [
     symbol: "WBTC",
     logo: "/token/wbtc.png",
     decimals: 8,
+    oftAddress:"0x4Ba8D8083e7F3652CCB084C32652e68566E9Ef23",
     addresses: {
-      84532: "0x7CC19AdfCB73A81A6769dC1A9f7f9d429b27f000",
-      8217: "0x8Bf79e425B54ecD75907B4Eda00DCED8C1a97DB0",// 0x981846bE8d2d697f4dfeF6689a161A25FfbAb8F9
-      10: "0x2879d0A7AD718c096Ed35E338C23e4C79E3601d8",
+      8217: "0x981846bE8d2d697f4dfeF6689a161A25FfbAb8F9",
+      8453: "0x394239573079a46e438ea6D118Fd96d37A61f270",
     },
   },
   {
@@ -46,10 +48,19 @@ export const tokens: Token[] = [
     symbol: "USDT",
     logo: "/token/usdt.png",
     decimals: 6,
+    oftAddress:"0xdF05e9AbF64dA281B3cBd8aC3581022eC4841FB2",
     addresses: {
-      84532: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
-      8217: "0xCEb5c8903060197e46Ab5ea5087b9F99CBc8da49",
-      10: "0x6Ab9c1AAf4f8172138086AA72be2AB8aA6579dbd",
+      8217: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
+      8453: "0xc3be8ab4CA0cefE3119A765b324bBDF54a16A65b",
+    },
+  },
+  {
+    name: "USDT Stargate",
+    symbol: "USDT Stargate",
+    logo: "/token/usdtstargate.png",
+    decimals: 6,
+    addresses: {
+      8217: "0x9025095263d1E548dc890A7589A4C78038aC40ab",
     },
   },
 ];
