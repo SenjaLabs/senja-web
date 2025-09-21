@@ -25,6 +25,17 @@ export const AmountInput = ({
   disabled = false,
   maxDisabled = false,
 }: AmountInputProps) => {
+  const handleAmountChange = (inputValue: string) => {
+    // Prevent negative numbers and invalid characters
+    const cleanValue = inputValue.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = cleanValue.split('.');
+    const sanitizedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanValue;
+    
+    onChange(sanitizedValue);
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -46,7 +57,9 @@ export const AmountInput = ({
           type="number"
           placeholder={placeholder}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleAmountChange(e.target.value)}
+          min="0"
+          step="0.000001"
           disabled={disabled}
           className="bg-white border-2 border-orange-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-200 transition-all duration-300 rounded-lg shadow-md pr-24 sm:pr-28"
         />

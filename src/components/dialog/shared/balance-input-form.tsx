@@ -62,7 +62,16 @@ export const BalanceInputForm = memo(function BalanceInputForm({
    */
   const handleAmountChange = useCallback(
     (e: { target: { value: string } }) => {
-      onAmountChange(e.target.value);
+      const inputValue = e.target.value;
+      
+      // Prevent negative numbers and invalid characters
+      const cleanValue = inputValue.replace(/[^0-9.]/g, '');
+      
+      // Prevent multiple decimal points
+      const parts = cleanValue.split('.');
+      const sanitizedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanValue;
+      
+      onAmountChange(sanitizedValue);
     },
     [onAmountChange]
   );

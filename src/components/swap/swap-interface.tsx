@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, memo } from "react";
+import React, { useState, useCallback, memo, useEffect } from "react";
 import { ArrowUpDown, Info, ChevronDown } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,24 +115,64 @@ export const SwapInterface = memo(function SwapInterface({
     }
   }, [fromToken, toToken, fromAmount, toAmount]);
 
-  const { parsedExchangeRate: exchangeRate } = useReadExchangeRate(
+  // Calculate amount in with proper validation to prevent Infinity
+  const calculateAmountIn = () => {
+    if (!fromAmount || !fromToken) return 0;
+    const parsedAmount = parseFloat(fromAmount);
+    if (!isFinite(parsedAmount) || isNaN(parsedAmount) || parsedAmount < 0) return 0;
+    
+    const multiplier = Math.pow(10, fromToken.decimals || 18);
+    const result = parsedAmount * multiplier;
+    return isFinite(result) ? Math.floor(result) : 0;
+  };
+
+  // Use a minimal amount for exchange rate calculation when no amount is entered
+  const getAmountForExchangeRate = () => {
+    const calculatedAmount = calculateAmountIn();
+    if (calculatedAmount > 0) return calculatedAmount;
+    
+    // Use a more meaningful amount for rate calculation (0.01 in token units)
+    if (fromToken) {
+      return Math.pow(10, (fromToken.decimals || 18) - 2); // 0.01 in token decimals
+    }
+    return 0;
+  };
+
+  const { parsedExchangeRate: exchangeRate, refetchExchangeRate } = useReadExchangeRate(
     (selectedPool?.lendingPool as `0x${string}`) ||
       "0x0000000000000000000000000000000000000000",
     (fromToken?.addresses[currentChainId] as `0x${string}`) ||
       "0x0000000000000000000000000000000000000000",
     (toToken?.addresses[currentChainId] as `0x${string}`) ||
       "0x0000000000000000000000000000000000000000",
-    Math.floor(parseFloat(fromAmount || "0") * Math.pow(10, fromToken?.decimals || 18)),
+    getAmountForExchangeRate(),
     fromToken?.decimals || 18,
     toToken?.decimals || 18
   );
 
   const handleFromAmountChange = useCallback(
     (value: string) => {
-      setFromAmount(value);
-      if (value && fromToken && toToken) {
-        const converted = parseFloat(value) * exchangeRate;
-        setToAmount(converted.toFixed(6));
+      // Prevent negative numbers and invalid characters
+      const cleanValue = value.replace(/[^0-9.]/g, '');
+      
+      // Prevent multiple decimal points
+      const parts = cleanValue.split('.');
+      const sanitizedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanValue;
+      
+      setFromAmount(sanitizedValue);
+      
+      if (sanitizedValue && fromToken && toToken && exchangeRate && exchangeRate > 0) {
+        const parsedValue = parseFloat(sanitizedValue);
+        if (isFinite(parsedValue) && !isNaN(parsedValue) && parsedValue >= 0) {
+          const converted = parsedValue * exchangeRate;
+          if (isFinite(converted) && !isNaN(converted)) {
+            setToAmount(converted.toFixed(6));
+          } else {
+            setToAmount("");
+          }
+        } else {
+          setToAmount("");
+        }
       } else {
         setToAmount("");
       }
@@ -142,10 +182,26 @@ export const SwapInterface = memo(function SwapInterface({
 
   const handleToAmountChange = useCallback(
     (value: string) => {
-      setToAmount(value);
-      if (value && fromToken && toToken) {
-        const converted = parseFloat(value) / exchangeRate;
-        setFromAmount(converted.toFixed(6));
+      // Prevent negative numbers and invalid characters
+      const cleanValue = value.replace(/[^0-9.]/g, '');
+      
+      // Prevent multiple decimal points
+      const parts = cleanValue.split('.');
+      const sanitizedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanValue;
+      
+      setToAmount(sanitizedValue);
+      if (sanitizedValue && fromToken && toToken && exchangeRate && exchangeRate > 0) {
+        const parsedValue = parseFloat(sanitizedValue);
+        if (isFinite(parsedValue) && !isNaN(parsedValue) && parsedValue >= 0) {
+          const converted = parsedValue / exchangeRate;
+          if (isFinite(converted) && !isNaN(converted)) {
+            setFromAmount(converted.toFixed(6));
+          } else {
+            setFromAmount("");
+          }
+        } else {
+          setFromAmount("");
+        }
       } else {
         setFromAmount("");
       }
@@ -251,6 +307,8 @@ export const SwapInterface = memo(function SwapInterface({
                       placeholder="0"
                       value={fromAmount}
                       onChange={(e) => handleFromAmountChange(e.target.value)}
+                      min="0"
+                      step="0.000001"
                       className="border-0 bg-transparent text-3xl font-semibold placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
                     />
                     {fromToken && fromAmount ? (
@@ -312,6 +370,8 @@ export const SwapInterface = memo(function SwapInterface({
                       placeholder="0"
                       value={toAmount}
                       onChange={(e) => handleToAmountChange(e.target.value)}
+                      min="0"
+                      step="0.000001"
                       className="border-0 bg-transparent text-3xl font-semibold placeholder:text-gray-400 p-0 h-auto focus-visible:ring-0 text-gray-900"
                     />
                     {toToken && toAmount ? (

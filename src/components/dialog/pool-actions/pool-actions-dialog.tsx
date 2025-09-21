@@ -606,10 +606,19 @@ export const PoolActionsDialog = memo(function PoolActionsDialog({
                       }
                       value={selectedAction === "withdraw-liquidity" ? withdrawShares : amount}
                       onChange={(e) => {
+                        const inputValue = e.target.value;
+                        
+                        // Prevent negative numbers and invalid characters
+                        const cleanValue = inputValue.replace(/[^0-9.]/g, '');
+                        
+                        // Prevent multiple decimal points
+                        const parts = cleanValue.split('.');
+                        const sanitizedValue = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : cleanValue;
+                        
                         if (selectedAction === "withdraw-liquidity") {
-                          setWithdrawShares(e.target.value);
+                          setWithdrawShares(sanitizedValue);
                         } else {
-                          setAmount(e.target.value);
+                          setAmount(sanitizedValue);
                         }
                       }}
                       min="0"

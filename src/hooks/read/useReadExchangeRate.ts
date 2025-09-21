@@ -17,6 +17,22 @@ export const useReadExchangeRate = (
 ) => {
   const { userPosition, userPositionLoading, userPositionError } =
     useReadUserPosition(lendingPoolAddress);
+  
+  // Validate amountIn to prevent Infinity or invalid values
+  const isValidAmount = amountIn > 0 && isFinite(amountIn) && !isNaN(amountIn);
+  
+  // Use a minimum amount for exchange rate calculation to ensure it always works
+  const getSafeAmountIn = () => {
+    if (isValidAmount) return amountIn;
+    // Use a more meaningful amount (0.01 in token units) for better exchange rate calculation
+    return Math.pow(10, fromTokenDecimals - 2); // 0.01 in token decimals
+  };
+  
+  const safeAmountIn = getSafeAmountIn();
+  
+  // Allow exchange rate calculation when we have all required data
+  const canCalculateRate = !!userPosition && !userPositionLoading && !userPositionError && !!fromTokenAddress && !!toTokenAddress;
+  
   const {
     data: exchangeRate,
     isLoading: exchangeRateLoading,
@@ -29,11 +45,11 @@ export const useReadExchangeRate = (
     args: [
       fromTokenAddress,
       toTokenAddress,
-      BigInt(amountIn),
+      BigInt(safeAmountIn),
       userPosition as `0x${string}`,
     ],
     query: {
-      enabled: !!userPosition && !userPositionLoading && !userPositionError && !!fromTokenAddress && !!toTokenAddress && amountIn > 0,
+      enabled: canCalculateRate, // Always calculate when we have the required data
       refetchInterval: 30000, // Refetch every 30 seconds to reduce API calls
       staleTime: 20000, // Consider data fresh for 20 seconds
     },
@@ -42,9 +58,10 @@ export const useReadExchangeRate = (
   // Parse exchange rate - the contract returns amount out in token out decimals
   // We need to convert it to human readable format by dividing by toTokenDecimals
   // Also account for the input amount to get the actual rate per unit
-  const parsedExchangeRate = exchangeRate && amountIn > 0
-    ? (Number(exchangeRate) / Math.pow(10, toTokenDecimals)) / (amountIn / Math.pow(10, fromTokenDecimals))
+  const parsedExchangeRate = exchangeRate && safeAmountIn > 0
+    ? (Number(exchangeRate) / Math.pow(10, toTokenDecimals)) / (safeAmountIn / Math.pow(10, fromTokenDecimals))
     : 0;
+
 
   return {
     exchangeRate: exchangeRate,
