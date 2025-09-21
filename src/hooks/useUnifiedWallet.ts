@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance, usePublicClient } from 'wagmi';
-import { createWalletClient, custom, type WalletClient, type PublicClient } from 'viem';
+import { createWalletClient, custom, type WalletClient, type PublicClient, formatEther } from 'viem';
 import { kaia } from 'viem/chains';
 import DappPortalSDK from '@linenext/dapp-portal-sdk';
 import { useLiff } from '@/app/LiffProvider';
@@ -18,7 +18,8 @@ import {
   getOKXChainId,
   syncOKXWithWagmi,
   monitorOKXSession,
-  clearOKXSession
+  clearOKXSession,
+  disconnectOKXWallet
 } from '@/utils/okx-session-reader';
 import { 
   saveWalletSession, 
@@ -65,6 +66,7 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [detectedSession, setDetectedSession] = useState<DetectedWalletSession | null>(null);
   const [hasCheckedSession, setHasCheckedSession] = useState<boolean>(false);
+  const [isManuallyDisconnected, setIsManuallyDisconnected] = useState(false);
   
   // Get LIFF context
   const { liff, liffError } = useLiff();
@@ -101,11 +103,18 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
       console.log('🔍 Enhanced wallet session detection starting...');
       
       try {
-        // Check if auto-reconnect is enabled
-        const shouldReconnect = shouldAutoReconnect();
+        // Check if auto-reconnect is enabled and user hasn't manually disconnected
+        const shouldReconnect = shouldAutoReconnect() && !isManuallyDisconnected;
         const lastWalletType = getLastWalletType();
         
-        console.log('🔄 Auto-reconnect settings:', { shouldReconnect, lastWalletType });
+        console.log('🔄 Auto-reconnect settings:', { shouldReconnect, lastWalletType, isManuallyDisconnected });
+        
+        // If user manually disconnected, don't auto-reconnect
+        if (isManuallyDisconnected) {
+          console.log('🚫 Manual disconnect detected - skipping auto-reconnect');
+          setHasCheckedSession(true);
+          return;
+        }
         console.log('🎯 DApps Portal Priority Check:', { 
           useDappPortal, 
           hasDappWalletClient: !!dappWalletClient,
@@ -120,7 +129,7 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
         }
         
         // Priority 1: Check DApp Portal session (always check first as primary)
-        if (lastWalletType === 'dapp-portal' || !lastWalletType || lastWalletType === 'okx') {
+        if (lastWalletType === 'dapp-portal' || !lastWalletType || lastWalletType === 'wagmi') {
           const dappPortalSession = window.localStorage.getItem('dapp-portal-session');
           if (dappPortalSession) {
             try {
@@ -195,7 +204,7 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
         // 3. No DApps Portal session exists
         // 4. Not in mobile LIFF environment
         const shouldUseOKX = (okxSession.isConnected || okxConnected || okxAddress) && 
-                           (lastWalletType === 'okx') && 
+                           (lastWalletType === 'wagmi') && 
                            (!useDappPortal || !dappWalletClient || (isMobile && liff?.isInClient()));
         
         console.log('🤔 OKX Auto-connect Decision:', {
@@ -636,6 +645,7 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
       }
       
       setState(prev => ({ ...prev, isLoading: true, error: null }));
+      setIsManuallyDisconnected(false); // Reset manual disconnect flag
       
       console.log('🔗 Enhanced unified connection starting...', { 
         isMobile, 
@@ -838,52 +848,7 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
     try {
       console.log('🔌 Enhanced wallet disconnect starting...', { walletType: state.walletType });
       
-      // Clear detected session and reset session check
-      setDetectedSession(null);
-      setHasCheckedSession(false);
-      
-      // Enhanced wallet type handling
-      if (state.walletType === 'dapp-portal' && dappWalletClient) {
-        console.log('🔌 Enhanced DApp Portal disconnect');
-        // DApp Portal doesn't have explicit disconnect, just clear state
-      } else if (state.walletType === 'wagmi' || wagmiConnected) {
-        console.log('🔌 Enhanced Wagmi disconnect');
-        await wagmiDisconnect();
-      }
-      
-      // Enhanced OKX wallet disconnect
-      if (typeof window !== 'undefined') {
-        const ethereum = (window as unknown as { ethereum?: { isOkxWallet?: boolean; disconnect?: () => Promise<void>; selectedAddress?: string } })?.ethereum;
-        if (ethereum && ethereum.isOkxWallet) {
-          try {
-            console.log('🔌 Enhanced OKX wallet disconnect...');
-            // Try to disconnect from OKX provider
-            if (ethereum.disconnect) {
-              await ethereum.disconnect();
-            }
-            console.log('🗑️ Enhanced OKX wallet state cleared');
-          } catch (okxError) {
-            console.warn('Enhanced OKX disconnect failed:', okxError);
-          }
-        }
-      }
-      
-      // Enhanced session clearing
-      console.log('🗑️ Enhanced session clearing...');
-      
-      // Clear DApp Portal session
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem('dapp-portal-session');
-        console.log('🗑️ Enhanced DApp Portal session cleared');
-      }
-      
-      // Clear OKX session and Wagmi storage
-      clearOKXSession();
-      
-      // Clear unified session storage
-      clearWalletSession();
-      
-      // Enhanced state clearing
+      // IMMEDIATE state clearing - clear state first for instant UI update
       setState(prev => ({
         ...prev,
         isConnected: false,
@@ -894,6 +859,74 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
         error: null,
         isLoading: false,
       }));
+      
+      // Clear detected session and reset session check
+      setDetectedSession(null);
+      setHasCheckedSession(false);
+      setIsManuallyDisconnected(true);
+      
+      // Enhanced wallet type handling
+      if (state.walletType === 'dapp-portal' && dappWalletClient) {
+        console.log('🔌 Enhanced DApp Portal disconnect');
+        // DApp Portal doesn't have explicit disconnect, just clear state
+      } else if (state.walletType === 'wagmi' || wagmiConnected) {
+        console.log('🔌 Enhanced Wagmi disconnect');
+        await wagmiDisconnect();
+      }
+      
+      // Enhanced OKX wallet disconnect (OKX is represented via wagmi)
+      if (state.walletType === 'wagmi' || isOKXConnected()) {
+        console.log('🔌 Enhanced OKX wallet disconnect...');
+        await disconnectOKXWallet();
+      }
+      
+      // Enhanced session clearing
+      console.log('🗑️ Enhanced session clearing...');
+      
+      // Clear DApp Portal session
+      if (typeof window !== 'undefined') {
+        const dappPortalKeys = [
+          'dapp-portal-session',
+          'dapp-portal-account',
+          'dapp-portal-chainId',
+          'dapp-portal-clientId'
+        ];
+        
+        dappPortalKeys.forEach(key => {
+          if (window.localStorage.getItem(key)) {
+            window.localStorage.removeItem(key);
+            console.log(`🗑️ Cleared DApp Portal session: ${key}`);
+          }
+        });
+      }
+      
+      // Clear OKX session and Wagmi storage
+      clearOKXSession();
+      
+      // Clear unified session storage
+      clearWalletSession();
+      
+      // Clear any remaining wallet-related storage
+      if (typeof window !== 'undefined') {
+        const remainingKeys = [
+          'walletconnect',
+          'walletconnect-v2',
+          'metamask',
+          'coinbase',
+          'trust-wallet',
+          'rainbow',
+          'phantom'
+        ];
+        
+        remainingKeys.forEach(key => {
+          if (window.localStorage.getItem(key)) {
+            window.localStorage.removeItem(key);
+            console.log(`🗑️ Cleared remaining wallet storage: ${key}`);
+          }
+        });
+      }
+      
+      // State already cleared at the beginning for instant UI update
       
       console.log('✅ Enhanced wallet disconnect successful');
     } catch (error) {
@@ -911,17 +944,78 @@ export const useUnifiedWallet = (): UnifiedWalletState & UnifiedWalletActions =>
       throw new Error('Wallet not connected');
     }
 
+    console.log('💰 Getting balance for:', {
+      account: state.account,
+      walletType: state.walletType,
+      hasPublicClient: !!publicClient,
+      hasWagmiBalance: !!wagmiBalance
+    });
+
     try {
-      if (state.walletType === 'dapp-portal' && publicClient) {
+      // 1) Prefer viem public client if available (works for both DApps Portal and wagmi)
+      if (publicClient) {
+        console.log('💰 Using publicClient to get balance...');
         const balance = await publicClient.getBalance({ address: state.account as `0x${string}` });
-        return (Number(balance) / 1e18).toFixed(4);
-      } else if (wagmiBalance) {
-        return wagmiBalance.formatted;
+        const formatted = Number(formatEther(balance)).toFixed(4);
+        console.log('💰 PublicClient balance result:', { raw: balance.toString(), formatted });
+        return formatted;
       }
-      return '0';
+
+      // 2) Fallback to ethereum provider RPC (kaia_getBalance or eth_getBalance)
+      if (typeof window !== 'undefined') {
+        const ethereum = (window as any).ethereum as any;
+        if (ethereum?.request) {
+          console.log('💰 Using ethereum provider to get balance...');
+          try {
+            // Try Kaia method first
+            let hexBalance: string | null = null;
+            try {
+              console.log('💰 Trying kaia_getBalance...');
+              hexBalance = await ethereum.request({
+                method: 'kaia_getBalance',
+                params: [state.account, 'latest'],
+              });
+              console.log('💰 kaia_getBalance result:', hexBalance);
+            } catch (kaiaError) {
+              console.log('💰 kaia_getBalance failed:', kaiaError);
+            }
+
+            if (!hexBalance) {
+              try {
+                console.log('💰 Trying eth_getBalance...');
+                hexBalance = await ethereum.request({
+                  method: 'eth_getBalance',
+                  params: [state.account, 'latest'],
+                });
+                console.log('💰 eth_getBalance result:', hexBalance);
+              } catch (ethError) {
+                console.log('💰 eth_getBalance failed:', ethError);
+              }
+            }
+
+            if (typeof hexBalance === 'string') {
+              const wei = BigInt(hexBalance);
+              const formatted = Number(formatEther(wei)).toFixed(4);
+              console.log('💰 Provider balance result:', { raw: hexBalance, formatted });
+              return formatted;
+            }
+          } catch (rpcError) {
+            console.warn('Provider balance request failed:', rpcError);
+          }
+        }
+      }
+
+      // 3) Fallback to wagmi cached balance if any
+      if (wagmiBalance?.formatted) {
+        console.log('💰 Using wagmi cached balance:', wagmiBalance.formatted);
+        return Number(wagmiBalance.formatted).toFixed(4);
+      }
+
+      console.log('💰 No balance found, returning 0.0000');
+      return '0.0000';
     } catch (error) {
       console.error('Failed to get balance:', error);
-      return '0';
+      return '0.0000';
     }
   }, [state.account, state.walletType, publicClient, wagmiBalance]);
 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
+import { DisconnectConfirmationDialog } from "@/components/wallet/disconnect-confirmation-dialog";
 import {
   Lock,
   CreditCard,
@@ -23,14 +24,18 @@ const ProfileClient = memo(function ProfileClient() {
     account,
     isLoading,
     error,
+    walletType,
     connect,
     disconnect,
     getBalance,
     refreshConnection,
   } = useUnifiedWallet();
+  
   const [balance, setBalance] = useState<string | null>(null);
   const [loadingBalance, setLoadingBalance] = useState(false);
   const [refreshingConnection, setRefreshingConnection] = useState(false);
+  const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   const handleGetBalance = useCallback(async () => {
     if (!isConnected) return;
@@ -38,7 +43,8 @@ const ProfileClient = memo(function ProfileClient() {
     try {
       setLoadingBalance(true);
       const walletBalance = await getBalance();
-      setBalance((parseInt(walletBalance) / 1e18).toFixed(4));
+      // getBalance() already returns formatted string
+      setBalance(walletBalance);
     } catch {
       // Silent error handling for production
     } finally {
@@ -65,11 +71,27 @@ const ProfileClient = memo(function ProfileClient() {
     }
   }, [refreshConnection]);
 
+  const handleConfirmDisconnect = useCallback(async () => {
+    try {
+      setIsDisconnecting(true);
+      await disconnect();
+      console.log('✅ Wallet disconnected successfully');
+    } catch (error) {
+      console.error('Disconnection failed:', error);
+    } finally {
+      setIsDisconnecting(false);
+    }
+  }, [disconnect]);
+
+  const handleCloseDisconnectDialog = useCallback(() => {
+    setIsDisconnectDialogOpen(false);
+  }, []);
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       {/* Development Session Indicator - Remove in production */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+        <div className="p- hidden bg-yellow-50 border-b border-yellow-200">
           <div className="max-w-4xl mx-auto">
             <h3 className="text-sm font-medium text-yellow-800 mb-2">
               🔧 Development Mode - OKX Session Debug
@@ -134,7 +156,9 @@ const ProfileClient = memo(function ProfileClient() {
                   {error}
                 </p>
                 <Button
-                  onClick={connect}
+                  onClick={() => {
+                    connect('dapp-portal');
+                  }}
                   className="mt-3 bg-gradient-red-orange hover:bg-gradient-sunset text-white text-sm"
                   size="sm"
                 >
@@ -160,7 +184,7 @@ const ProfileClient = memo(function ProfileClient() {
                       </Button>
                       <SwitchWalletButton />
                       <Button
-                        onClick={disconnect}
+                        onClick={() => setIsDisconnectDialogOpen(true)}
                         variant="outline"
                         className="rounded-lg text-sunset-red border-sunset-red/20 hover:bg-red-500 hover:text-white text-sm"
                       >
@@ -264,7 +288,7 @@ const ProfileClient = memo(function ProfileClient() {
                 )}
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
-                    onClick={connect}
+                    onClick={() => connect('dapp-portal')}
                     className="bg-gradient-orange-pink hover:bg-gradient-sunset text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium flex-1 sm:flex-none"
                   >
                     Connect Wallet
@@ -287,6 +311,16 @@ const ProfileClient = memo(function ProfileClient() {
         {/* User Portfolio Section */}
         <UserPortfolio className="mb-4 sm:mb-6" />
       </div>
+      
+      {/* Disconnect Confirmation Dialog */}
+      <DisconnectConfirmationDialog
+        isOpen={isDisconnectDialogOpen}
+        onClose={handleCloseDisconnectDialog}
+        onConfirm={handleConfirmDisconnect}
+        walletType={walletType || undefined}
+        account={account || undefined}
+        isLoading={isDisconnecting}
+      />
     </div>
   );
 });

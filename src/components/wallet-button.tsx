@@ -24,7 +24,6 @@ export const WalletButton = ({
     account,
     isLoading,
     error,
-    connect,
     disconnect,
     getBalance,
   } = useUnifiedWallet();
@@ -40,9 +39,8 @@ export const WalletButton = ({
         try {
           setIsLoadingBalance(true);
           const walletBalance = await getBalance();
-          // Convert from wei to KAIA (divide by 1e18)
-          const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
-          setBalance(balanceInKAIA);
+          // getBalance() already returns formatted string
+          setBalance(walletBalance);
         } catch {
           setBalance(null);
         } finally {
@@ -270,9 +268,8 @@ export const WalletButton = ({
                       try {
                         setIsLoadingBalance(true);
                         const walletBalance = await getBalance();
-                        // Convert from wei to KAIA (divide by 1e18)
-                        const balanceInKAIA = (parseInt(walletBalance) / 1e18).toFixed(4);
-                        setBalance(balanceInKAIA);
+                        // getBalance() already returns formatted string
+                        setBalance(walletBalance);
                       } catch {
                         // Handle error silently
                       } finally {

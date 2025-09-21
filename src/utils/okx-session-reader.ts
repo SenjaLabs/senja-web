@@ -286,16 +286,85 @@ export function syncOKXWithWagmi(): boolean {
 }
 
 /**
- * Clear OKX session from localStorage
+ * Enhanced OKX disconnect function
+ */
+export async function disconnectOKXWallet(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    console.log('🔌 Starting enhanced OKX wallet disconnect...');
+    
+    const okxWallet = (window as any).okxwallet;
+    const ethereum = (window as any).ethereum;
+
+    // Method 1: Try OKX wallet specific disconnect
+    if (okxWallet) {
+      try {
+        // OKX wallet might have a disconnect method
+        if (typeof okxWallet.disconnect === 'function') {
+          await okxWallet.disconnect();
+          console.log('✅ OKX wallet disconnected via okxwallet.disconnect()');
+        } else if (typeof okxWallet.close === 'function') {
+          await okxWallet.close();
+          console.log('✅ OKX wallet closed via okxwallet.close()');
+        }
+      } catch (okxError) {
+        console.warn('OKX wallet disconnect method failed:', okxError);
+      }
+    }
+
+    // Method 2: Try ethereum provider disconnect
+    if (ethereum && ethereum.isOkxWallet) {
+      try {
+        // Try to disconnect from ethereum provider
+        if (typeof ethereum.disconnect === 'function') {
+          await ethereum.disconnect();
+          console.log('✅ OKX disconnected via ethereum.disconnect()');
+        }
+        
+        // Clear selected address
+        if (ethereum.selectedAddress) {
+          ethereum.selectedAddress = null;
+          console.log('✅ OKX selectedAddress cleared');
+        }
+      } catch (ethereumError) {
+        console.warn('Ethereum provider disconnect failed:', ethereumError);
+      }
+    }
+
+    // Method 3: Clear all session data
+    const cleared = clearOKXSession();
+    
+    console.log('✅ Enhanced OKX wallet disconnect completed');
+    return cleared;
+  } catch (error) {
+    console.error('Enhanced OKX wallet disconnect failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Enhanced clear OKX session from localStorage
  */
 export function clearOKXSession(): boolean {
   if (typeof window === 'undefined') return false;
 
   try {
+    console.log('🗑️ Starting enhanced OKX session clearing...');
+    
+    // Extended list of OKX-related keys
     const okxKeys = [
       'OKXStorageKeyck_dappSenjaLabs',
       'okx-wallet-session',
-      'okx-wallet-account'
+      'okx-wallet-account',
+      'okx-wallet-address',
+      'okx-wallet-chainId',
+      'okx-connect-session',
+      'okx-auth-session',
+      'okx-user-session',
+      'OKX_WALLET_CONNECTED',
+      'OKX_WALLET_ADDRESS',
+      'OKX_WALLET_CHAIN_ID'
     ];
 
     let cleared = false;
@@ -307,11 +376,50 @@ export function clearOKXSession(): boolean {
       }
     });
 
-    // Also clear Wagmi storage
-    window.localStorage.removeItem('wagmi.store');
-    window.localStorage.removeItem('recentConnectorId');
+    // Clear Wagmi storage
+    const wagmiKeys = [
+      'wagmi.store',
+      'recentConnectorId',
+      'wagmi.connected',
+      'wagmi.cache',
+      'wagmi.recentConnectorId'
+    ];
     
-    console.log('✅ OKX session cleared successfully');
+    wagmiKeys.forEach(key => {
+      if (window.localStorage.getItem(key)) {
+        window.localStorage.removeItem(key);
+        console.log(`🗑️ Cleared Wagmi storage: ${key}`);
+        cleared = true;
+      }
+    });
+
+    // Clear any other wallet-related storage
+    const otherWalletKeys = [
+      'walletconnect',
+      'walletconnect-v2',
+      'metamask',
+      'coinbase',
+      'trust-wallet',
+      'rainbow',
+      'phantom',
+      'brave',
+      'opera',
+      'coin98',
+      'tokenpocket',
+      'bitget',
+      'gate',
+      'binance'
+    ];
+    
+    otherWalletKeys.forEach(key => {
+      if (window.localStorage.getItem(key)) {
+        window.localStorage.removeItem(key);
+        console.log(`🗑️ Cleared other wallet storage: ${key}`);
+        cleared = true;
+      }
+    });
+    
+    console.log('✅ Enhanced OKX session clearing completed');
     return cleared;
   } catch (error) {
     console.error('Failed to clear OKX session:', error);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUnifiedWallet } from "@/hooks/useUnifiedWallet";
+import { DisconnectConfirmationDialog } from "@/components/wallet/disconnect-confirmation-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import SwitchChainButton from "./button/switch-wallet-button";
@@ -27,16 +28,18 @@ export const EnhancedWalletButton = ({
     isLoading,
     error,
     walletType,
-    currentChainId,
     connect,
     disconnect,
     getBalance,
     refreshConnection,
   } = useUnifiedWallet();
   
+  
   const [balance, setBalance] = useState<string | null>(null);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   // Enhanced balance fetching with auto-refresh
   useEffect(() => {
@@ -45,8 +48,8 @@ export const EnhancedWalletButton = ({
         try {
           setIsLoadingBalance(true);
           const walletBalance = await getBalance();
-          const balanceInKAIA = (parseFloat(walletBalance) / 1e18).toFixed(4);
-          setBalance(balanceInKAIA);
+          // getBalance() already returns formatted string
+          setBalance(walletBalance);
           setLastRefresh(new Date());
         } catch (error) {
           console.error('Failed to fetch balance:', error);
@@ -70,21 +73,34 @@ export const EnhancedWalletButton = ({
   }, [isConnected, account, getBalance, autoRefresh]);
 
   const handleConnect = async () => {
+    // Connect directly to DApps Portal SDK
+    console.log('🔧 Enhanced wallet button - connecting directly to DApps Portal SDK');
     try {
-      // Enhanced wallet button now connects directly to DApps Portal as primary
-      console.log('🔧 Enhanced wallet button - connecting to DApps Portal as primary');
       await connect('dapp-portal');
     } catch (error) {
-      console.error('Connection failed:', error);
+      console.error('DApps Portal connection failed:', error);
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleDisconnect = () => {
+    // Open disconnect confirmation dialog
+    setIsDisconnectDialogOpen(true);
+  };
+
+  const handleConfirmDisconnect = async () => {
     try {
+      setIsDisconnecting(true);
       await disconnect();
+      console.log('✅ Wallet disconnected successfully');
     } catch (error) {
       console.error('Disconnection failed:', error);
+    } finally {
+      setIsDisconnecting(false);
     }
+  };
+
+  const handleCloseDisconnectDialog = () => {
+    setIsDisconnectDialogOpen(false);
   };
 
   const handleRefresh = async () => {
@@ -127,38 +143,39 @@ export const EnhancedWalletButton = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className={`flex items-center justify-center p-4 ${className}`}>
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-        <span className="ml-2 text-sm text-gray-600">Connecting...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={`p-4 bg-red-50 border border-red-200 rounded-lg ${className}`}>
-        <div className="flex items-center mb-2">
-          <svg className="w-4 h-4 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-red-700 font-medium text-sm">Connection Error</p>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className={`flex items-center justify-center p-4 ${className}`}>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          <span className="ml-2 text-sm text-gray-600">Connecting...</span>
         </div>
-        <p className="text-red-600 text-xs mb-3">{error}</p>
-        <div className="flex gap-2">
-          <Button onClick={handleConnect} className="bg-red-600 hover:bg-red-700 text-white" size="sm">
-            Try Again
-          </Button>
-          <Button onClick={handleRefresh} variant="outline" size="sm" className="border-red-300 text-red-600">
-            Refresh
-          </Button>
-        </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (isConnected && account) {
+    if (error) {
+      return (
+        <div className={`p-4 bg-red-50 border border-red-200 rounded-lg ${className}`}>
+          <div className="flex items-center mb-2">
+            <svg className="w-4 h-4 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-700 font-medium text-sm">Connection Error</p>
+          </div>
+          <p className="text-red-600 text-xs mb-3">{error}</p>
+          <div className="flex gap-2">
+            <Button onClick={handleConnect} className="bg-red-600 hover:bg-red-700 text-white" size="sm">
+              Try Again
+            </Button>
+            <Button onClick={refreshConnection} variant="outline" size="sm" className="border-red-300 text-red-600">
+              Refresh
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (isConnected && account) {
     if (variant === "minimal") {
       return (
         <div className={`flex items-center gap-2 ${className}`}>
@@ -284,50 +301,65 @@ export const EnhancedWalletButton = ({
         )}
       </div>
     );
-  }
+    }
 
-  // Not connected state
-  if (variant === "minimal") {
+    // Not connected state
+    if (variant === "minimal") {
+      return (
+        <Button onClick={handleConnect} className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`} size="sm">
+          Connect
+        </Button>
+      );
+    }
+
+    if (variant === "compact") {
+      return (
+        <Button onClick={handleConnect} className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`}>
+          Connect Wallet
+        </Button>
+      );
+    }
+
+    // Enhanced variant (default)
     return (
-      <Button onClick={handleConnect} className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`} size="sm">
-        Connect
-      </Button>
+      <div className={`text-center p-6 ${className}`}>
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
+        <p className="text-gray-600 mb-4">
+          Connect your wallet to access all features. We support DApps Portal and OKX Wallet.
+        </p>
+        <div className="flex flex-col gap-2 mb-6">
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>DApps Portal SDK</span>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+            <span>OKX Wallet</span>
+          </div>
+        </div>
+        <Button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-medium">
+          Connect Wallet
+        </Button>
+      </div>
     );
-  }
+  };
 
-  if (variant === "compact") {
-    return (
-      <Button onClick={handleConnect} className={`bg-blue-600 hover:bg-blue-700 text-white ${className}`}>
-        Connect Wallet
-      </Button>
-    );
-  }
-
-  // Enhanced variant (default)
   return (
-    <div className={`text-center p-6 ${className}`}>
-      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">Connect Your Wallet</h3>
-      <p className="text-gray-600 mb-4">
-        Connect your wallet to access all features. We support DApps Portal and OKX Wallet.
-      </p>
-      <div className="flex flex-col gap-2 mb-6">
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>DApps Portal SDK</span>
-        </div>
-        <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-          <span>OKX Wallet</span>
-        </div>
-      </div>
-      <Button onClick={handleConnect} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-medium">
-        Connect Wallet
-      </Button>
-    </div>
+    <>
+      {renderContent()}
+      <DisconnectConfirmationDialog
+        isOpen={isDisconnectDialogOpen}
+        onClose={handleCloseDisconnectDialog}
+        onConfirm={handleConfirmDisconnect}
+        walletType={walletType || undefined}
+        account={account || undefined}
+        isLoading={isDisconnecting}
+      />
+    </>
   );
 };
